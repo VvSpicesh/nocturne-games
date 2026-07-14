@@ -1,0 +1,25 @@
+.mahjong-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+.mahjong-table{
+  position:relative;min-height:760px;border-radius:28px;overflow:hidden;
+  background:radial-gradient(circle at center,rgba(45,148,101,.22),transparent 50%),linear-gradient(145deg,#0d543a,#073525)
+}
+.seat{position:absolute;padding:8px;border-radius:14px;background:rgba(4,24,17,.74);border:1px solid var(--line)}
+.seat-top{top:10px;left:50%;transform:translateX(-50%);width:68%}
+.seat-bottom{bottom:10px;left:10px;right:10px}
+.seat-left{left:8px;top:50%;transform:translateY(-50%);width:86px}
+.seat-right{right:8px;top:50%;transform:translateY(-50%);width:86px}
+.hand{display:flex;justify-content:center;gap:2px}
+.hand.vertical{flex-direction:column;align-items:center}
+.tile{width:34px;height:50px;border-radius:7px;background:linear-gradient(145deg,#fffdf3,#e6eee2);border:1px solid rgba(0,0,0,.28);box-shadow:0 4px 8px rgba(0,0,0,.3);display:grid;place-items:center}
+.tile svg{width:100%;height:100%}
+.tile.back{background:linear-gradient(145deg,#1d6749,#0b3c2a);border:2px solid #b3d7c0}
+.discard{position:absolute;display:flex;flex-wrap:wrap;gap:3px}
+.discard-top{top:20%;left:30%;right:30%;justify-content:center}
+.discard-bottom{bottom:20%;left:30%;right:30%;justify-content:center}
+.discard-left{left:14%;top:31%;bottom:31%;width:110px;flex-direction:column}
+.discard-right{right:14%;top:31%;bottom:31%;width:110px;flex-direction:column}
+.table-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:15px 24px;border-radius:20px;background:rgba(4,23,17,.85);text-align:center}
+.wall-number{font-size:32px;font-weight:900;color:#f1ca67}
+.side-stack{display:flex;flex-direction:column;gap:14px}
+.side-card{padding:18px;border-radius:20px}
+@media(max-width:900px){.mahjong-layout{grid-template-columns:1fr}.mahjong-table{min-height:700px}}

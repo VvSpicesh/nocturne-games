@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Nocturne Chess</title>
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="./chess.css">
+</head>
+<body>
+  <main class="game-page">
+    <header class="game-header">
+      <div>
+        <a class="back-link" href="../index.html">← 返回游戏大厅</a>
+        <h1>Nocturne Chess</h1>
+      </div>
+      <span class="pill">模块化初期框架</span>
+    </header>
+
+    <section class="chess-layout">
+      <div class="board-shell panel">
+        <div id="chessBoard" class="chess-board"></div>
+      </div>
+
+      <aside class="side-stack">
+        <section class="panel side-card">
+          <h2>对局状态</h2>
+          <div id="turnText" class="status-big">白方回合</div>
+          <p class="muted">当前只搭好棋盘和基础走子框架。</p>
+          <div class="button-row">
+            <button id="resetChess">新对局</button>
+            <button id="flipChess">翻转棋盘</button>
+          </div>
+        </section>
+
+        <section class="panel side-card">
+          <h2>下一步</h2>
+          <p class="muted">完善合法走子、将军判断、棋谱、AI 和存档。</p>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script src="./engine.js"></script>
+  <script src="./chess.js"></script>
+</body>
+</html>

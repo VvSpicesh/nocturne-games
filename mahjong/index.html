@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Nocturne Mahjong</title>
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="./mahjong.css">
+</head>
+<body>
+  <main class="game-page">
+    <header class="game-header">
+      <div>
+        <a class="back-link" href="../index.html">← 返回游戏大厅</a>
+        <h1>Nocturne Mahjong</h1>
+      </div>
+      <span class="pill">四川血战到底 · 初期框架</span>
+    </header>
+
+    <section class="mahjong-layout">
+      <div class="mahjong-table panel">
+        <div class="seat seat-top" id="seat2"></div>
+        <div class="seat seat-left" id="seat1"></div>
+        <div class="seat seat-right" id="seat3"></div>
+        <div class="seat seat-bottom" id="seat0"></div>
+
+        <div class="discard discard-top" id="discard2"></div>
+        <div class="discard discard-left" id="discard1"></div>
+        <div class="discard discard-right" id="discard3"></div>
+        <div class="discard discard-bottom" id="discard0"></div>
+
+        <div class="table-center">
+          <div id="wallCount" class="wall-number">108</div>
+          <div id="phaseText" class="muted">准备</div>
+        </div>
+      </div>
+
+      <aside class="side-stack">
+        <section class="panel side-card">
+          <h2>牌局控制</h2>
+          <button id="newMahjongGame">开始新牌局</button>
+        </section>
+
+        <section class="panel side-card">
+          <h2>当前规则</h2>
+          <p class="muted">108张、换三张、定缺、血战到底、不封顶。</p>
+        </section>
+
+        <section class="panel side-card">
+          <h2>开发顺序</h2>
+          <p class="muted">牌面 → 发牌 → 换三张 → 定缺 → 摸打 → 碰杠胡 → 番型 → AI。</p>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script src="./config.js"></script>
+  <script src="./tiles.js"></script>
+  <script src="./hu.js"></script>
+  <script src="./score.js"></script>
+  <script src="./ai.js"></script>
+  <script src="./storage.js"></script>
+  <script src="./render.js"></script>
+  <script src="./game.js"></script>
+</body>
+</html>
