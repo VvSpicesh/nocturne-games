@@ -235,3 +235,170 @@ h1{margin:0;font-size:clamp(24px,4vw,38px);letter-spacing:-.04em}
   .seat-name{font-size:14px}
   .seat-meta{font-size:11px}
 }
+
+
+/* FOLDABLE_MOBILE_LAYOUT_FIX_V04 */
+
+html,
+body,
+.app,
+.game-layout,
+.table,
+.sidebar {
+  max-width: 100%;
+  min-width: 0;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.game-layout {
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+}
+
+/* 手机、折叠屏和平板优先使用单列。 */
+@media (max-width: 1249px) {
+  .game-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .card-log,
+  .note {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 折叠屏展开或平板。 */
+@media (min-width: 700px) and (max-width: 1249px) {
+  :root {
+    --tile-w: clamp(42px, 5.1vw, 62px);
+  }
+
+  .table {
+    aspect-ratio: 16 / 10;
+    height: auto !important;
+    min-height: 650px !important;
+    max-height: none !important;
+  }
+
+  .seat-top {
+    width: min(76%, 820px);
+  }
+
+  .discard-top {
+    top: 20%;
+    left: 23%;
+    right: 23%;
+  }
+
+  .discard-bottom {
+    bottom: 21%;
+    left: 23%;
+    right: 23%;
+  }
+
+  .discard-left {
+    left: 11%;
+    width: 145px;
+  }
+
+  .discard-right {
+    right: 11%;
+    width: 145px;
+  }
+}
+
+/* 普通手机竖屏。 */
+@media (max-width: 699px) and (orientation: portrait) {
+  .topbar {
+    padding-inline: 4px;
+  }
+
+  .brand p {
+    max-width: 220px;
+  }
+
+  .table {
+    aspect-ratio: auto;
+    min-height: 680px !important;
+    height: auto !important;
+  }
+
+  .sidebar {
+    display: flex;
+  }
+}
+
+/* 手机横屏，避免固定高度和比例共同撑宽页面。 */
+@media (max-width: 1249px) and (orientation: landscape) {
+  :root {
+    --tile-w: clamp(37px, 6.2vh, 57px);
+  }
+
+  .app {
+    width: 100%;
+    padding-inline: 6px;
+  }
+
+  .topbar {
+    margin-bottom: 6px;
+  }
+
+  .game-layout {
+    display: block;
+  }
+
+  .table {
+    width: 100%;
+    height: auto !important;
+    min-height: min(78vw, 720px) !important;
+    max-height: none !important;
+    aspect-ratio: 16 / 9;
+  }
+
+  .sidebar {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card-log,
+  .note {
+    grid-column: 1 / -1;
+  }
+
+  .log {
+    height: 170px;
+  }
+}
+
+/* 真正的大屏桌面才使用牌桌加右侧栏。 */
+@media (min-width: 1250px) {
+  .game-layout {
+    grid-template-columns: minmax(0, 1fr) clamp(300px, 23vw, 370px);
+  }
+
+  .table {
+    height: auto !important;
+    min-height: 720px;
+    aspect-ratio: 16 / 10;
+  }
+
+  .sidebar {
+    max-height: none;
+    overflow: visible;
+  }
+}
