@@ -560,3 +560,53 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     bottom:calc(var(--tile-h) + 72px)!important;
   }
 }
+
+
+/* v0.10 exchange selection fix */
+#exchangeCount{
+  display:inline-block;
+  margin-left:10px;
+  color:var(--gold);
+  font-size:15px;
+}
+.exchange-hand{
+  position:relative;
+  z-index:2;
+}
+.exchange-hand .tile{
+  position:relative;
+  z-index:1;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  overflow:visible;
+}
+.exchange-hand .tile svg,
+.exchange-hand .tile svg *{
+  pointer-events:none!important;
+}
+.exchange-hand .tile.exchange-selected{
+  transform:translateY(-15px)!important;
+  box-shadow:
+    0 0 0 4px var(--gold),
+    0 14px 24px rgba(0,0,0,.45)!important;
+}
+.exchange-hand .tile.exchange-selected::before{
+  content:attr(data-order);
+  position:absolute;
+  right:-7px;
+  top:-10px;
+  z-index:5;
+  width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  color:#243015;
+  background:var(--gold);
+  border:2px solid #fff6cc;
+  font-size:14px;
+  font-weight:950;
+}
+#exchangeConfirm:not(:disabled){
+  box-shadow:0 0 0 3px rgba(239,199,104,.35),0 10px 24px rgba(0,0,0,.3);
+}

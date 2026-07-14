@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
   <meta name="theme-color" content="#0b251b">
-  <title>Nocturne Mahjong v0.9</title>
-  <link rel="stylesheet" href="./style.css?v=0.9">
+  <title>Nocturne Mahjong v0.10</title>
+  <link rel="stylesheet" href="./style.css?v=0.10">
 </head>
 <body>
   <main class="app">
@@ -14,7 +14,7 @@
         <div class="logo">🀄</div>
         <div>
           <h1>Nocturne Mahjong</h1>
-          <p>四川麻将 · 血战到底 · 家庭大字版 v0.9</p>
+          <p>四川麻将 · 血战到底 · 家庭大字版 v0.10</p>
         </div>
       </div>
       <button id="newGameBtn" class="btn btn-primary">新牌局</button>
@@ -105,7 +105,7 @@
   <div id="exchangeModal" class="modal">
     <div class="modal-box">
       <h2>换三张</h2>
-      <p>任意选择三张牌，不限制花色。再次点击可取消。</p>
+      <p>任意选择三张牌，不限制花色。再次点击可取消。<strong id="exchangeCount">已选 0/3</strong></p>
       <div id="exchangeHand" class="exchange-hand"></div>
       <div class="modal-actions">
         <button id="exchangeConfirm" class="btn btn-primary" disabled>确认换牌</button>
@@ -126,6 +126,6 @@
 
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="./game.js?v=0.9"></script>
+  <script type="module" src="./game.js?v=0.10"></script>
 </body>
 </html>

@@ -136,16 +136,33 @@ export function renderLog(messages){
 
 export function renderExchange(hand,selectedIndexes,onToggle){
   const box=document.getElementById("exchangeHand");
+  const count=document.getElementById("exchangeCount");
+  const confirm=document.getElementById("exchangeConfirm");
+
   box.innerHTML="";
 
   hand.forEach((tile,index)=>{
     const el=createTileElement(tile);
-    if(selectedIndexes.includes(index))el.classList.add("tile-selected");
-    el.addEventListener("click",()=>onToggle(index));
+    el.dataset.exchangeIndex=String(index);
+
+    const order=selectedIndexes.indexOf(index);
+    if(order>=0){
+      el.classList.add("exchange-selected");
+      el.dataset.order=String(order+1);
+    }
+
     box.appendChild(el);
   });
 
-  document.getElementById("exchangeConfirm").disabled=selectedIndexes.length!==3;
+  count.textContent=`已选 ${selectedIndexes.length}/3`;
+  confirm.disabled=selectedIndexes.length!==3;
+
+  box.onclick=(event)=>{
+    const tile=event.target.closest(".tile[data-exchange-index]");
+    if(!tile||!box.contains(tile))return;
+    const index=Number(tile.dataset.exchangeIndex);
+    if(Number.isInteger(index))onToggle(index);
+  };
 }
 
 export function showReaction(title,text,actions){
