@@ -1,0 +1,249 @@
+.chess-layout{
+  display:grid;
+  grid-template-columns:minmax(480px,760px) minmax(280px,320px);
+  gap:18px;
+  align-items:start;
+}
+
+.board-shell{
+  padding:16px;
+  border-radius:28px;
+}
+
+.chess-board{
+  width:100%;
+  aspect-ratio:1;
+  display:grid;
+  grid-template-columns:repeat(8,minmax(0,1fr));
+  grid-template-rows:repeat(8,minmax(0,1fr));
+  overflow:hidden;
+  border-radius:18px;
+  user-select:none;
+  touch-action:manipulation;
+  box-shadow:0 16px 40px rgba(0,0,0,.3);
+}
+
+.square{
+  position:relative;
+  min-width:0;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.square.light{background:#dce8f4}
+.square.dark{background:#7188a8}
+.square:hover{filter:brightness(1.06)}
+
+.square.selected{
+  box-shadow:inset 0 0 0 5px rgba(255,218,90,.9);
+}
+
+.square.last{
+  box-shadow:inset 0 0 0 999px rgba(255,211,68,.2);
+}
+
+.square.selected.last{
+  box-shadow:
+    inset 0 0 0 999px rgba(255,211,68,.2),
+    inset 0 0 0 5px rgba(255,218,90,.95);
+}
+
+.square.move::after{
+  content:"";
+  width:20%;
+  aspect-ratio:1;
+  border-radius:50%;
+  background:rgba(13,28,45,.32);
+  pointer-events:none;
+}
+
+.square.capture::after{
+  content:"";
+  position:absolute;
+  inset:8%;
+  border-radius:50%;
+  border:5px solid rgba(132,34,46,.55);
+  pointer-events:none;
+}
+
+.piece-svg{
+  width:88%;
+  height:88%;
+  overflow:visible;
+  pointer-events:none;
+  filter:drop-shadow(0 4px 2px rgba(0,0,0,.27));
+}
+
+.piece-svg text{
+  font-family:"DejaVu Sans","Segoe UI Symbol","Noto Sans Symbols 2","Arial Unicode MS",serif;
+  font-size:88px;
+  font-weight:400;
+  text-anchor:middle;
+  dominant-baseline:central;
+}
+
+.piece-svg.white-piece text{
+  fill:#fff8e8;
+  stroke:#65523a;
+  stroke-width:1.15px;
+  paint-order:stroke fill;
+}
+
+.piece-svg.black-piece text{
+  fill:#17212d;
+  stroke:#eef4fb;
+  stroke-width:.55px;
+  paint-order:stroke fill;
+}
+
+.piece-svg.face-black{
+  transform:rotate(180deg);
+}
+
+.side-stack{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.side-card{
+  padding:18px;
+  border-radius:20px;
+  min-width:0;
+}
+
+.side-card h2{
+  margin:0 0 14px;
+  font-size:18px;
+}
+
+.setting-field{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  gap:7px;
+  margin-bottom:14px;
+}
+
+.setting-label{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+}
+
+.setting-select{
+  display:block;
+  width:100%;
+  min-height:44px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  color:#f5f7ff;
+  background:#19233b;
+  font-size:14px;
+  font-weight:750;
+}
+
+.setting-select option{
+  color:#111827;
+  background:white;
+}
+
+.status-big{
+  font-size:23px;
+  font-weight:850;
+}
+
+.muted{
+  color:var(--muted);
+  line-height:1.7;
+}
+
+.button-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.button-grid button{
+  min-height:44px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  color:white;
+  background:rgba(255,255,255,.08);
+  cursor:pointer;
+  font-weight:750;
+}
+
+.button-grid button:hover{
+  background:rgba(255,255,255,.13);
+}
+
+.button-grid .primary-button{
+  grid-column:1/-1;
+  background:linear-gradient(135deg,#7ca8ff,#9d7cff);
+}
+
+.move-list{
+  max-height:230px;
+  overflow:auto;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.75;
+}
+
+.move-entry{
+  padding:5px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+
+.diagnostic{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.ready-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#6ee7a8;
+  box-shadow:0 0 12px rgba(110,231,168,.75);
+}
+
+.chess-toast{
+  position:fixed;
+  left:50%;
+  bottom:26px;
+  z-index:30;
+  opacity:0;
+  pointer-events:none;
+  transform:translate(-50%,18px);
+  padding:10px 16px;
+  border-radius:999px;
+  color:white;
+  background:#111827;
+  transition:.22s ease;
+}
+
+.chess-toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+@media(max-width:900px){
+  .chess-layout{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:620px){
+  .board-shell{padding:9px}
+  .chess-board{border-radius:13px}
+  .piece-svg{width:91%;height:91%}
+}

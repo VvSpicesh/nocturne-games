@@ -2,41 +2,46 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#08111f">
   <title>Nocturne Chess</title>
-  <link rel="stylesheet" href="../shared/base.css">
-  <link rel="stylesheet" href="./chess.css">
+  <link rel="stylesheet" href="../shared/base.css?v=stable10">
+  <link rel="stylesheet" href="./css/board.css?v=stable10">
+  <link rel="stylesheet" href="./css/themes.css?v=stable10">
+  <link rel="stylesheet" href="./css/ui.css?v=stable10">
 </head>
 <body>
   <main class="game-page">
     <header class="game-header">
       <div>
-        <a class="back-link" href="../">← 返回游戏大厅</a>
+        <a class="back-link" href="../index.html">← 返回游戏大厅</a>
         <h1>Nocturne Chess</h1>
       </div>
-      <span class="pill">v0.2.2 · 可走棋 · 人机对战</span>
+      <span class="pill">Stable v1.0</span>
     </header>
 
     <section class="chess-layout">
-      <div class="board-shell panel">
-        <div id="chessBoard" class="chess-board"></div>
+      <div class="board-shell panel" data-theme="blue">
+        <div id="chessBoard" class="chess-board" aria-label="国际象棋棋盘"></div>
       </div>
 
       <aside class="side-stack">
         <section class="panel side-card">
           <h2>对局设置</h2>
-          <label class="field">
-            <span>模式</span>
-            <select id="modeSelect">
+
+          <label class="setting-field">
+            <span class="setting-label">对战模式</span>
+            <select id="modeSelect" class="setting-select">
               <option value="local">本地双人</option>
               <option value="ai">和电脑对战</option>
             </select>
           </label>
-          <label class="field">
-            <span>电脑难度</span>
-            <select id="difficultySelect">
+
+          <label class="setting-field">
+            <span class="setting-label">电脑难度</span>
+            <select id="difficultySelect" class="setting-select">
               <option value="easy">简单</option>
-              <option value="normal">普通</option>
+              <option value="normal" selected>普通</option>
               <option value="hard">困难</option>
             </select>
           </label>
@@ -46,22 +51,71 @@
           <h2>对局状态</h2>
           <div id="turnText" class="status-big">白方回合</div>
           <p id="statusText" class="muted">点击棋子开始走棋。</p>
-          <div class="button-row">
-            <button id="undoChess">悔棋</button>
-            <button id="flipChess">翻转棋盘</button>
-            <button id="resetChess" class="primary">新对局</button>
+
+          <div class="meta-row">
+            <div>
+              <div class="meta-label">对局计时</div>
+              <div id="clockText" class="meta-value">00:00</div>
+            </div>
+            <div>
+              <div class="meta-label">自动保存</div>
+              <div id="saveStatus" class="meta-value">未保存</div>
+            </div>
+          </div>
+
+          <div class="button-grid">
+            <button type="button" id="undoChess">悔棋</button>
+            <button type="button" id="flipChess">翻转棋盘</button>
+            <button type="button" id="themeChess">切换棋盘</button>
+            <button type="button" id="resetChess" class="primary-button">新对局</button>
+          </div>
+        </section>
+
+        <section class="panel side-card">
+          <h2>被吃棋子</h2>
+          <div class="captured-block">
+            <div class="captured-label">白方吃到</div>
+            <div id="capturedByWhite" class="captured-line">—</div>
+          </div>
+          <div class="captured-block">
+            <div class="captured-label">黑方吃到</div>
+            <div id="capturedByBlack" class="captured-line">—</div>
           </div>
         </section>
 
         <section class="panel side-card">
           <h2>棋谱</h2>
-          <div id="moveList" class="move-list"></div>
+          <div id="moveList" class="move-list">暂无棋谱</div>
+        </section>
+
+        <section class="panel side-card diagnostic">
+          <span class="ready-dot"></span>
+          <span id="engineStatus">正在加载棋盘引擎…</span>
         </section>
       </aside>
     </section>
   </main>
 
-  <script src="./engine.js"></script>
-  <script src="./chess.js"></script>
+  <div id="chessToast" class="chess-toast" role="status"></div>
+
+  <div id="promotionModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card panel">
+      <h2>选择升变</h2>
+      <p class="muted">兵已到达底线，请选择升变棋子。</p>
+      <div class="promotion-choices">
+        <button type="button" data-promo="q">后 ♕</button>
+        <button type="button" data-promo="r">车 ♖</button>
+        <button type="button" data-promo="b">象 ♗</button>
+        <button type="button" data-promo="n">马 ♘</button>
+      </div>
+      <button type="button" id="cancelPromotion" class="ghost-button">取消</button>
+    </div>
+  </div>
+
+  <script src="./js/engine.js?v=stable10"></script>
+  <script src="./js/storage.js?v=stable10"></script>
+  <script src="./js/renderer.js?v=stable10"></script>
+  <script src="./js/ai.js?v=stable10"></script>
+  <script src="./js/game.js?v=stable10"></script>
 </body>
 </html>

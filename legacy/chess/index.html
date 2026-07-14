@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#08111f">
+  <title>Nocturne Chess</title>
+  <link rel="stylesheet" href="../shared/base.css?v=023">
+  <link rel="stylesheet" href="./chess.css?v=023">
+</head>
+<body>
+  <main class="game-page">
+    <header class="game-header">
+      <div>
+        <a class="back-link" href="../">← 返回游戏大厅</a>
+        <h1>Nocturne Chess</h1>
+      </div>
+      <span class="pill">v0.2.3 · 人机对战修复版</span>
+    </header>
+
+    <section class="chess-layout">
+      <div class="board-shell panel">
+        <div id="chessBoard" class="chess-board" aria-label="国际象棋棋盘"></div>
+      </div>
+
+      <aside class="side-stack">
+        <section class="panel side-card">
+          <h2>对局设置</h2>
+
+          <label class="setting-field">
+            <span class="setting-label">对战模式</span>
+            <select id="modeSelect" class="setting-select">
+              <option value="local">本地双人</option>
+              <option value="ai">和电脑对战</option>
+            </select>
+          </label>
+
+          <label class="setting-field">
+            <span class="setting-label">电脑难度</span>
+            <select id="difficultySelect" class="setting-select">
+              <option value="easy">简单</option>
+              <option value="normal">普通</option>
+              <option value="hard">困难</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="panel side-card">
+          <h2>对局状态</h2>
+          <div id="turnText" class="status-big">白方回合</div>
+          <p id="statusText" class="muted">点击棋子开始走棋。</p>
+
+          <div class="button-grid">
+            <button id="undoChess">悔棋</button>
+            <button id="flipChess">翻转棋盘</button>
+            <button id="resetChess" class="primary-button">新对局</button>
+          </div>
+        </section>
+
+        <section class="panel side-card">
+          <h2>棋谱</h2>
+          <div id="moveList" class="move-list">暂无棋谱</div>
+        </section>
+
+        <section class="panel side-card diagnostic">
+          <span class="ready-dot"></span>
+          <span id="engineStatus">正在加载棋盘引擎…</span>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <div id="chessToast" class="chess-toast"></div>
+
+  <script src="./engine.js?v=023"></script>
+  <script src="./chess.js?v=023"></script>
+</body>
+</html>

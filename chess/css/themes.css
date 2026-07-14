@@ -1,0 +1,48 @@
+.board-shell,
+.board-shell[data-theme="blue"]{
+  --sq-light:#dce8f4;
+  --sq-dark:#7188a8;
+}
+
+.board-shell[data-theme="wood"]{
+  --sq-light:#f0d9b5;
+  --sq-dark:#b58863;
+}
+
+.piece-svg{
+  width:88%;
+  height:88%;
+  overflow:visible;
+  pointer-events:none;
+  filter:drop-shadow(0 4px 2px rgba(0,0,0,.27));
+}
+
+.piece-svg text{
+  font-family:"DejaVu Sans","Segoe UI Symbol","Noto Sans Symbols 2","Arial Unicode MS",serif;
+  font-size:88px;
+  font-weight:400;
+  text-anchor:middle;
+  dominant-baseline:central;
+}
+
+.piece-svg.white-piece text{
+  fill:#fff8e8;
+  stroke:#65523a;
+  stroke-width:1.15px;
+  paint-order:stroke fill;
+}
+
+.piece-svg.black-piece text{
+  fill:#17212d;
+  stroke:#eef4fb;
+  stroke-width:.55px;
+  paint-order:stroke fill;
+}
+
+.piece-svg.face-away{
+  transform:rotate(180deg);
+}
+
+@media(max-width:620px){
+  .piece-svg{width:91%;height:91%}
+}

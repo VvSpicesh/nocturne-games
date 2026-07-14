@@ -12,20 +12,18 @@ nocturne-games/
 │  └─ app.js
 ├─ chess/
 │  ├─ index.html
-│  ├─ chess.css
-│  ├─ chess.js
-│  └─ engine.js
-└─ mahjong/
-   ├─ index.html
-   ├─ mahjong.css
-   ├─ config.js
-   ├─ tiles.js
-   ├─ hu.js
-   ├─ score.js
-   ├─ ai.js
-   ├─ storage.js
-   ├─ render.js
-   └─ game.js
+│  ├─ css/          # board, themes, ui
+│  └─ js/           # engine, renderer, ai, storage, game
+├─ mahjong/
+│  ├─ index.html
+│  ├─ css/          # table, tiles, ui
+│  └─ js/           # config, tiles, hu, score, ai, storage, renderer, game
+├─ docs/
+│  ├─ ARCHITECTURE.md
+│  ├─ ROADMAP.md
+│  ├─ CHESS_REQUIREMENTS.md
+│  └─ MAHJONG_RULES.md
+└─ legacy/          # 重组前备份，请勿直接引用
 ```
 
 ## 本地启动
@@ -46,6 +44,6 @@ python -m http.server 8080
 
 ## 当前状态
 
-- Chess：已搭好页面、棋盘渲染和模块接口。
-- Mahjong：已搭好牌桌、牌面渲染、规则模块接口和状态管理框架。
-- 后续逻辑按模块逐步实现，不再向单个 HTML 里堆代码。
+- Chess：模块化框架，含棋盘、走子、人机与存档。
+- Mahjong：模块化框架，含换三张、定缺与基础摸打。
+- 详细说明见 `docs/`。

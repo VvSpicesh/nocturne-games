@@ -1,0 +1,23 @@
+.side-stack{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.side-card{
+  padding:18px;
+  border-radius:20px;
+}
+
+.operation-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.operation-actions button,.primary{
+  border:1px solid var(--line);border-radius:12px;padding:11px 14px;
+  color:white;background:linear-gradient(135deg,#43bc83,#268e62);cursor:pointer;font-weight:800
+}
+.choice-button{background:rgba(255,255,255,.08)!important}
+.choice-button.active{box-shadow:0 0 0 3px #f1ca67}
+.toast{
+  position:fixed;left:50%;bottom:24px;z-index:30;opacity:0;transform:translate(-50%,18px);
+  padding:10px 15px;border-radius:999px;background:#071a13;color:white;transition:.22s;pointer-events:none
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
