@@ -1,4 +1,4 @@
-const KEY="nocturne_mahjong_state_v06";
+const KEY="nocturne_mahjong_state_v07";
 
 export function saveState(state){
   localStorage.setItem(KEY,JSON.stringify(state));

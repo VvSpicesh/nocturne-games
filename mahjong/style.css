@@ -248,3 +248,29 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   .card-log,.note{grid-column:auto}
   .log{height:250px}
 }
+
+
+/* v0.7 core rules */
+.melds{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-top:5px
+}
+.meld{
+  display:flex;gap:1px;padding:3px;border-radius:8px;
+  background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)
+}
+.meld .tile{
+  width:calc(var(--tile-w)*.62);height:calc(var(--tile-h)*.62);cursor:default
+}
+.reaction-box{text-align:center}
+.reaction-buttons{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:16px
+}
+.reaction-buttons .btn{min-width:82px}
+.win-title{
+  margin:12px 0 8px;font-size:24px;font-weight:900;color:var(--gold)
+}
+.action-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:58px;padding:8px 10px;border-radius:11px;
+  background:rgba(255,255,255,.08);font-weight:850
+}
