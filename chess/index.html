@@ -11,10 +11,10 @@
   <main class="game-page">
     <header class="game-header">
       <div>
-        <a class="back-link" href="../index.html">← 返回游戏大厅</a>
+        <a class="back-link" href="../">← 返回游戏大厅</a>
         <h1>Nocturne Chess</h1>
       </div>
-      <span class="pill">模块化初期框架</span>
+      <span class="pill">v0.2.2 · 可走棋 · 人机对战</span>
     </header>
 
     <section class="chess-layout">
@@ -24,18 +24,38 @@
 
       <aside class="side-stack">
         <section class="panel side-card">
+          <h2>对局设置</h2>
+          <label class="field">
+            <span>模式</span>
+            <select id="modeSelect">
+              <option value="local">本地双人</option>
+              <option value="ai">和电脑对战</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>电脑难度</span>
+            <select id="difficultySelect">
+              <option value="easy">简单</option>
+              <option value="normal">普通</option>
+              <option value="hard">困难</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="panel side-card">
           <h2>对局状态</h2>
           <div id="turnText" class="status-big">白方回合</div>
-          <p class="muted">当前只搭好棋盘和基础走子框架。</p>
+          <p id="statusText" class="muted">点击棋子开始走棋。</p>
           <div class="button-row">
-            <button id="resetChess">新对局</button>
+            <button id="undoChess">悔棋</button>
             <button id="flipChess">翻转棋盘</button>
+            <button id="resetChess" class="primary">新对局</button>
           </div>
         </section>
 
         <section class="panel side-card">
-          <h2>下一步</h2>
-          <p class="muted">完善合法走子、将军判断、棋谱、AI 和存档。</p>
+          <h2>棋谱</h2>
+          <div id="moveList" class="move-list"></div>
         </section>
       </aside>
     </section>

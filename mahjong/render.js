@@ -1,78 +1,101 @@
-const MahjongRender = {
-  render(state, options = {}) {
-    state.players.forEach((player, index) => {
-      this.renderSeat(player, index, options);
-      this.renderDiscards(player, index);
+const MahjongRender={
+  render(state){
+    state.players.forEach((player,index)=>{
+      this.renderSeat(state,player,index);
+      this.renderDiscards(player,index);
     });
-
-    document.getElementById("wallCount").textContent = state.wall.length;
-    document.getElementById("phaseText").textContent = state.phase;
+    document.getElementById("wallCount").textContent=state.wall.length;
+    document.getElementById("phaseText").textContent=state.phase;
+    this.renderOperation(state);
   },
 
-  renderSeat(player, index, options = {}) {
-    const seat = document.getElementById(`seat${index}`);
-    const vertical = index === 1 || index === 3;
-
-    seat.innerHTML = `
+  renderSeat(state,player,index){
+    const seat=document.getElementById(`seat${index}`);
+    const vertical=index===1||index===3;
+    seat.innerHTML=`
       <div class="seat-header">
         <div class="seat-title">
-          <div class="avatar">${index === 0 ? "🙂" : "🤖"}</div>
+          <div class="avatar">${index===0?"🙂":"🤖"}</div>
           <div>
             <div class="player-name">${player.name}</div>
-            <div class="player-meta">${player.missingSuit ? `缺：${player.missingSuit}` : "等待定缺"}</div>
+            <div class="player-meta">${player.missingSuit?`缺：${player.missingSuit}`:"等待定缺"}</div>
           </div>
         </div>
         <span class="player-meta">${player.hand.length}张</span>
       </div>
-
-      <div class="hand ${vertical ? `vertical ${index === 1 ? "left-facing" : "right-facing"}` : ""}"></div>
+      <div class="hand ${vertical?`vertical ${index===1?"left-facing":"right-facing"}`:""}"></div>
     `;
+    const hand=seat.querySelector(".hand");
 
-    const handElement = seat.querySelector(".hand");
+    player.hand.forEach((tile,tileIndex)=>{
+      const el=document.createElement("div");
+      el.className=index===0?"tile":"tile back";
 
-    player.hand.forEach((tile, tileIndex) => {
-      const tileElement = document.createElement("div");
-      tileElement.className = index === 0 ? "tile" : "tile back";
-
-      if (options.animateDeal) {
-        tileElement.classList.add("dealing");
-        tileElement.style.animationDelay = `${tileIndex * 35}ms`;
-
-        const motion = this.getDealMotion(index);
-        tileElement.style.setProperty("--deal-x", motion.x);
-        tileElement.style.setProperty("--deal-y", motion.y);
-        tileElement.style.setProperty("--deal-r", motion.rotation);
-        tileElement.style.setProperty("--final-r", motion.finalRotation);
+      if(index===0){
+        el.innerHTML=MahjongTiles.faceSvg(tile);
+        const selectable=
+          (state.phase==="换三张")||
+          (state.phase==="出牌"&&state.currentPlayer===0);
+        if(selectable){
+          el.classList.add("clickable");
+          if(state.selectedTiles.includes(tile.id))el.classList.add("selected");
+          el.onclick=()=>MahjongGame.handleHumanTile(tileIndex);
+        }
       }
-
-      if (index === 0) {
-        tileElement.innerHTML = MahjongTiles.faceSvg(tile);
-      }
-
-      handElement.appendChild(tileElement);
+      hand.appendChild(el);
     });
   },
 
-  renderDiscards(player, index) {
-    const discardElement = document.getElementById(`discard${index}`);
-    discardElement.innerHTML = "";
-
-    player.discards.forEach((tile) => {
-      const tileElement = document.createElement("div");
-      tileElement.className = "tile";
-      tileElement.innerHTML = MahjongTiles.faceSvg(tile);
-      discardElement.appendChild(tileElement);
+  renderDiscards(player,index){
+    const box=document.getElementById(`discard${index}`);
+    box.innerHTML="";
+    player.discards.forEach(tile=>{
+      const el=document.createElement("div");
+      el.className="tile";
+      el.innerHTML=MahjongTiles.faceSvg(tile);
+      box.appendChild(el);
     });
   },
 
-  getDealMotion(index) {
-    const motions = {
-      0: { x: "0px", y: "-220px", rotation: "0deg", finalRotation: "0deg" },
-      1: { x: "220px", y: "0px", rotation: "0deg", finalRotation: "90deg" },
-      2: { x: "0px", y: "220px", rotation: "180deg", finalRotation: "0deg" },
-      3: { x: "-220px", y: "0px", rotation: "0deg", finalRotation: "-90deg" }
-    };
+  renderOperation(state){
+    const hint=document.getElementById("operationHint");
+    const actions=document.getElementById("operationActions");
+    actions.innerHTML="";
 
-    return motions[index];
+    if(state.phase==="准备"){
+      hint.textContent="点击“开始新牌局”。";
+      return;
+    }
+
+    if(state.phase==="换三张"){
+      hint.textContent="请选择同一花色的三张牌。";
+      const btn=document.createElement("button");
+      btn.textContent="确认换三张";
+      btn.disabled=state.selectedTiles.length!==3;
+      btn.onclick=()=>MahjongGame.confirmExchange();
+      actions.appendChild(btn);
+      return;
+    }
+
+    if(state.phase==="定缺"){
+      hint.textContent="请选择本局定缺花色。";
+      for(const [suit,label] of [["wan","万"],["bamboo","条"],["dot","筒"]]){
+        const btn=document.createElement("button");
+        btn.className="choice-button"+(state.pendingMissing===suit?" active":"");
+        btn.textContent=label;
+        btn.onclick=()=>MahjongGame.chooseMissing(suit);
+        actions.appendChild(btn);
+      }
+      const confirm=document.createElement("button");
+      confirm.textContent="确认定缺";
+      confirm.disabled=!state.pendingMissing;
+      confirm.onclick=()=>MahjongGame.confirmMissing();
+      actions.appendChild(confirm);
+      return;
+    }
+
+    if(state.phase==="出牌"){
+      hint.textContent=state.currentPlayer===0?"请选择一张牌打出。":"电脑正在出牌。";
+    }
   }
 };

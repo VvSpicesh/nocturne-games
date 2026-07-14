@@ -11,10 +11,10 @@
   <main class="game-page">
     <header class="game-header">
       <div>
-        <a class="back-link" href="../index.html">← 返回游戏大厅</a>
+        <a class="back-link" href="../">← 返回游戏大厅</a>
         <h1>Nocturne Mahjong</h1>
       </div>
-      <span class="pill">四川血战到底 · 初期框架</span>
+      <span class="pill">v0.2.2 · 换三张 · 定缺 · 基础摸打</span>
     </header>
 
     <section class="mahjong-layout">
@@ -38,27 +38,27 @@
       <aside class="side-stack">
         <section class="panel side-card">
           <h2>牌局控制</h2>
-          <button id="newMahjongGame">开始新牌局</button>
+          <button id="newMahjongGame" class="primary">开始新牌局</button>
+        </section>
+
+        <section class="panel side-card">
+          <h2>当前操作</h2>
+          <p id="operationHint" class="muted">点击“开始新牌局”。</p>
+          <div id="operationActions" class="operation-actions"></div>
         </section>
 
         <section class="panel side-card">
           <h2>当前规则</h2>
           <p class="muted">108张、换三张、定缺、血战到底、不封顶。</p>
         </section>
-
-        <section class="panel side-card">
-          <h2>开发顺序</h2>
-          <p class="muted">牌面 → 发牌 → 换三张 → 定缺 → 摸打 → 碰杠胡 → 番型 → AI。</p>
-        </section>
       </aside>
     </section>
   </main>
 
+  <div id="toast" class="toast"></div>
+
   <script src="./config.js"></script>
   <script src="./tiles.js"></script>
-  <script src="./hu.js"></script>
-  <script src="./score.js"></script>
-  <script src="./ai.js"></script>
   <script src="./storage.js"></script>
   <script src="./render.js"></script>
   <script src="./game.js"></script>
