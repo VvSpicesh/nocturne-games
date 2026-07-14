@@ -22,9 +22,9 @@ export function tileName(tile){
 export function tileFace(tile){
   if(tile.s==="w"){
     return svg(`
-      <text x="50" y="58" text-anchor="middle" font-size="26" font-weight="700"
+      <text x="50" y="62" text-anchor="middle" font-size="36" font-weight="700"
         font-family="Noto Serif SC,Songti SC,SimSun,serif" fill="#d6403b">${NUM_CN[tile.n]}</text>
-      <text x="50" y="99" text-anchor="middle" font-size="24" font-weight="700"
+      <text x="50" y="103" text-anchor="middle" font-size="22" font-weight="700"
         font-family="Noto Serif SC,Songti SC,SimSun,serif" fill="#d6403b">萬</text>
     `);
   }

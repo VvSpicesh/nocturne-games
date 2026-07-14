@@ -1,4 +1,4 @@
-const KEY="nocturne_mahjong_rules_v07";
+const KEY="nocturne_mahjong_rules_v08";
 
 export const defaultRules={
   exchangeThree:true,

@@ -250,7 +250,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 
 
-/* v0.7 core rules */
+/* v0.8 large action dock */
 .melds{
   display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-top:5px
 }
@@ -273,4 +273,105 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   display:inline-flex;align-items:center;justify-content:center;
   min-width:58px;padding:8px 10px;border-radius:11px;
   background:rgba(255,255,255,.08);font-weight:850
+}
+
+
+/* v0.8 large action dock */
+.action-dock{
+  position:absolute;
+  right:clamp(12px,2vw,28px);
+  bottom:calc(var(--tile-h) + 72px);
+  z-index:20;
+  min-width:250px;
+  max-width:min(62%,620px);
+  display:none;
+  padding:12px;
+  border-radius:18px;
+  background:rgba(4,22,16,.96);
+  border:2px solid rgba(239,199,104,.58);
+  box-shadow:0 18px 38px rgba(0,0,0,.4);
+}
+.action-dock.show{
+  display:block;
+}
+.action-dock-text{
+  margin-bottom:10px;
+  color:#f8edd0;
+  font-size:clamp(15px,2vw,21px);
+  font-weight:800;
+  text-align:center;
+}
+.action-dock-buttons{
+  display:flex;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.action-dock-button{
+  min-width:88px;
+  min-height:58px;
+  padding:10px 18px;
+  border:none;
+  border-radius:16px;
+  color:#fff;
+  background:linear-gradient(145deg,#2d9f6d,#18734c);
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:0 8px 18px rgba(0,0,0,.28);
+  font-size:clamp(24px,3vw,36px);
+  font-weight:950;
+  line-height:1;
+  cursor:pointer;
+}
+.action-dock-button.primary{
+  color:#263018;
+  background:linear-gradient(145deg,#f6d979,#d9a83e);
+  border-color:rgba(255,248,206,.8);
+}
+.action-dock-button.pass{
+  background:linear-gradient(145deg,#68776f,#3e4a44);
+}
+.action-dock-button:active{
+  transform:translateY(2px);
+}
+.reaction-modal,
+.reaction-box,
+.reaction-buttons{
+  display:none!important;
+}
+
+@media(max-width:699px){
+  .action-dock{
+    right:7px;
+    bottom:calc(var(--tile-h) + 76px);
+    min-width:220px;
+    max-width:88%;
+    padding:9px;
+  }
+  .action-dock-text{
+    font-size:14px;
+    margin-bottom:7px;
+  }
+  .action-dock-buttons{
+    gap:7px;
+  }
+  .action-dock-button{
+    min-width:72px;
+    min-height:52px;
+    padding:8px 13px;
+    font-size:25px;
+    border-radius:14px;
+  }
+}
+
+@media(orientation:landscape) and (max-width:1299px){
+  .action-dock{
+    right:18px;
+    bottom:calc(var(--tile-h) + 60px);
+    min-width:300px;
+  }
+  .action-dock-button{
+    min-width:92px;
+    min-height:60px;
+    font-size:30px;
+  }
 }

@@ -136,24 +136,36 @@ export function renderExchange(hand,selectedIndexes,onToggle){
 }
 
 export function showReaction(title,text,actions){
-  document.getElementById("reactionTitle").textContent=title;
-  document.getElementById("reactionText").textContent=text;
+  const dock=document.getElementById("actionDock");
+  const textBox=document.getElementById("actionDockText");
+  const buttonBox=document.getElementById("actionDockButtons");
 
-  const box=document.getElementById("reactionButtons");
-  box.innerHTML="";
+  textBox.textContent=text ? `${title}：${text}` : title;
+  buttonBox.innerHTML="";
 
   actions.forEach(action=>{
     const button=document.createElement("button");
-    button.className="btn "+(action.primary?"btn-primary":"");
+    button.className=
+      "action-dock-button" +
+      (action.primary ? " primary" : "") +
+      (action.label==="过" ? " pass" : "");
     button.textContent=action.label;
     button.onclick=()=>{
-      document.getElementById("reactionModal").classList.remove("show");
+      dock.classList.remove("show");
+      buttonBox.innerHTML="";
       action.run();
     };
-    box.appendChild(button);
+    buttonBox.appendChild(button);
   });
 
-  document.getElementById("reactionModal").classList.add("show");
+  dock.classList.add("show");
+}
+
+export function hideReaction(){
+  const dock=document.getElementById("actionDock");
+  const buttonBox=document.getElementById("actionDockButtons");
+  dock.classList.remove("show");
+  buttonBox.innerHTML="";
 }
 
 export function showWin(playerName,info,onContinue){

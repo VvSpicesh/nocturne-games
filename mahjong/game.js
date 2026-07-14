@@ -13,7 +13,7 @@ let exchangeSelection=[];
 function compatible(candidate){
   return Boolean(
     candidate &&
-    candidate.version==="0.7" &&
+    candidate.version==="0.8" &&
     Array.isArray(candidate.players) &&
     candidate.players.length===4 &&
     candidate.players.every(p=>Array.isArray(p.hand)&&Array.isArray(p.melds)) &&
@@ -43,7 +43,7 @@ ruleGang.addEventListener("change",()=>{
 
 function createInitialState(){
   return {
-    version:"0.7",
+    version:"0.8",
     phase:"准备",
     wall:[],
     players:names.map(name=>({name,hand:[],won:false,melds:[]})),
@@ -109,7 +109,7 @@ function newGame(){
   players.forEach(player=>sortHand(player.hand));
 
   state={
-    version:"0.7",
+    version:"0.8",
     phase:rules.exchangeThree?"换三张":"摸牌",
     wall,players,turn:0,discards:[],
     logs:[`新牌局开始。换三张：${rules.exchangeThree?"开启":"关闭"}；刮风下雨：${rules.gangRain?"开启":"关闭"}。`],
