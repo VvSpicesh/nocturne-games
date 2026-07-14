@@ -26,6 +26,7 @@ export function renderGame(state,handlers){
 
   state.players.forEach((player,index)=>renderSeat(state,player,index,handlers));
   renderDiscards(state);
+  renderMelds(state);
   renderActions(state);
 }
 
@@ -67,19 +68,31 @@ function renderSeat(state,player,index,handlers){
 
   seat.appendChild(hand);
 
-  if(player.melds.length){
-    const melds=document.createElement("div");
-    melds.className="melds";
+}
+
+function renderMelds(state){
+  for(let index=0;index<4;index++){
+    const zone=document.getElementById(`meld-${index}`);
+    zone.innerHTML="";
+
+    const player=state.players[index];
 
     player.melds.forEach(meld=>{
       const group=document.createElement("div");
-      group.className="meld";
-      group.title={peng:"碰",mingGang:"明杠",anGang:"暗杠",buGang:"补杠"}[meld.type]||meld.type;
-      meld.tiles.forEach(tile=>group.appendChild(createTileElement(tile,"tile-small")));
-      melds.appendChild(group);
-    });
+      group.className="meld-group";
+      group.title={
+        peng:"碰",
+        mingGang:"明杠",
+        anGang:"暗杠",
+        buGang:"补杠"
+      }[meld.type]||meld.type;
 
-    seat.appendChild(melds);
+      meld.tiles.forEach(tile=>{
+        group.appendChild(createTileElement(tile,"tile-small"));
+      });
+
+      zone.appendChild(group);
+    });
   }
 }
 

@@ -375,3 +375,188 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     font-size:30px;
   }
 }
+
+
+/* v0.9 exposed meld and action layout fix */
+
+/* 玩家信息框只负责头像和暗牌，不再承载副露。 */
+.seat{
+  overflow:visible;
+}
+
+/* 四家独立副露区。 */
+.meld-zone{
+  position:absolute;
+  z-index:12;
+  display:flex;
+  gap:6px;
+  align-items:center;
+  pointer-events:none;
+}
+
+.meld-zone:empty{
+  display:none;
+}
+
+.meld-top{
+  top:calc(var(--tile-h) + 58px);
+  left:50%;
+  transform:translateX(-50%);
+  justify-content:center;
+}
+
+.meld-bottom{
+  left:clamp(14px,2vw,30px);
+  bottom:calc(var(--tile-h) + 74px);
+  justify-content:flex-start;
+}
+
+.meld-left{
+  left:calc(88px + clamp(10px,1.5vw,22px));
+  top:50%;
+  transform:translateY(-50%);
+  flex-direction:column;
+  align-items:flex-start;
+}
+
+.meld-right{
+  right:calc(88px + clamp(10px,1.5vw,22px));
+  top:50%;
+  transform:translateY(-50%);
+  flex-direction:column;
+  align-items:flex-end;
+}
+
+.meld-group{
+  display:flex;
+  gap:2px;
+  padding:4px;
+  border-radius:10px;
+  background:rgba(4,24,17,.82);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 8px 18px rgba(0,0,0,.28);
+}
+
+.meld-group .tile{
+  width:calc(var(--tile-w)*.72);
+  height:calc(var(--tile-h)*.72);
+  cursor:default;
+  margin:0;
+  transform:none!important;
+}
+
+.meld-left .meld-group{
+  transform:rotate(90deg);
+  transform-origin:center;
+  margin-block:14px;
+}
+
+.meld-right .meld-group{
+  transform:rotate(-90deg);
+  transform-origin:center;
+  margin-block:14px;
+}
+
+/* 旧的 seat 内副露隐藏，防止重复和遮挡。 */
+.seat > .melds{
+  display:none!important;
+}
+
+/* 操作按钮永远浮在自己手牌右上方。 */
+.action-dock{
+  position:absolute!important;
+  z-index:100!important;
+  right:clamp(12px,2vw,28px)!important;
+  bottom:calc(var(--tile-h) + 88px)!important;
+  max-width:min(68%,680px)!important;
+  overflow:visible!important;
+}
+
+/* 确保手牌区不会盖住副露和按钮。 */
+.seat-bottom{
+  z-index:20;
+}
+
+.meld-bottom{
+  z-index:30;
+}
+
+.action-dock{
+  z-index:50!important;
+}
+
+/* 给自己的副露和手牌之间留出明确空间。 */
+.seat-bottom .hand{
+  padding-top:6px;
+}
+
+/* 左右玩家的座位稍微往外收，给副露让出内侧空间。 */
+.seat-left{
+  left:3px;
+  width:82px;
+}
+
+.seat-right{
+  right:3px;
+  width:82px;
+}
+
+/* 小屏调整。 */
+@media(max-width:699px){
+  .meld-top{
+    top:calc(var(--tile-h) + 52px);
+  }
+
+  .meld-bottom{
+    left:8px;
+    bottom:calc(var(--tile-h) + 70px);
+  }
+
+  .meld-left{
+    left:76px;
+  }
+
+  .meld-right{
+    right:76px;
+  }
+
+  .meld-group{
+    gap:1px;
+    padding:3px;
+  }
+
+  .meld-group .tile{
+    width:calc(var(--tile-w)*.66);
+    height:calc(var(--tile-h)*.66);
+  }
+
+  .action-dock{
+    right:7px!important;
+    bottom:calc(var(--tile-h) + 84px)!important;
+    max-width:92%!important;
+  }
+}
+
+/* 横屏和平板。 */
+@media(orientation:landscape) and (max-width:1299px){
+  .meld-bottom{
+    bottom:calc(var(--tile-h) + 64px);
+  }
+
+  .meld-top{
+    top:calc(var(--tile-h) + 48px);
+  }
+
+  .meld-left{
+    left:104px;
+  }
+
+  .meld-right{
+    right:104px;
+  }
+
+  .action-dock{
+    right:18px!important;
+    bottom:calc(var(--tile-h) + 72px)!important;
+  }
+}
