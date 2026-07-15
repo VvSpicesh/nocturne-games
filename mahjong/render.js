@@ -1,4 +1,4 @@
-import {tileFace,tileName} from "./tiles.js?v=0.14.21";
+import {tileFace,tileName} from "./tiles.js?v=0.14.22";
 
 const SEAT_LABELS=["自己","上家","对家","下家"];
 
@@ -81,23 +81,34 @@ function renderSeat(state,player,index,handlers){
   const isSide=index===1||index===3;
   const avatar=index===0?"🙂":"🤖";
   const header=document.createElement("div");
-  header.className="seat-header";
-  const statusHtml=isSide
-    ?""
-    :`<div class="${player.won?"seat-status seat-status-won":"seat-status seat-status-play"}">${player.won?"已胡":"进行中"}</div>`;
-  const metaHtml=isSide
-    ?`${player.hand.length}张`
-    :`${player.hand.length}张${player.melds.length?` · 碰/杠×${player.melds.length}`:""}`;
-  header.innerHTML=`
-    <div class="seat-id">
-      <span class="seat-avatar" aria-hidden="true">${avatar}</span>
-      <div class="seat-text">
-        <div class="seat-name">${SEAT_LABELS[index]} ${player.name}${isDealer?'<span class="dealer-badge">庄</span>':""}</div>
-        <div class="seat-meta">${metaHtml}</div>
+  header.className="seat-header"+(isSide?" seat-header-side":"");
+  const statusClass=player.won?"seat-status seat-status-won":"seat-status seat-status-play";
+  const statusText=player.won?"已胡":"进行中";
+  const dealerBadge=isDealer?'<span class="dealer-badge">庄</span>':"";
+  if(isSide){
+    header.innerHTML=`
+      <div class="seat-id">
+        <span class="seat-avatar" aria-hidden="true">${avatar}</span>
+        <div class="seat-text">
+          <div class="seat-label">${SEAT_LABELS[index]}</div>
+          <div class="seat-name">${player.name}${dealerBadge}</div>
+          <div class="seat-meta">${player.hand.length}张</div>
+          <div class="${statusClass}">${statusText}</div>
+        </div>
       </div>
-    </div>
-    ${statusHtml}
-  `;
+    `;
+  }else{
+    header.innerHTML=`
+      <div class="seat-id">
+        <span class="seat-avatar" aria-hidden="true">${avatar}</span>
+        <div class="seat-text">
+          <div class="seat-name">${SEAT_LABELS[index]} ${player.name}${dealerBadge}</div>
+          <div class="seat-meta">${player.hand.length}张${player.melds.length?` · 碰/杠×${player.melds.length}`:""}</div>
+        </div>
+      </div>
+      <div class="${statusClass}">${statusText}</div>
+    `;
+  }
   seat.appendChild(header);
 
   const hand=document.createElement("div");

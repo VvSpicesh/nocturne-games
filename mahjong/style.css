@@ -180,8 +180,13 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12)
 }
 .seat-text{min-width:0}
+.seat-label{
+  font-size:9px;font-weight:800;color:var(--muted);line-height:1.2;
+  letter-spacing:.02em
+}
 .seat-left .seat-header,
-.seat-right .seat-header{
+.seat-right .seat-header,
+.seat-header-side{
   flex-direction:column;align-items:center;gap:0;margin-bottom:2px
 }
 .seat-left .seat-id,
@@ -189,15 +194,25 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   flex-direction:column;align-items:center;gap:2px;width:100%
 }
 .seat-left .seat-text,
-.seat-right .seat-text{width:100%;text-align:center}
-.seat-left .seat-status,
-.seat-right .seat-status{display:none}
+.seat-right .seat-text{
+  width:100%;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:1px
+}
 .seat-name{font-weight:850;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seat-left .seat-name,
-.seat-right .seat-name{font-size:10px;max-width:100%}
+.seat-right .seat-name{
+  font-size:11px;max-width:100%;
+  white-space:normal;overflow:visible;text-overflow:unset;
+  line-height:1.25;word-break:break-all
+}
 .seat-meta{font-size:9px;color:var(--muted);white-space:nowrap}
 .seat-left .seat-meta,
-.seat-right .seat-meta{font-size:8px;opacity:.9}
+.seat-right .seat-meta{font-size:9px;opacity:.95;white-space:normal}
+.seat-left .seat-status,
+.seat-right .seat-status{
+  display:inline-block;margin-top:2px;
+  font-size:9px;padding:1px 5px;border-radius:999px
+}
 .hand{
   display:flex;justify-content:center;align-items:flex-end;gap:2px;
   min-height:calc(var(--tile-h) + 14px);min-width:0
@@ -458,16 +473,16 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
-/* ========== 布局断点（宽 + 高；禁止再叠 orientation 扁桌冲突规则）==========
-   A. <1300px          → 单列平板/折叠：4:3 + min-height 720，侧栏在桌下
-   B. <1300 且高≤560   → 矮横屏紧凑：牌桌铺满首屏剩余高度，侧栏仍在下方可滚
-   C. ≥1300 且高≥800   → 桌面：牌桌 + 右侧栏
-   D. ≥1300 但高不足   → 仍单列（与 A 相同）
+/* ========== 四档布局断点（勿再叠加冲突补丁）==========
+   1. 手机竖屏     max-width:600
+   2. 手机横屏紧凑  height<600 且 width>height（aspect>=1）
+   3. 折叠/平板     width 900–1399，或 width>=1400 且竖长屏（折叠展开）
+   4. PC           width>=1400 且较宽（aspect>=5/4）
+   默认：单列中档（约 601–899）
 */
 
-/* A1. 窄手机竖屏微调 */
-@media(max-width:699px){
-  /* 手机竖屏：偏好更大，14 张靠 fit-w / 更小 gap 完整入列、不横滚 */
+/* 1. 手机竖屏 */
+@media(max-width:600px){
   :root{--tile-w:clamp(30px,8vw,42px)}
   .topbar-actions{width:100%;justify-content:stretch}
   .quick-rules{flex:1;min-width:0;justify-content:space-between}
@@ -481,28 +496,22 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   .table-center{width:124px;padding:9px}
   .remaining{font-size:23px}
   .sidebar{display:flex;flex-direction:column}
+  .seat-left .seat-label,
+  .seat-right .seat-label{font-size:8px}
+  .seat-left .seat-name,
+  .seat-right .seat-name{font-size:10px}
 }
 
-/* A2. 平板 / 折叠展开 / 宽但 <1300 */
-@media(min-width:700px) and (max-width:1299px){
-  /* 折叠 / 平板：约 +20% */
-  :root{--tile-w:clamp(46px,4.8vw,66px)}
-  .table{
-    --band-side:clamp(46px,5.5vw,60px);
-    --meld-rail:max(42px,calc(var(--tile-h) * .46 * 1.1 + 10px));
-    --band-top:calc(var(--tile-h) * .62 + 42px);
-    --band-bottom:calc(var(--tile-h) + 56px)
-  }
-}
-
-/* B. 矮横屏（如 844×390）：一屏可打，状态仍在桌下滚动 */
-@media(max-width:1299px) and (max-height:560px){
-  /* 手机矮横屏：略放大，仍以高度适配 */
-  :root{--tile-w:clamp(24px,10vh,40px)}
+/* 2. 手机横屏紧凑 compact-landscape：手牌 > 牌桌 > 玩家信息，禁止重叠 */
+@media(max-height:599px) and (min-aspect-ratio:1/1){
+  :root{--tile-w:clamp(22px,9.5vh,36px)}
   .app{
-    padding:2px max(4px,env(safe-area-inset-right)) 2px max(4px,env(safe-area-inset-left))
+    padding:2px max(4px,env(safe-area-inset-right)) 2px max(4px,env(safe-area-inset-left));
+    max-height:100dvh;
+    overflow-x:hidden;
+    overflow-y:auto
   }
-  .topbar{margin-bottom:2px;gap:4px;align-items:center}
+  .topbar{margin-bottom:2px;gap:4px;align-items:center;flex-wrap:nowrap}
   .brand .logo{display:none}
   .brand h1,.brand p{display:none}
   .back-link{font-size:11px;margin:0}
@@ -513,42 +522,131 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   .quick-switch::after{width:14px;height:14px;top:2px;left:2px}
   .quick-rule input:checked + .quick-switch::after{transform:translateX(14px)}
   .btn{padding:6px 10px;font-size:12px;border-radius:10px}
-  .game-layout{gap:6px}
+  .game-layout{
+    display:flex;flex-direction:column;gap:6px;
+    flex:0 0 auto
+  }
   .table{
+    position:relative;
     aspect-ratio:auto;
-    min-height:calc(100dvh - 4.2rem);
-    height:calc(100dvh - 4.2rem);
+    min-height:calc(100dvh - 3.8rem);
+    height:calc(100dvh - 3.8rem);
     max-height:none;
     max-width:100%;
-    border-radius:14px;
-    --band-side:clamp(40px,9vh,54px);
-    --meld-rail:max(28px,calc(var(--tile-h) * .42 + 6px));
-    --band-top:calc(var(--tile-h) * .55 + 28px);
-    --band-bottom:calc(var(--tile-h) + 36px)
+    border-radius:12px;
+    overflow:hidden;
+    --band-side:clamp(36px,8vh,48px);
+    --meld-rail:max(24px,calc(var(--tile-h) * .38 + 4px));
+    --band-top:calc(var(--tile-h) * .48 + 26px);
+    --band-bottom:calc(var(--tile-h) + 40px);
+    --discard-inset:calc(var(--band-side) + var(--meld-rail) + 4px)
   }
-  .table-center{width:110px;padding:6px}
-  .remaining{font-size:20px}
-  .phase,.turn{font-size:10px}
-  .seat{padding:3px 5px;border-radius:10px}
+  .table-center{width:96px;padding:5px;z-index:5}
+  .remaining{font-size:18px}
+  .phase,.turn{font-size:9px}
+  .seat{padding:2px 4px;border-radius:8px;z-index:6}
+  .seat-top{
+    z-index:7;
+    top:2px;left:var(--band-side);right:var(--band-side);
+    min-height:0;padding:2px 4px
+  }
+  .seat-left,
+  .seat-right{
+    z-index:6;
+    top:calc(var(--band-top) + 2px);
+    bottom:calc(var(--band-bottom) + 2px);
+    width:var(--band-side);
+    min-width:0;
+    overflow:hidden;
+    padding:2px
+  }
   .seat-bottom{
-    padding:6px 4px max(4px,env(safe-area-inset-bottom,0px));
-    bottom:2px
+    z-index:20;
+    left:var(--band-side);right:var(--band-side);
+    bottom:2px;
+    padding:4px 2px max(2px,env(safe-area-inset-bottom,0px));
+    overflow:visible
   }
-  .seat-bottom .hand{padding-top:8px;gap:1px}
-  .seat-name{font-size:11px}
-  .seat-meta{font-size:8px}
-  .seat-status{font-size:10px;padding:2px 6px}
+  .seat-bottom .hand{padding-top:4px;gap:1px}
+  .seat-left .seat-label,
+  .seat-right .seat-label{font-size:7px}
+  .seat-left .seat-name,
+  .seat-right .seat-name{
+    font-size:8px;line-height:1.15;
+    max-height:2.4em;overflow:hidden
+  }
+  .seat-left .seat-meta,
+  .seat-right .seat-meta{font-size:7px}
+  .seat-left .seat-status,
+  .seat-right .seat-status{display:none}
+  .seat-name{font-size:10px}
+  .seat-meta{font-size:7px}
+  .seat-status{font-size:9px;padding:1px 5px}
+  .meld-left,.meld-right{
+    z-index:8;
+    top:calc(var(--band-top) + 4px);
+    bottom:calc(var(--band-bottom) + 8px);
+    width:var(--meld-rail)
+  }
+  .meld-top,.meld-bottom{z-index:8}
+  .discard-zone{z-index:4}
   .action-dock{
-    bottom:calc(var(--band-bottom) + 8px)!important;
-    max-width:55%!important;
-    padding:6px!important
+    z-index:30!important;
+    bottom:calc(var(--band-bottom) + 6px)!important;
+    max-width:50%!important;
+    padding:5px!important
   }
   .sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-/* C. 桌面：宽够且高度够 → 牌桌 + 右侧栏 */
-@media(min-width:1300px) and (min-height:800px){
-  /* 桌面：约 +20% */
+/* 3. 折叠屏 / 平板：宽侧带 + 完整左右家信息，单列牌桌（排除矮横屏） */
+@media(min-width:900px) and (max-width:1399px) and (min-height:600px),
+       (min-width:1400px) and (max-aspect-ratio:5/4) and (min-height:600px){
+  :root{--tile-w:clamp(44px,4.2vw,64px)}
+  .game-layout{display:flex;flex-direction:column}
+  .table{
+    aspect-ratio:4/3;
+    min-height:720px;
+    max-height:none;
+    max-width:100%;
+    --band-side:clamp(88px,9.5vw,120px);
+    --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 10px));
+    --band-top:calc(var(--tile-h) * .62 + 46px);
+    --band-bottom:calc(var(--tile-h) + 60px);
+    --discard-inset:calc(var(--band-side) + var(--meld-rail) + 10px)
+  }
+  .seat-left,
+  .seat-right{
+    width:var(--band-side);
+    min-width:88px;
+    overflow:visible;
+    padding:6px 5px
+  }
+  .seat-left .seat-name,
+  .seat-right .seat-name{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:unset;
+    font-size:13px;
+    font-weight:850;
+    line-height:1.3;
+    word-break:break-word
+  }
+  .seat-left .seat-label,
+  .seat-right .seat-label{font-size:11px;color:var(--gold)}
+  .seat-left .seat-meta,
+  .seat-right .seat-meta{font-size:11px;white-space:normal}
+  .seat-left .seat-status,
+  .seat-right .seat-status{
+    display:inline-block;
+    font-size:10px;padding:2px 7px;margin-top:3px
+  }
+  .seat-avatar{width:26px;height:26px;font-size:14px}
+  .sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* 4. PC：宽屏桌面（牌桌 + 右侧栏） */
+@media(min-width:1400px) and (min-aspect-ratio:5/4){
   :root{--tile-w:clamp(48px,3.8vw,72px)}
   .app{
     max-height:100dvh;
@@ -569,11 +667,22 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     height:auto;
     max-height:calc(100dvh - 7.5rem);
     max-width:min(100%,calc((100dvh - 7.5rem) * 16 / 10));
-    --band-side:clamp(52px,7%,78px);
+    --band-side:clamp(72px,7.5%,96px);
     --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 12px));
     --band-top:calc(var(--tile-h) * .62 + 44px);
     --band-bottom:calc(var(--tile-h) + 56px)
   }
+  .seat-left,
+  .seat-right{
+    min-width:72px;
+    overflow:visible
+  }
+  .seat-left .seat-name,
+  .seat-right .seat-name{
+    white-space:normal;overflow:visible;font-size:12px
+  }
+  .seat-left .seat-status,
+  .seat-right .seat-status{display:inline-block}
   .sidebar{
     display:flex;
     flex-direction:column;
@@ -610,12 +719,6 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   }
   .sidebar .note{display:none}
   .card-log,.note,.card-score{grid-column:auto}
-}
-
-/* D. 宽屏但高度不足（≥1300 且 <800）：保持单列，避免右侧栏压扁牌桌 */
-@media(min-width:1300px) and (max-height:799px){
-  :root{--tile-w:clamp(42px,3.4vw,60px)}
-  .sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 
@@ -736,7 +839,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   display:none!important;
 }
 
-@media(max-width:699px){
+@media(max-width:600px){
   .action-dock{
     right:7px;
     bottom:calc(var(--tile-h) + 76px);
@@ -759,7 +862,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   }
 }
 
-@media(min-width:700px) and (max-width:1299px){
+@media(min-width:900px) and (max-width:1399px) and (min-height:600px){
   .action-dock{
     right:18px;
     bottom:calc(var(--tile-h) + 60px);
@@ -1027,7 +1130,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 
 /* 小屏副露 / 操作区 */
-@media(max-width:699px){
+@media(max-width:600px){
   .meld-group .tile{
     width:calc(var(--tile-w) * .46 * 1.1);
     height:calc(var(--tile-h) * .46 * 1.1);
@@ -1057,7 +1160,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 
 /* 平板 / 折叠（<1300）副露轨 */
-@media(min-width:700px) and (max-width:1299px){
+@media(min-width:900px) and (max-width:1399px) and (min-height:600px){
   .meld-left,
   .meld-right{
     width:clamp(44px,5.5vw,64px);
