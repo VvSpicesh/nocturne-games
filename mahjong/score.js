@@ -1,13 +1,14 @@
 /**
- * 家麻计分：起始 20000，一番 = 1 分；允许负分。
- * 番种：平胡1 / 对对胡2 / 七对2 / 龙七对3 / 双龙七对4；清一色+2；
- * 抢杠胡 / 杠上花 / 杠上炮 +1；自摸（含杠上开花）再 +1。
+ * 计分：倍数 = 2^(totalFan-1)；底金 baseStake（默认 1）
+ * 自摸：每家付 baseStake×multiplier + baseStake×1（加底，非 +1 番）
+ * 杠分独立：暗杠未胡各 2 底、直杠放杠 2 底、弯杠未胡各 1 底
+ * 花猪：向其余每位玩家各付 baseStake×2^(flowerPigFan-1)
  */
 
+import {emptyRoundSettlement,isFlowerPig,SUIT_LABEL} from "./rules-guard.js";
+import {fanMultiplier} from "./hu.js";
+
 export const START_SCORE=20000;
-export const POINTS_PER_FAN=1;
-export const MING_GANG_POINTS=2;
-export const AN_GANG_EACH=1;
 
 const SCORE_KEY="nocturne_mahjong_session_score_v10";
 const SESSION_START_KEY="nocturne_mahjong_session_started_v10";
@@ -53,35 +54,42 @@ export function formatPoints(n){
   return String(value);
 }
 
-/**
- * @param {{name?:string,canWin?:boolean}} info getWinInfo 结果
- * @param {{selfDraw?:boolean,robGang?:boolean,gangFlower?:boolean,gangDiscard?:boolean}} manner
- */
+function baseStakeOf(state){
+  const n=Number(state?.activeRules?.baseStake);
+  return Number.isFinite(n)&&n>0?n:1;
+}
+
+function selfDrawAddsBase(state){
+  return state?.activeRules?.selfDrawAddsBase!==false;
+}
+
+/** 从 getWinInfo 结构或回退解析得到 totalFan / multiplier */
 export function computeFan(info,manner={}){
+  if(info?.canWin&&Number.isFinite(info.totalFan)){
+    return Math.max(1,info.totalFan);
+  }
   if(!info?.canWin&&!info?.name)return 0;
+  // 兜底：旧字符串结果
   const name=info.name||"";
-  const parts=name.split("·").filter(Boolean);
-  const core=parts.filter(p=>!["抢杠胡","杠上花","杠上炮","一炮多响"].includes(p));
-  const text=core.join("·")||name;
-
   let fan=1;
-  if(text.includes("双龙七对"))fan=4;
-  else if(text.includes("龙七对"))fan=3;
-  else if(text.includes("七对"))fan=2;
-  else if(text.includes("对对胡"))fan=2;
-  else fan=1;
+  if(name.includes("清龙七对"))fan=6;
+  else if(name.includes("清七对"))fan=5;
+  else if(name.includes("清大对")||name.includes("清一色·对对"))fan=4;
+  else if(name.includes("龙七对"))fan=4;
+  else if(name.includes("暗七对")||name.includes("七对"))fan=3;
+  else if(name.includes("清一色"))fan=3;
+  else if(name.includes("金钩钓"))fan=3;
+  else if(name.includes("大对子")||name.includes("对对胡"))fan=2;
+  if(manner.robGang||name.includes("抢杠胡"))fan+=1;
+  if(manner.gangFlower||name.includes("杠上花"))fan+=1;
+  if(manner.gangDiscard||name.includes("杠上炮"))fan+=1;
+  // 自摸不加番
+  return Math.max(1,fan);
+}
 
-  if(text.includes("清一色"))fan+=2;
-
-  const rob=manner.robGang||name.includes("抢杠胡");
-  const flower=manner.gangFlower||name.includes("杠上花");
-  const discardGang=manner.gangDiscard||name.includes("杠上炮");
-  if(rob)fan+=1;
-  if(flower)fan+=1;
-  if(discardGang)fan+=1;
-  if(manner.selfDraw)fan+=1;
-
-  return fan;
+export function computeMultiplier(info,manner={}){
+  if(info?.canWin&&Number.isFinite(info.multiplier))return info.multiplier;
+  return fanMultiplier(computeFan(info,manner));
 }
 
 function ensureScoreFields(state){
@@ -92,6 +100,9 @@ function ensureScoreFields(state){
     state.roundDelta=[0,0,0,0];
   }
   if(!Array.isArray(state.scoreLog))state.scoreLog=[];
+  if(!state.roundSettlement){
+    state.roundSettlement=emptyRoundSettlement();
+  }
 }
 
 function applyDeltas(state,deltas,logText){
@@ -100,11 +111,13 @@ function applyDeltas(state,deltas,logText){
     const d=deltas[i]||0;
     state.scores[i]+=d;
     state.roundDelta[i]+=d;
+    state.roundSettlement.playerDeltas[i]=
+      (state.roundSettlement.playerDeltas[i]||0)+d;
   }
   saveSessionScores(state.scores);
   if(logText){
     state.scoreLog.unshift({text:logText,at:Date.now()});
-    if(state.scoreLog.length>12)state.scoreLog.length=12;
+    if(state.scoreLog.length>16)state.scoreLog.length=16;
   }
   return {deltas,logText};
 }
@@ -119,25 +132,64 @@ function unpaidPlayers(state,exceptIndex){
   return list;
 }
 
-/** 自摸 / 杠上开花：未胡各家出 fan 分 */
+function huBreakdown(info,manner={}){
+  return {
+    basePattern:info.basePattern||info.name||"平胡",
+    baseFan:info.baseFan??computeFan(info,manner),
+    rootCount:info.rootCount||0,
+    extraFans:info.extraFans||[],
+    totalFan:computeFan(info,manner),
+    multiplier:computeMultiplier(info,manner)
+  };
+}
+
+/** 自摸：每未胡家付 stake×倍 + 可选 1 份底 */
 export function settleSelfDraw(state,winnerIndex,info,manner={}){
-  const fan=computeFan(info,{...manner,selfDraw:true});
-  const unit=fan*POINTS_PER_FAN;
+  ensureScoreFields(state);
+  const stake=baseStakeOf(state);
+  const breakdown=huBreakdown(info,{...manner,selfDraw:true});
+  const huUnit=stake*breakdown.multiplier;
+  const baseExtra=selfDrawAddsBase(state)?stake:0;
+  const unit=huUnit+baseExtra;
   const deltas=[0,0,0,0];
   const payers=unpaidPlayers(state,winnerIndex);
+  const payments=[];
   payers.forEach(i=>{
     deltas[i]-=unit;
     deltas[winnerIndex]+=unit;
+    payments.push({
+      from:i,to:winnerIndex,
+      huAmount:huUnit,
+      selfDrawBase:baseExtra,
+      amount:unit
+    });
+  });
+  state.roundSettlement?.huPayments.push({
+    kind:"selfDraw",
+    winner:winnerIndex,
+    ...breakdown,
+    selfDrawBase:baseExtra,
+    payments
   });
   const text=
-    `${state.players[winnerIndex].name}胡（${fan}番）`+
+    `${state.players[winnerIndex].name}胡（${breakdown.basePattern} ${breakdown.totalFan}番×${breakdown.multiplier}`+
+    `${baseExtra?`+底${baseExtra}`:""}）`+
     ` · ${manner.gangFlower?"杠上开花":"自摸"} ${formatPoints(deltas[winnerIndex])}`;
   const applied=applyDeltas(state,deltas,text);
-  return {fan,deltas,unit,logText:applied.logText};
+  return {
+    fan:breakdown.totalFan,
+    multiplier:breakdown.multiplier,
+    deltas,
+    unit,
+    breakdown,
+    logText:applied.logText
+  };
 }
 
-/** 点炮 / 杠上炮 / 抢杠：放炮家按每位胡家番数付分；每位胡家至少按 1 番结算 */
+/** 点炮 / 杠上炮 / 抢杠：放炮者分别按倍支付 */
 export function settleDiscardWins(state,winners,fromPlayer,winInfos,manner={}){
+  ensureScoreFields(state);
+  const stake=baseStakeOf(state);
   const deltas=[0,0,0,0];
   const fans=[];
   const unique=[];
@@ -147,17 +199,24 @@ export function settleDiscardWins(state,winners,fromPlayer,winInfos,manner={}){
   });
 
   unique.forEach(({winnerIndex,info})=>{
-    let fan=computeFan(info,{
+    const breakdown=huBreakdown(info,{
       ...manner,
       selfDraw:false,
       robGang:manner.robGang===true,
       gangDiscard:manner.gangDiscard===true
     });
-    if(fan<1)fan=1;
-    fans.push(fan);
-    const unit=fan*POINTS_PER_FAN;
+    fans.push(breakdown.totalFan);
+    const unit=stake*breakdown.multiplier;
     deltas[fromPlayer]-=unit;
     deltas[winnerIndex]+=unit;
+    state.roundSettlement?.huPayments.push({
+      kind:manner.robGang?"robGang":manner.gangDiscard?"gangDiscard":"discard",
+      winner:winnerIndex,
+      from:fromPlayer,
+      ...breakdown,
+      selfDrawBase:0,
+      payments:[{from:fromPlayer,to:winnerIndex,huAmount:unit,selfDrawBase:0,amount:unit}]
+    });
   });
 
   const winnerIndexes=unique.map(u=>u.winnerIndex);
@@ -170,41 +229,184 @@ export function settleDiscardWins(state,winners,fromPlayer,winInfos,manner={}){
   return {fans,deltas,logText:applied.logText,winners:winnerIndexes};
 }
 
+/** 直杠 / 明杠：放杠者付 2×底（下雨）；drizzleMode 时再收其余未胡各 1 */
 export function settleMingGang(state,gangster,fromPlayer){
   if(!state.activeRules?.gangRain)return null;
+  ensureScoreFields(state);
+  const stake=baseStakeOf(state);
   const deltas=[0,0,0,0];
-  const pts=MING_GANG_POINTS;
+  const pts=2*stake;
   deltas[fromPlayer]-=pts;
   deltas[gangster]+=pts;
+  const payments=[{from:fromPlayer,to:gangster,units:2,amount:pts}];
+
+  if(state.activeRules?.gangRules?.drizzleMode){
+    unpaidPlayers(state,gangster).forEach(i=>{
+      if(i===fromPlayer)return;
+      const extra=stake;
+      deltas[i]-=extra;
+      deltas[gangster]+=extra;
+      payments.push({from:i,to:gangster,units:1,amount:extra});
+    });
+  }
+
+  state.roundSettlement?.gangPayments.push({
+    type:"mingGang",
+    actor:gangster,
+    source:fromPlayer,
+    payments,
+    valid:true,
+    label:"下雨"
+  });
+
   const text=
-    `${state.players[gangster].name}杠 ${formatPoints(pts)}`+
+    `${state.players[gangster].name}明杠 ${formatPoints(deltas[gangster])}`+
     `（${state.players[fromPlayer].name} ${formatPoints(-pts)}）`;
   const applied=applyDeltas(state,deltas,text);
-  return {deltas,pts,logText:applied.logText};
+  return {deltas,pts:deltas[gangster],logText:applied.logText};
 }
 
+/** 暗杠：未胡各 2×底；补杠：未胡各 1×底 */
 export function settleAnOrBuGang(state,gangster,kind="暗杠"){
   if(!state.activeRules?.gangRain)return null;
+  ensureScoreFields(state);
+  const stake=baseStakeOf(state);
+  const isAn=kind==="暗杠";
+  const units=isAn?2:1;
   const deltas=[0,0,0,0];
-  const payers=unpaidPlayers(state,gangster);
-  payers.forEach(i=>{
-    deltas[i]-=AN_GANG_EACH;
-    deltas[gangster]+=AN_GANG_EACH;
+  const payments=[];
+  unpaidPlayers(state,gangster).forEach(i=>{
+    const amount=units*stake;
+    deltas[i]-=amount;
+    deltas[gangster]+=amount;
+    payments.push({from:i,to:gangster,units,amount});
   });
+
+  state.roundSettlement?.gangPayments.push({
+    type:isAn?"anGang":"buGang",
+    actor:gangster,
+    source:null,
+    payments,
+    valid:true,
+    label:isAn?"下雨":"刮风"
+  });
+
   const text=
     `${state.players[gangster].name}${kind} ${formatPoints(deltas[gangster])}`+
-    `（各未胡家 -${AN_GANG_EACH}）`;
+    `（各未胡家 -${units*stake}）`;
   const applied=applyDeltas(state,deltas,text);
   return {deltas,logText:applied.logText};
 }
 
+/**
+ * 花猪：每位花猪向其余每位玩家各付一份花猪倍乘金额。
+ * 同时命中「未下叫」时（配置不叠）：本轮只记花猪，不罚未下叫。
+ */
+export function settleFlowerPigs(state){
+  ensureScoreFields(state);
+  const sr=state.activeRules?.settlementRules||{};
+  if(sr.flowerPigEnabled===false){
+    state.roundSettlement.flowerPigResults=[];
+    return null;
+  }
+  const fan=Number(sr.flowerPigFan);
+  if(!Number.isFinite(fan)||fan<1){
+    // 未配置有效番数：只检测展示
+    const results=state.players.map((p,i)=>{
+      const pig=isFlowerPig(p);
+      return {
+        playerIndex:i,
+        name:p.name,
+        ...pig,
+        paid:false,
+        note:pig.isFlowerPig?"花猪罚分待规则配置":null
+      };
+    });
+    state.roundSettlement.flowerPigResults=results.filter(r=>r.isFlowerPig);
+    return {deltas:[0,0,0,0],results:state.roundSettlement.flowerPigResults};
+  }
+
+  const stake=baseStakeOf(state);
+  const mult=fanMultiplier(fan);
+  const unit=stake*mult;
+  const deltas=[0,0,0,0];
+  const results=[];
+
+  state.players.forEach((p,i)=>{
+    if(p.won)return;
+    const pig=isFlowerPig(p);
+    if(!pig.isFlowerPig)return;
+    const payments=[];
+    for(let j=0;j<4;j++){
+      if(j===i)continue;
+      deltas[i]-=unit;
+      deltas[j]+=unit;
+      payments.push({from:i,to:j,amount:unit});
+    }
+    results.push({
+      playerIndex:i,
+      name:p.name,
+      isFlowerPig:true,
+      missingSuit:pig.missingSuit,
+      missingSuitLabel:SUIT_LABEL[pig.missingSuit]||pig.missingSuit,
+      offendingTiles:pig.offendingTiles,
+      fan,
+      multiplier:mult,
+      unit,
+      payments,
+      paid:true,
+      reason:"花猪",
+      note:`花猪 ${fan}番×${mult}，向其余每位支付 ${unit}`
+    });
+  });
+
+  state.roundSettlement.flowerPigResults=results;
+  // 查叫占位：本轮不处罚
+  state.roundSettlement.readyHandResults=state.roundSettlement.readyHandResults||[];
+
+  if(!results.length)return {deltas:[0,0,0,0],results};
+
+  const text=results
+    .map(r=>`${r.name}花猪(${r.missingSuitLabel}) ${formatPoints(deltas[r.playerIndex])}`)
+    .join("；");
+  const applied=applyDeltas(state,deltas,`花猪结算：${text}`);
+  return {deltas,results,logText:applied.logText};
+}
+
+export function formatHuScoreLines(info,settled,manner={}){
+  const b=settled?.breakdown||huBreakdown(info,manner);
+  const lines=[
+    `基础牌型：${b.basePattern} ${b.baseFan}番`,
+    b.rootCount?`根：${b.rootCount}根 +${b.rootCount}番`:"根：0",
+    ...(b.extraFans||[]).map(e=>`${e.label}：+${e.fan}番`),
+    `总番：${b.totalFan}番`,
+    `倍数：×${b.multiplier}`
+  ];
+  if(settled?.breakdown&&manner.selfDraw!==false&&settled.unit!=null){
+    const stakeExtra=settled.breakdown?null:null;
+  }
+  return lines;
+}
+
 export function roundSummary(state,reason){
   ensureScoreFields(state);
+  const pigs=new Set(
+    (state.roundSettlement?.flowerPigResults||[])
+      .filter(r=>r.isFlowerPig)
+      .map(r=>r.playerIndex)
+  );
   return state.players.map((player,i)=>({
     name:player.name,
     won:!!player.won,
     delta:state.roundDelta[i]||0,
     total:state.scores[i]||0,
-    status:player.won?"已胡":(reason.includes("流")||reason.includes("摸完")?"未胡":"留局")
+    missingSuit:player.missingSuit||null,
+    missingSuitLabel:player.missingSuit?SUIT_LABEL[player.missingSuit]:null,
+    flowerPig:pigs.has(i),
+    status:player.won
+      ?"已胡"
+      :pigs.has(i)
+        ?"花猪"
+        :(reason.includes("流")||reason.includes("摸完")?"未胡":"留局")
   }));
 }

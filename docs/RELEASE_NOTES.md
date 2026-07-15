@@ -1,5 +1,29 @@
 # RELEASE NOTES
 
+## Mahjong v0.14.24 Release Candidate
+
+**状态**：Release Candidate  
+**规则自动验收**：39 PASS / 0 FAIL / 3 BLOCKED（人工 UI）  
+**Service Worker**：`nocturne-games-v28`
+
+### 已实现
+- 定缺与缺一门；定缺弹层展示手牌并以牌面选万/条/筒
+- 花猪检测与处罚（向其余每位支付；查叫本 RC 不处罚）
+- 基础牌型、根、额外番；`2^(totalFan-1)` 倍数计分
+- 自摸加底（不进 totalFan）；杠分独立结算；`roundSettlement` 分流
+- 39 项自动化规则测试通过
+
+### 人工验收清单（RC → 正式版）
+- [ ] 换三张 / 定缺 / 操作动画
+- [ ] 四档响应式布局
+- [ ] PWA 与 GitHub Pages 离线
+
+完整稿：`mahjong/RELEASE_NOTES.md`。变更明细：`mahjong/CHANGELOG.md`。
+
+> 规则/计分层（`game.js` / `hu.js` / `score.js`）冻结：非验收明确 Bug 不再改生产逻辑。
+
+---
+
 ## Mahjong v0.14.15
 
 Service Worker 缓存：`nocturne-games-v18`

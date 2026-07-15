@@ -6,20 +6,22 @@
   <meta name="theme-color" content="#0b251b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Nocturne Mahjong v0.14.22</title>
+  <title>Nocturne Mahjong v0.14.24-rc</title>
   <link rel="manifest" href="../manifest.webmanifest">
   <link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=0.14.22">
+  <link rel="stylesheet" href="./style.css?v=0.14.24">
   <script type="importmap">
   {
     "imports": {
-      "./render.js": "./render.js?v=0.14.22",
-      "./tiles.js": "./tiles.js?v=0.14.22",
-      "./storage.js": "./storage.js?v=0.14.22",
-      "./config.js": "./config.js?v=0.14.22",
-      "./hu.js": "./hu.js?v=0.14.22",
-      "./score.js": "./score.js?v=0.14.22"
+      "./render.js": "./render.js?v=0.14.24",
+      "./tiles.js": "./tiles.js?v=0.14.24",
+      "./storage.js": "./storage.js?v=0.14.24",
+      "./config.js": "./config.js?v=0.14.24",
+      "./hu.js": "./hu.js?v=0.14.24",
+      "./score.js": "./score.js?v=0.14.24",
+      "./rules-guard.js": "./rules-guard.js?v=0.14.24",
+      "./rule-tests.js": "./rule-tests.js?v=0.14.24"
     }
   }
   </script>
@@ -32,7 +34,7 @@
         <div>
           <a class="back-link" href="../index.html">← 返回游戏大厅</a>
           <h1>Nocturne Mahjong</h1>
-          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.22</p>
+          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.24-rc</p>
         </div>
       </div>
       <div class="topbar-actions">
@@ -149,6 +151,15 @@
     </div>
   </div>
 
+  <div id="missingSuitModal" class="modal">
+    <div class="modal-box win-box missing-suit-box">
+      <h2>定缺</h2>
+      <p>对照手牌选择要打缺的一门。仍有缺门牌时，只能打缺门花色，且不能碰、杠、胡缺门相关牌。</p>
+      <div id="missingSuitHand" class="missing-suit-hand" aria-label="自己的手牌"></div>
+      <div id="missingSuitActions" class="missing-suit-actions" role="group" aria-label="选择定缺花色"></div>
+    </div>
+  </div>
+
   <div id="winModal" class="modal">
     <div class="modal-box win-box">
       <h2 id="winHeading">胡牌</h2>
@@ -206,7 +217,7 @@
 
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="./game.js?v=0.14.22"></script>
+  <script type="module" src="./game.js?v=0.14.24"></script>
   <script type="module" src="../shared/pwa.js"></script>
 </body>
 </html>

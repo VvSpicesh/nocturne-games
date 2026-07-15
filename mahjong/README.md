@@ -2,11 +2,12 @@
 
 Nocturne Games 子项目：四川麻将 · 血战到底 · 家庭大字版。
 
-当前版本见 `index.html` 标题（现为 **v0.14.9**）。
+当前版本：**v0.14.24 Release Candidate（RC）**（见 `index.html` 标题）。
 
 ## 文档
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — 模块职责与状态概要（给协作者 / Agent 快速上手）
+- [RELEASE_NOTES.md](./RELEASE_NOTES.md) — **本 RC 发布说明与人工验收清单**
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — 模块职责与状态概要
 - [CHANGELOG.md](./CHANGELOG.md) — 有意义的版本历史
 
 ## 运行

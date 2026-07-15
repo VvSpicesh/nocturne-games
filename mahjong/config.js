@@ -4,16 +4,64 @@ const NAMES_KEY="nocturne_mahjong_names_v10";
 
 export const defaultRules={
   exchangeThree:true,
-  gangRain:true
+  gangRain:true,
+  baseStake:1,
+  selfDrawAddsBase:true,
+  settlementRules:{
+    flowerPigEnabled:true,
+    flowerPigFan:8,
+    noReadyEnabled:true,
+    noReadyFan:8,
+    stackFlowerPigAndNoReady:false
+  },
+  patterns:{
+    goldenHook:false,
+    terminalInEveryGroup:false,
+    pureTerminalInEveryGroup:false,
+    all258Triplets:false
+  },
+  extraPatterns:{
+    gangFlower:true,
+    gangDiscard:true,
+    robGang:true,
+    lastTile:false,
+    lastAvailableTile:false
+  },
+  gangRules:{
+    drizzleMode:false,
+    transferGangOnDiscardWin:false,
+    cancelGangIfNotReadyAtDraw:false
+  }
 };
+
+export function mergeDeep(base,patch){
+  if(!patch||typeof patch!=="object")return {...base};
+  const out={...base};
+  for(const key of Object.keys(patch)){
+    const value=patch[key];
+    if(
+      value &&
+      typeof value==="object" &&
+      !Array.isArray(value) &&
+      base[key] &&
+      typeof base[key]==="object" &&
+      !Array.isArray(base[key])
+    ){
+      out[key]=mergeDeep(base[key],value);
+    }else if(value!==undefined){
+      out[key]=value;
+    }
+  }
+  return out;
+}
 
 export const defaultNames=["瑞","安彬","兰儿","小诺"];
 
 export function loadRules(){
   try{
-    return {...defaultRules,...JSON.parse(localStorage.getItem(KEY)||"{}")};
+    return mergeDeep(defaultRules,JSON.parse(localStorage.getItem(KEY)||"{}"));
   }catch{
-    return {...defaultRules};
+    return mergeDeep(defaultRules,{});
   }
 }
 

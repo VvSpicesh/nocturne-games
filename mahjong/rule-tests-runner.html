@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>mahjong rule acceptance</title>
+<pre id="out">running…</pre>
+<script type="module">
+import {runRuleTests} from "./rule-tests.js?v=full1";
+const r=runRuleTests();
+window.__RULE_TEST_RESULT__=r;
+document.getElementById("out").textContent=
+  r.lines.join("\n")+
+  `\n\nPASS=${r.passed} FAIL=${r.failed} BLOCKED=${r.blocked} ok=${r.ok}`;
+</script>

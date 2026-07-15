@@ -263,6 +263,59 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   transform:translateY(-13px)!important;
   box-shadow:0 0 0 3px var(--gold),0 12px 18px rgba(0,0,0,.38)
 }
+.tile-illegal{
+  opacity:.38;
+  filter:grayscale(.35);
+  cursor:not-allowed
+}
+.missing-suit-box{
+  max-width:min(920px,96vw);
+  width:100%
+}
+.missing-suit-hand{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:6px;
+  margin:14px 0 6px;padding:10px 8px;
+  background:rgba(0,0,0,.18);border-radius:12px;
+  border:1px solid rgba(212,175,105,.22);
+  max-height:min(42vh,280px);overflow:auto
+}
+.missing-suit-hand .tile{
+  cursor:default;
+  width:calc(var(--tile-w) * .92);
+  height:calc(var(--tile-h) * .92)
+}
+.missing-suit-hand .tile:hover{transform:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset -2px -3px 0 rgba(83,113,89,.14),0 5px 9px rgba(0,0,0,.3)}
+.missing-suit-actions{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:18px
+}
+.missing-suit-pick{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  min-width:96px;padding:12px 14px 10px;
+  border:1.5px solid rgba(212,175,105,.45);
+  border-radius:14px;
+  background:linear-gradient(165deg,rgba(18,52,36,.95),rgba(8,28,18,.98));
+  color:var(--text);cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,.28);
+  transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease
+}
+.missing-suit-pick:hover,
+.missing-suit-pick:focus-visible{
+  transform:translateY(-3px);
+  border-color:var(--gold);
+  box-shadow:0 0 0 2px rgba(239,199,104,.35),0 10px 20px rgba(0,0,0,.35);
+  outline:none
+}
+.missing-suit-pick .tile-missing-suit{
+  width:calc(var(--tile-w) * 1.08);
+  height:calc(var(--tile-h) * 1.08);
+  cursor:inherit;pointer-events:none
+}
+.missing-suit-pick-label{
+  font-size:16px;font-weight:700;letter-spacing:.06em;color:#f0e2b8
+}
+.missing-suit-pick-meta{
+  font-size:12px;color:var(--muted)
+}
 .tile-drawn{
   transform:translateY(-8px);
   margin-left:clamp(7px,1vw,14px);

@@ -1,8 +1,16 @@
-import {renderGame,renderLog,renderExchange,showReaction,hideReaction,showWin,showRoundEnd,showPlayerActionEffect,playDiceAnimation,flashDealCaption,clearDealCaption,hideStartOverlay,showLobby} from "./render.js";
+import {renderGame,renderLog,renderExchange,showReaction,hideReaction,showWin,showRoundEnd,showPlayerActionEffect,playDiceAnimation,flashDealCaption,clearDealCaption,hideStartOverlay,showLobby,showMissingSuitModal,hideMissingSuitModal} from "./render.js";
 import {saveState,loadState,clearState} from "./storage.js";
-import {loadRules,saveRules,loadLastDealer,saveLastDealer,loadNames,saveNames} from "./config.js";
+import {loadRules,saveRules,loadLastDealer,saveLastDealer,loadNames,saveNames,defaultRules,mergeDeep} from "./config.js";
 import {tileName} from "./tiles.js";
-import {getWinInfo} from "./hu.js";
+import {canPlayerWin} from "./hu.js";
+import {
+  getLegalDiscardIndexes,
+  isLegalDiscard,
+  canClaimTileSuit,
+  pickAiMissingSuit,
+  emptyRoundSettlement,
+  SUIT_LABEL
+} from "./rules-guard.js";
 import {
   loadSessionScores,
   saveSessionScores,
@@ -13,8 +21,14 @@ import {
   settleDiscardWins,
   settleMingGang,
   settleAnOrBuGang,
+  settleFlowerPigs,
   roundSummary
 } from "./score.js";
+import {runRuleTests} from "./rule-tests.js";
+
+function snapshotRules(source=rules){
+  return mergeDeep(defaultRules,source||{});
+}
 
 let names=loadNames();
 /* 相对自己：左=上家，上=对家，右=下家 */
@@ -78,7 +92,10 @@ if(!compatible(state)){
   if(!Array.isArray(state.scoreLog))state.scoreLog=[];
   state.players.forEach((player,index)=>{
     if(player&&names[index]&&player.name!==names[index])player.name=names[index];
+    if(player&&player.missingSuit===undefined)player.missingSuit=null;
   });
+  if(!state.roundSettlement)state.roundSettlement=emptyRoundSettlement();
+  state.activeRules=snapshotRules(state.activeRules||rules);
 }
 
 const ruleExchange=document.getElementById("ruleExchange");
@@ -101,7 +118,7 @@ function createInitialState(){
     version:"0.10",
     phase:"准备",
     wall:[],
-    players:names.map(name=>({name,hand:[],won:false,melds:[]})),
+    players:names.map(name=>({name,hand:[],won:false,melds:[],missingSuit:null})),
     turn:0,
     dealer:0,
     dealing:false,
@@ -109,13 +126,14 @@ function createInitialState(){
     logs:["欢迎来到 Nocturne Mahjong。"],
     drawnTileId:null,
     selectedTileIndex:null,
-    activeRules:{...rules},
+    activeRules:snapshotRules(rules),
     lastAction:null,
     lastDiscard:null,
     pendingGang:null,
     scores,
     roundDelta:[0,0,0,0],
-    scoreLog:[]
+    scoreLog:[],
+    roundSettlement:emptyRoundSettlement()
   };
 }
 
@@ -168,6 +186,7 @@ function newGame(){
   document.getElementById("roundEndModal")?.classList.remove("show");
   document.getElementById("newGameModal")?.classList.remove("show");
   document.getElementById("namesModal")?.classList.remove("show");
+  hideMissingSuitModal();
   rules=loadRules();
   names=loadNames();
 
@@ -175,7 +194,7 @@ function newGame(){
   saveLastDealer(dealer);
 
   const wall=createWall();
-  const players=names.map(name=>({name,hand:[],won:false,melds:[]}));
+  const players=names.map(name=>({name,hand:[],won:false,melds:[],missingSuit:null}));
 
   const scores=loadSessionScores();
   state={
@@ -194,13 +213,14 @@ function newGame(){
     ],
     drawnTileId:null,
     selectedTileIndex:null,
-    activeRules:{...rules},
+    activeRules:snapshotRules(rules),
     lastAction:null,
     lastDiscard:null,
     pendingGang:null,
     scores:[...scores],
     roundDelta:[0,0,0,0],
-    scoreLog:[]
+    scoreLog:[],
+    roundSettlement:emptyRoundSettlement()
   };
 
   ensureSessionClock();
@@ -236,14 +256,14 @@ async function runOpeningSequence(){
 
   state.players.forEach(player=>sortHand(player.hand));
   state.dealing=false;
-  state.phase=rules.exchangeThree?"换三张":"摸牌";
+  state.phase=rules.exchangeThree?"换三张":"定缺";
   state.turn=dealer;
   state.logs.push("发牌完成。");
   clearDealCaption();
   commit();
 
   if(rules.exchangeThree)openExchange();
-  else scheduleAutoDraw();
+  else beginMissingSuitPhase();
 }
 
 function openExchange(){
@@ -279,11 +299,37 @@ document.getElementById("exchangeConfirm").addEventListener("click",()=>{
   }
 
   state.logs.push("换三张完成。");
-  state.phase="摸牌";
+  state.phase="定缺";
   document.getElementById("exchangeModal").classList.remove("show");
   commit();
-  scheduleAutoDraw();
+  beginMissingSuitPhase();
 });
+
+function beginMissingSuitPhase(){
+  state.phase="定缺";
+  state.players.forEach(p=>{p.missingSuit=null;});
+  commit();
+  showMissingSuitModal(state.players[0].hand,suit=>{
+    confirmMissingSuits(suit);
+  });
+}
+
+function confirmMissingSuits(humanSuit){
+  if(!["w","t","b"].includes(humanSuit))return;
+  state.players[0].missingSuit=humanSuit;
+  for(let i=1;i<4;i++){
+    state.players[i].missingSuit=pickAiMissingSuit(state.players[i].hand);
+  }
+  const line=state.players
+    .map((p,i)=>`${seatLabels[i]}${p.name}缺${SUIT_LABEL[p.missingSuit]}`)
+    .join(" · ");
+  state.logs.push(`定缺完成：${line}。`);
+  hideMissingSuitModal();
+  state.phase="摸牌";
+  state.turn=state.dealer;
+  commit();
+  scheduleAutoDraw();
+}
 
 function chooseExchangeTiles(hand){
   return hand.map((tile,index)=>({index,score:keepScore(tile,hand)}))
@@ -312,9 +358,10 @@ function autoDraw(){
   state.logs.push(`${player.name}摸牌。`);
   state.phase="出牌";
 
-  const info=getWinInfo(player.hand,player.melds,{
-    gangFlower:state.lastAction?.type==="gang"&&state.lastAction.player===state.turn
-  });
+  const info=canPlayerWin(player,player.hand,player.melds,{
+    gangFlower:state.lastAction?.type==="gang"&&state.lastAction.player===state.turn,
+    lastTile:state.wall.length===0
+  },state.activeRules);
 
   if(info.canWin){
     if(state.turn===0){
@@ -360,6 +407,7 @@ function afterDrawActions(){
 function findConcealedGang(player){
   const map=new Map();
   player.hand.forEach(tile=>{
+    if(!canClaimTileSuit(player,tile))return;
     const key=tile.s+tile.n;
     const entry=map.get(key)||{tile,count:0};
     entry.count++;
@@ -372,6 +420,7 @@ function findAddedGang(player){
   for(const meld of player.melds){
     if(meld.type!=="peng")continue;
     const tile=meld.tiles[0];
+    if(!canClaimTileSuit(player,tile))continue;
     const index=player.hand.findIndex(item=>sameTile(item,tile));
     if(index>=0)return {meld,tile,index};
   }
@@ -380,6 +429,9 @@ function findAddedGang(player){
 
 function handleTileClick(tileIndex){
   if(state.turn!==0||state.phase!=="出牌")return;
+  if(!isLegalDiscard(state.players[0],tileIndex)){
+    return toast("请先打完缺门牌");
+  }
   if(state.selectedTileIndex===tileIndex){
     discard(0,tileIndex);
     return;
@@ -390,6 +442,10 @@ function handleTileClick(tileIndex){
 
 function discard(playerIndex,tileIndex){
   const player=state.players[playerIndex];
+  if(!isLegalDiscard(player,tileIndex)){
+    if(playerIndex===0)toast("请先打完缺门牌");
+    return;
+  }
   const [tile]=player.hand.splice(tileIndex,1);
 
   state.discards.push({player:playerIndex,tile});
@@ -406,11 +462,18 @@ function discard(playerIndex,tileIndex){
 function resolveDiscard(tile,fromPlayer){
   const candidates=activePlayersAfter(fromPlayer);
   const gangDiscard=state.lastAction?.type==="gang"&&state.lastAction.player===fromPlayer;
+  const lastTile=state.wall.length===0;
 
   /* 先算好各家胡牌信息，结算时复用，避免再次判定失败导致某家 0 番 */
   const winChecks=candidates.map(index=>{
     const p=state.players[index];
-    const info=getWinInfo(p.hand.concat([cloneTile(tile)]),p.melds,{gangDiscard});
+    const info=canPlayerWin(
+      p,
+      p.hand.concat([cloneTile(tile)]),
+      p.melds,
+      {gangDiscard,lastTile},
+      state.activeRules
+    );
     return {index,info};
   }).filter(item=>item.info.canWin);
 
@@ -436,7 +499,7 @@ function resolveDiscard(tile,fromPlayer){
 
 function resolveClaims(tile,fromPlayer,candidates){
   const humanMatches=matchingIndexes(state.players[0].hand,tile).length;
-  const humanEligible=candidates.includes(0);
+  const humanEligible=candidates.includes(0)&&canClaimTileSuit(state.players[0],tile);
   const canGang=state.activeRules.gangRain&&humanEligible&&humanMatches>=3;
   const canPeng=humanEligible&&humanMatches>=2;
 
@@ -457,6 +520,7 @@ function resolveAiClaims(tile,fromPlayer,candidates){
   for(const index of candidates){
     if(index===0)continue;
     const player=state.players[index];
+    if(!canClaimTileSuit(player,tile))continue;
     const matches=matchingIndexes(player.hand,tile).length;
 
     if(state.activeRules.gangRain&&matches>=3){
@@ -475,13 +539,19 @@ function resolveAiClaims(tile,fromPlayer,candidates){
 
 function claimPeng(playerIndex,tile,fromPlayer){
   const player=state.players[playerIndex];
-  removeMatching(player,tile,2);
+  if(!canClaimTileSuit(player,tile)){
+    if(playerIndex===0)toast("定缺花色不能碰");
+    resolveAiClaims(tile,fromPlayer,activePlayersAfter(fromPlayer).filter(i=>i!==playerIndex));
+    return;
+  }
+  const player2=player;
+  removeMatching(player2,tile,2);
   removeLastDiscard();
-  player.melds.push({type:"peng",from:fromPlayer,tiles:Array.from({length:3},()=>cloneTile(tile))});
+  player2.melds.push({type:"peng",from:fromPlayer,tiles:Array.from({length:3},()=>cloneTile(tile))});
   state.turn=playerIndex;
   state.phase="出牌";
   state.lastAction={type:"peng",player:playerIndex};
-  state.logs.push(`${player.name}碰 ${tileName(tile)}。`);
+  state.logs.push(`${player2.name}碰 ${tileName(tile)}。`);
   showPlayerActionEffect(playerIndex,"碰",tile);
   commit();
 
@@ -490,6 +560,11 @@ function claimPeng(playerIndex,tile,fromPlayer){
 
 function claimMingGang(playerIndex,tile,fromPlayer){
   const player=state.players[playerIndex];
+  if(!canClaimTileSuit(player,tile)){
+    if(playerIndex===0)toast("定缺花色不能杠");
+    resolveAiClaims(tile,fromPlayer,activePlayersAfter(fromPlayer).filter(i=>i!==playerIndex));
+    return;
+  }
   removeMatching(player,tile,3);
   removeLastDiscard();
   player.melds.push({type:"mingGang",from:fromPlayer,tiles:Array.from({length:4},()=>cloneTile(tile))});
@@ -527,7 +602,7 @@ function attemptAddedGang(playerIndex,entry){
   const robbers=activePlayersAfter(playerIndex).filter(index=>{
     const player=state.players[index];
     const test=player.hand.concat([cloneTile(tile)]);
-    return getWinInfo(test,player.melds,{robGang:true}).canWin;
+    return canPlayerWin(player,test,player.melds,{robGang:true},state.activeRules).canWin;
   });
 
   if(robbers.length){
@@ -614,14 +689,29 @@ function declareSelfWin(playerIndex,info){
     {
       ...info,
       fan:settled.fan,
+      multiplier:settled.multiplier,
       scoreDelta:settled.deltas[playerIndex],
       scoreTotal:state.scores[playerIndex],
-      scoreLine:`${settled.fan}番 · 本局 ${formatPoints(settled.deltas[playerIndex])} · 总分 ${state.scores[playerIndex]}`
+      breakdown:settled.breakdown,
+      scoreLine:buildWinScoreLine(info,settled.breakdown,settled.deltas[playerIndex],true,state.scores[playerIndex])
     },
     ()=>continueAfterWin(playerIndex),
     afterGang?"杠后补牌自摸":"自己摸牌胡牌",
     winTile
   );
+}
+
+function buildWinScoreLine(info,breakdown,delta,selfDraw,total){
+  const b=breakdown||info||{};
+  const parts=[
+    `基础：${b.basePattern||info.basePattern||info.name||"平胡"} ${b.baseFan??"?"}番`,
+    `根：${b.rootCount||0}`,
+    `总番：${b.totalFan||info.totalFan||"?"}×${b.multiplier||info.multiplier||1}`
+  ];
+  if(selfDraw&&state.activeRules?.selfDrawAddsBase!==false)parts.push("自摸加底");
+  parts.push(`本局 ${formatPoints(delta)}`);
+  if(total!=null)parts.push(`总分 ${total}`);
+  return parts.join(" · ");
 }
 
 function declareDiscardWins(winChecks,tile,fromPlayer){
@@ -631,10 +721,12 @@ function declareDiscardWins(winChecks,tile,fromPlayer){
 
   const checks=winChecks.map(item=>({
     index:item.index,
-    info:item.info?.canWin?item.info:getWinInfo(
+    info:item.info?.canWin?item.info:canPlayerWin(
+      state.players[item.index],
       state.players[item.index].hand.concat([cloneTile(tile)]),
       state.players[item.index].melds,
-      {gangDiscard:gangPaohu}
+      {gangDiscard:gangPaohu,lastTile:state.wall.length===0},
+      state.activeRules
     )
   })).filter(item=>item.info.canWin);
 
@@ -695,7 +787,13 @@ function declareDiscardWins(winChecks,tile,fromPlayer){
 function declareRobGangWins(winners,tile,fromPlayer){
   const winChecks=winners.map(index=>{
     const player=state.players[index];
-    const info=getWinInfo(player.hand.concat([cloneTile(tile)]),player.melds,{robGang:true});
+    const info=canPlayerWin(
+      player,
+      player.hand.concat([cloneTile(tile)]),
+      player.melds,
+      {robGang:true},
+      state.activeRules
+    );
     return {index,info};
   }).filter(item=>item.info.canWin);
 
@@ -795,8 +893,13 @@ function aiDiscard(){
 }
 
 function chooseDiscard(hand){
-  return hand.map((tile,index)=>({index,score:keepScore(tile,hand)}))
-    .sort((a,b)=>a.score-b.score)[0].index;
+  const player=state.players[state.turn];
+  const legal=new Set(getLegalDiscardIndexes(player));
+  const ranked=hand
+    .map((tile,index)=>({index,score:keepScore(tile,hand),legal:legal.has(index)}))
+    .filter(x=>x.legal)
+    .sort((a,b)=>a.score-b.score);
+  return (ranked[0]||{index:0}).index;
 }
 
 function keepScore(tile,hand){
@@ -808,6 +911,7 @@ function keepScore(tile,hand){
 
 function endRound(reason){
   state.phase="结束";
+  settleFlowerPigs(state);
   state.logs.push(`牌局结束：${reason}。`);
   if(Array.isArray(state.scores))saveSessionScores(state.scores);
   commit();
@@ -817,7 +921,7 @@ function endRound(reason){
     clearTimeout(aiTimer);
     clearState();
     newGame();
-  });
+  },state.roundSettlement);
 }
 
 function commit(){
@@ -909,6 +1013,11 @@ function loadRuleTestScenario(){
 
   [hand0,hand1,hand2,hand3].forEach(sortHand);
 
+  function suitAbsent(hand,melds){
+    const used=new Set([...(hand||[]),...((melds||[]).flatMap(m=>m.tiles||[]))].map(t=>t.s));
+    return ["w","t","b"].find(s=>!used.has(s))||"w";
+  }
+
   state={
     version:"0.10",
     phase:"等待操作",
@@ -923,16 +1032,17 @@ function loadRuleTestScenario(){
     drawnTileId:null,
     selectedTileIndex:null,
     players:[
-      {name:names[0],hand:hand0,melds:selfMelds,won:false},
-      {name:names[1],hand:hand1,melds:leftMelds,won:false},
-      {name:names[2],hand:hand2,melds:[],won:false},
-      {name:names[3],hand:hand3,melds:rightMelds,won:false}
+      {name:names[0],hand:hand0,melds:selfMelds,won:false,missingSuit:suitAbsent(hand0,selfMelds)},
+      {name:names[1],hand:hand1,melds:leftMelds,won:false,missingSuit:suitAbsent(hand1,leftMelds)},
+      {name:names[2],hand:hand2,melds:[],won:false,missingSuit:suitAbsent(hand2,[])},
+      {name:names[3],hand:hand3,melds:rightMelds,won:false,missingSuit:suitAbsent(hand3,rightMelds)}
     ],
     logs:["【规则测试】左右各3组副露 / 自己碰+杠 / 下家出五万可碰可明杠。"],
-    activeRules:{exchangeThree:false,gangRain:true},
+    activeRules:snapshotRules({...rules,exchangeThree:false,gangRain:true}),
     scores:loadSessionScores(),
     roundDelta:[0,0,0,0],
-    scoreLog:[]
+    scoreLog:[],
+    roundSettlement:emptyRoundSettlement()
   };
 
   commit();
@@ -944,14 +1054,30 @@ function setupRuleTestButton(){
   if(!isLocalDevHost())return;
   const actions=document.querySelector(".topbar-actions")||document.querySelector(".topbar");
   if(!actions||document.getElementById("ruleTestBtn"))return;
-  const btn=document.createElement("button");
-  btn.type="button";
-  btn.id="ruleTestBtn";
-  btn.className="btn btn-dev";
-  btn.textContent="规则测试";
-  btn.title="仅 localhost 可见";
-  actions.appendChild(btn);
-  btn.addEventListener("click",loadRuleTestScenario);
+
+  const suiteBtn=document.createElement("button");
+  suiteBtn.type="button";
+  suiteBtn.id="ruleTestBtn";
+  suiteBtn.className="btn btn-dev";
+  suiteBtn.textContent="规则测试";
+  suiteBtn.title="跑固定断言套件";
+  actions.appendChild(suiteBtn);
+  suiteBtn.addEventListener("click",()=>{
+    const result=runRuleTests();
+    console.log("[mahjong rule-tests]\n"+result.lines.join("\n"));
+    toast(result.ok
+      ?`规则测试通过 ${result.passed}/${result.passed+result.failed}`
+      :`规则测试失败 ${result.failed} 项，见控制台`);
+  });
+
+  const sceneBtn=document.createElement("button");
+  sceneBtn.type="button";
+  sceneBtn.id="ruleSceneBtn";
+  sceneBtn.className="btn btn-dev";
+  sceneBtn.textContent="碰杠场景";
+  sceneBtn.title="加载固定碰杠桌面";
+  actions.appendChild(sceneBtn);
+  sceneBtn.addEventListener("click",loadRuleTestScenario);
 }
 
 document.getElementById("newGameBtn").addEventListener("click",()=>{
@@ -1040,6 +1166,10 @@ if(state.phase==="开局"||state.players.every(p=>p.hand.length===0)||state.phas
 }else{
   hideStartOverlay();
   commit();
-  if(state.phase==="摸牌")scheduleAutoDraw();
+  if(state.phase==="定缺"){
+    showMissingSuitModal(state.players[0].hand,suit=>confirmMissingSuits(suit));
+  }else if(state.phase==="换三张"){
+    openExchange();
+  }else if(state.phase==="摸牌")scheduleAutoDraw();
   else if(state.phase==="出牌"&&state.turn!==0)aiTimer=setTimeout(aiDiscard,AI_THINK_MS);
 }
