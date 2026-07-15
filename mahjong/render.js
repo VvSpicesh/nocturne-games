@@ -78,14 +78,25 @@ function renderSeat(state,player,index,handlers){
   seat.innerHTML="";
 
   const isDealer=Number.isInteger(state.dealer)&&state.dealer===index;
+  const isSide=index===1||index===3;
+  const avatar=index===0?"🙂":"🤖";
   const header=document.createElement("div");
   header.className="seat-header";
+  const statusHtml=isSide
+    ?""
+    :`<div class="${player.won?"seat-status seat-status-won":"seat-status seat-status-play"}">${player.won?"已胡":"进行中"}</div>`;
+  const metaHtml=isSide
+    ?`${player.hand.length}张`
+    :`${player.hand.length}张${player.melds.length?` · 碰/杠×${player.melds.length}`:""}`;
   header.innerHTML=`
-    <div>
-      <div class="seat-name">${index===0?"🙂":"🤖"} ${SEAT_LABELS[index]} ${player.name}${isDealer?'<span class="dealer-badge">庄</span>':""}</div>
-      <div class="seat-meta">${player.hand.length}张${player.melds.length?` · 碰/杠×${player.melds.length}`:""}</div>
+    <div class="seat-id">
+      <span class="seat-avatar" aria-hidden="true">${avatar}</span>
+      <div class="seat-text">
+        <div class="seat-name">${SEAT_LABELS[index]} ${player.name}${isDealer?'<span class="dealer-badge">庄</span>':""}</div>
+        <div class="seat-meta">${metaHtml}</div>
+      </div>
     </div>
-    <div class="${player.won?"seat-status seat-status-won":"seat-status seat-status-play"}">${player.won?"已胡":"进行中"}</div>
+    ${statusHtml}
   `;
   seat.appendChild(header);
 

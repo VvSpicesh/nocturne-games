@@ -29,10 +29,11 @@ button,input{font:inherit}
   padding:max(8px,env(safe-area-inset-top)) clamp(4px,1vw,12px) max(12px,env(safe-area-inset-bottom));
   box-sizing:border-box;
   min-height:100dvh;
-  max-height:100dvh;
+  max-height:none;
   display:flex;
   flex-direction:column;
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
 }
 .topbar{
   width:100%;display:flex;align-items:center;justify-content:space-between;
@@ -95,23 +96,27 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 .quick-rule-text small{display:none}
 
 .game-layout{
-  width:100%;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0;
-  flex:1 1 auto;align-items:stretch
+  /* 默认：单列（手机/平板/折叠）。侧栏永远在牌桌下方，不参与牌桌高度 */
+  width:100%;display:flex;flex-direction:column;gap:10px;min-width:0;
+  flex:0 0 auto;align-items:stretch
 }
 .table{
   position:relative;width:100%;min-width:0;overflow:hidden;
-  aspect-ratio:16/10;border-radius:24px;
-  max-height:calc(100dvh - 7.5rem);
-  max-width:min(100%,calc((100dvh - 7.5rem) * 16 / 10));
+  flex:0 0 auto;
+  /* 默认 4:3 + 最低 720；宽屏桌面布局再覆盖 */
+  aspect-ratio:4/3;
+  min-height:720px;
+  max-height:none;
+  max-width:100%;
   margin-inline:auto;
+  border-radius:24px;
   /* 固定分区：座位带 / 副露轨 / 弃牌区互不互侵 */
-  --band-side:clamp(56px,8.2%,76px);
-  --meld-rail:max(46px,calc(var(--tile-h) * .46 + 12px));
+  --band-side:clamp(48px,6.8vw,62px);
+  --meld-rail:max(44px,calc(var(--tile-h) * .46 + 10px));
   --meld-tw:calc(var(--tile-w) * .46 * 1.1);
   --meld-th:calc(var(--tile-h) * .46 * 1.1);
-  /* 对家手牌缩小后，上带走窄，留给桌心弃牌 */
-  --band-top:calc(var(--tile-h) * .62 + 42px);
-  --band-bottom:calc(var(--tile-h) + 52px);
+  --band-top:calc(var(--tile-h) * .62 + 44px);
+  --band-bottom:calc(var(--tile-h) + 58px);
   --meld-gap:4px;
   --discard-inset:calc(var(--band-side) + var(--meld-rail) + 8px);
   background:
@@ -130,9 +135,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   background:rgba(4,24,17,.78);border:1px solid rgba(255,255,255,.1);
   overflow:hidden;box-sizing:border-box
 }
-/* 上：夹在左右带之间；手牌尺寸靠近左右家，带宽收窄 */
+/* 上家：固定顶部，夹在左右安全带之间 */
 .seat-top{
-  top:4px;left:var(--band-side);right:var(--band-side);
+  top:4px;left:calc(var(--band-side) + 4px);right:calc(var(--band-side) + 4px);
   width:auto;transform:none;
   max-height:none;
   min-height:calc(var(--tile-h) * .62 + 34px);
@@ -140,12 +145,12 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   overflow:visible;
   z-index:7
 }
-/* 下：夹在左右带之间；大屏/折叠屏不裁切手牌 */
+/* 自己：固定底部，完整手牌；不压左右带 */
 .seat-bottom{
   bottom:max(4px,env(safe-area-inset-bottom,0px));
-  left:var(--band-side);right:var(--band-side);
+  left:calc(var(--band-side) + 4px);right:calc(var(--band-side) + 4px);
   max-height:none;
-  padding:12px 6px max(8px,env(safe-area-inset-bottom,0px));
+  padding:10px 6px max(8px,env(safe-area-inset-bottom,0px));
   overflow:visible;
   z-index:10;
   display:flex;
@@ -153,26 +158,45 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   justify-content:flex-end;
   min-width:0
 }
-/* 左/右：夹在上下带之间，尽量拉高以放下 13 张 */
+/* 左/右家：桌面中部两侧，夹在上下安全带之间，不得侵入底栏 */
 .seat-left{
-  left:2px;top:calc(var(--band-top) + 2px);bottom:calc(var(--band-bottom) + 2px);
+  left:2px;top:calc(var(--band-top) + 6px);bottom:calc(var(--band-bottom) + 6px);
   width:var(--band-side);transform:none;
-  display:flex;flex-direction:column;padding:4px
+  display:flex;flex-direction:column;padding:3px;
+  overflow:visible;z-index:6
 }
 .seat-right{
-  right:2px;top:calc(var(--band-top) + 2px);bottom:calc(var(--band-bottom) + 2px);
+  right:2px;top:calc(var(--band-top) + 6px);bottom:calc(var(--band-bottom) + 6px);
   width:var(--band-side);transform:none;
-  display:flex;flex-direction:column;padding:4px
+  display:flex;flex-direction:column;padding:3px;
+  overflow:visible;z-index:6
 }
 .seat-header{display:flex;justify-content:space-between;gap:6px;margin-bottom:5px;flex:0 0 auto}
+.seat-id{display:flex;align-items:center;gap:6px;min-width:0}
+.seat-avatar{
+  width:22px;height:22px;flex:0 0 auto;border-radius:50%;
+  display:grid;place-items:center;font-size:12px;line-height:1;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12)
+}
+.seat-text{min-width:0}
 .seat-left .seat-header,
 .seat-right .seat-header{
-  flex-direction:column;align-items:flex-start;gap:0;margin-bottom:2px
+  flex-direction:column;align-items:center;gap:0;margin-bottom:2px
 }
+.seat-left .seat-id,
+.seat-right .seat-id{
+  flex-direction:column;align-items:center;gap:2px;width:100%
+}
+.seat-left .seat-text,
+.seat-right .seat-text{width:100%;text-align:center}
+.seat-left .seat-status,
+.seat-right .seat-status{display:none}
 .seat-name{font-weight:850;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seat-left .seat-name,
+.seat-right .seat-name{font-size:10px;max-width:100%}
 .seat-meta{font-size:9px;color:var(--muted);white-space:nowrap}
 .seat-left .seat-meta,
-.seat-right .seat-meta{font-size:8px;opacity:.85}
+.seat-right .seat-meta{font-size:8px;opacity:.9}
 .hand{
   display:flex;justify-content:center;align-items:flex-end;gap:2px;
   min-height:calc(var(--tile-h) + 14px);min-width:0
@@ -311,8 +335,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 .turn{font-size:11px;margin-top:5px}
 
 .sidebar{
+  /* 始终在牌桌下方；不参与 .table 高度计算 */
   width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
-  min-height:0
+  flex:0 0 auto;min-height:0
 }
 .card{
   min-width:0;padding:13px;border-radius:17px;background:var(--panel);
@@ -432,70 +457,46 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* ========== 布局断点（宽 + 高；禁止再叠 orientation 扁桌冲突规则）==========
+   A. <1300px          → 单列平板/折叠：4:3 + min-height 720，侧栏在桌下
+   B. <1300 且高≤560   → 矮横屏紧凑：牌桌铺满首屏剩余高度，侧栏仍在下方可滚
+   C. ≥1300 且高≥800   → 桌面：牌桌 + 右侧栏
+   D. ≥1300 但高不足   → 仍单列（与 A 相同）
+*/
+
+/* A1. 窄手机竖屏微调 */
 @media(max-width:699px){
   :root{--tile-w:clamp(27px,7vw,36px)}
   .topbar-actions{width:100%;justify-content:stretch}
   .quick-rules{flex:1;min-width:0;justify-content:space-between}
   .quick-rules-title{display:none}
   .table{
-    aspect-ratio:auto;min-height:680px;
-    --band-side:clamp(52px,14vw,68px);
-    --meld-rail:max(42px,calc(var(--tile-h) * .46 * 1.1 + 8px));
-    --band-top:calc(var(--tile-h) * .62 + 36px)
+    --band-side:clamp(44px,11.5vw,56px);
+    --meld-rail:max(40px,calc(var(--tile-h) * .46 * 1.1 + 8px));
+    --band-top:calc(var(--tile-h) * .62 + 38px);
+    --band-bottom:calc(var(--tile-h) + 54px)
   }
   .table-center{width:124px;padding:9px}
   .remaining{font-size:23px}
   .sidebar{display:flex;flex-direction:column}
 }
 
+/* A2. 平板 / 折叠展开 / 宽但 <1300 */
 @media(min-width:700px) and (max-width:1299px){
-  :root{--tile-w:clamp(42px,5vw,64px)}
+  :root{--tile-w:clamp(38px,4vw,54px)}
   .table{
-    aspect-ratio:16/9.4;
-    --band-side:clamp(58px,9%,84px);
-    --meld-rail:max(46px,calc(var(--tile-h) * .46 * 1.1 + 10px));
-    --band-top:calc(var(--tile-h) * .62 + 40px)
+    --band-side:clamp(46px,5.5vw,60px);
+    --meld-rail:max(42px,calc(var(--tile-h) * .46 * 1.1 + 10px));
+    --band-top:calc(var(--tile-h) * .62 + 42px);
+    --band-bottom:calc(var(--tile-h) + 56px)
   }
 }
 
-@media(orientation:landscape) and (max-width:1299px){
-  :root{--tile-w:clamp(34px,5.5vh,52px)}
-  .topbar{margin-bottom:5px}
-  .table{
-    aspect-ratio:16/8.7;min-height:0;
-    max-height:calc(100dvh - 6.5rem);
-    max-width:min(100%,calc((100dvh - 6.5rem) * 16 / 8.7))
-  }
-  .sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-
-/* 矮屏 / 折叠展开后纵向空间紧：再压一档牌面（不含极矮手机横屏） */
-@media(max-height:820px) and (min-height:501px){
-  :root{--tile-w:clamp(28px,4.2vh,46px)}
-  .table{
-    max-height:calc(100dvh - 6.2rem);
-    --band-bottom:calc(var(--tile-h) + 44px)
-  }
-  .seat-bottom{padding-top:10px}
-  .seat-bottom .hand{padding-top:12px}
-}
-
-@media(min-width:1600px) and (max-height:1100px){
-  :root{--tile-w:clamp(36px,3vw,52px)}
-  .app{max-width:min(1540px,100%)}
-  .table{
-    max-height:calc(100dvh - 7rem);
-    --band-side:clamp(52px,6.5%,74px)
-  }
-}
-
-/* 普通手机横屏：一屏内塞下整桌 */
-@media(orientation:landscape) and (max-height:500px){
-  :root{--tile-w:clamp(22px,9.5vh,36px)}
+/* B. 矮横屏（如 844×390）：一屏可打，状态仍在桌下滚动 */
+@media(max-width:1299px) and (max-height:560px){
+  :root{--tile-w:clamp(22px,9vh,34px)}
   .app{
-    padding:2px max(4px,env(safe-area-inset-right)) 2px max(4px,env(safe-area-inset-left));
-    max-height:100dvh;
-    min-height:100dvh
+    padding:2px max(4px,env(safe-area-inset-right)) 2px max(4px,env(safe-area-inset-left))
   }
   .topbar{margin-bottom:2px;gap:4px;align-items:center}
   .brand .logo{display:none}
@@ -508,18 +509,15 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   .quick-switch::after{width:14px;height:14px;top:2px;left:2px}
   .quick-rule input:checked + .quick-switch::after{transform:translateX(14px)}
   .btn{padding:6px 10px;font-size:12px;border-radius:10px}
-  .sidebar{display:none!important}
-  .game-layout{flex:1 1 auto;min-height:0;gap:0}
+  .game-layout{gap:6px}
   .table{
-    flex:1 1 auto;
-    width:100%!important;
-    height:100%!important;
-    min-height:0;
-    aspect-ratio:auto!important;
-    max-height:none!important;
-    max-width:none!important;
+    aspect-ratio:auto;
+    min-height:calc(100dvh - 4.2rem);
+    height:calc(100dvh - 4.2rem);
+    max-height:none;
+    max-width:100%;
     border-radius:14px;
-    --band-side:clamp(40px,10vh,58px);
+    --band-side:clamp(40px,9vh,54px);
     --meld-rail:max(28px,calc(var(--tile-h) * .42 + 6px));
     --band-top:calc(var(--tile-h) * .55 + 28px);
     --band-bottom:calc(var(--tile-h) + 36px)
@@ -541,24 +539,32 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     max-width:55%!important;
     padding:6px!important
   }
+  .sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-@media(min-width:1300px){
+/* C. 桌面：宽够且高度够 → 牌桌 + 右侧栏 */
+@media(min-width:1300px) and (min-height:800px){
   :root{--tile-w:clamp(40px,3.2vw,58px)}
+  .app{
+    max-height:100dvh;
+    overflow:hidden
+  }
   .game-layout{
+    flex:1 1 auto;
     display:grid;
     grid-template-columns:minmax(0,1fr) minmax(240px,280px);
     align-items:stretch;
     min-height:0;
+    gap:8px
   }
-  /* 以牌桌 aspect-ratio 定行高；侧栏不得把牌局拉高；整桌不超出视口 */
   .table{
     aspect-ratio:16/10;
+    min-height:0;
     width:100%;
     height:auto;
     max-height:calc(100dvh - 7.5rem);
     max-width:min(100%,calc((100dvh - 7.5rem) * 16 / 10));
-    --band-side:clamp(56px,7.5%,82px);
+    --band-side:clamp(52px,7%,78px);
     --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 12px));
     --band-top:calc(var(--tile-h) * .62 + 44px);
     --band-bottom:calc(var(--tile-h) + 56px)
@@ -567,16 +573,15 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     display:flex;
     flex-direction:column;
     gap:6px;
-    /* 高度贡献为 0，拉伸后贴齐牌桌高度 */
     height:0;
     min-height:100%;
     max-height:100%;
     overflow:hidden;
-    align-self:stretch;
+    align-self:stretch
   }
   .sidebar .card{
     flex:0 0 auto;
-    padding:9px 11px;
+    padding:9px 11px
   }
   .sidebar .card h2{margin:0 0 6px;font-size:12px}
   .sidebar .stats{gap:5px}
@@ -589,17 +594,23 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     min-height:0;
     display:flex;
     flex-direction:column;
-    overflow:hidden;
+    overflow:hidden
   }
   .sidebar .log{
     flex:1 1 auto;
     min-height:0;
     height:auto;
     max-height:none;
-    overflow:hidden;
+    overflow:hidden
   }
   .sidebar .note{display:none}
   .card-log,.note,.card-score{grid-column:auto}
+}
+
+/* D. 宽屏但高度不足（≥1300 且 <800）：保持单列，避免右侧栏压扁牌桌 */
+@media(min-width:1300px) and (max-height:799px){
+  :root{--tile-w:clamp(36px,3vw,50px)}
+  .sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 
@@ -743,7 +754,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   }
 }
 
-@media(orientation:landscape) and (max-width:1299px){
+@media(min-width:700px) and (max-width:1299px){
   .action-dock{
     right:18px;
     bottom:calc(var(--tile-h) + 60px);
@@ -1010,7 +1021,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   }
 }
 
-/* 小屏调整。 */
+/* 小屏副露 / 操作区 */
 @media(max-width:699px){
   .meld-group .tile{
     width:calc(var(--tile-w) * .46 * 1.1);
@@ -1019,7 +1030,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 
   .meld-left,
   .meld-right{
-    width:clamp(42px,13vw,64px);
+    width:clamp(38px,11vw,56px);
     gap:6px;
   }
 
@@ -1040,11 +1051,11 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   .player-action-bottom{bottom:calc(var(--band-bottom) + 48px)}
 }
 
-/* 横屏和平板。 */
-@media(orientation:landscape) and (max-width:1299px){
+/* 平板 / 折叠（<1300）副露轨 */
+@media(min-width:700px) and (max-width:1299px){
   .meld-left,
   .meld-right{
-    width:clamp(64px,9vw,96px);
+    width:clamp(44px,5.5vw,64px);
   }
 
   .action-dock{
