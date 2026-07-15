@@ -69,8 +69,26 @@ const ChessStorage = (() => {
       return { ok: false, reason: "bad-game-over" };
     }
 
-    if (!["playing", "check", "checkmate", "stalemate"].includes(data.gameStatus)) {
+    const allowedStatus = [
+      "playing",
+      "check",
+      "checkmate",
+      "stalemate",
+      "insufficientMaterial",
+      "resignation"
+    ];
+    if (!allowedStatus.includes(data.gameStatus)) {
       return { ok: false, reason: "bad-status" };
+    }
+
+    if (data.endResult != null) {
+      if (typeof data.endResult !== "object" || data.endResult.ended !== true) {
+        return { ok: false, reason: "bad-end-result" };
+      }
+    }
+
+    if (data.endModalVisible != null && typeof data.endModalVisible !== "boolean") {
+      return { ok: false, reason: "bad-end-modal" };
     }
 
     if (data.mode !== "local" && data.mode !== "ai") {

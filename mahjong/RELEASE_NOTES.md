@@ -1,5 +1,19 @@
 # RELEASE NOTES — Nocturne Mahjong
 
+## v0.14.26
+
+**日期**：2026-07-15  
+**Service Worker 缓存**：`nocturne-games-v29`
+
+### 调整
+- 上家/下家方位文字字号与对家/自己一致
+- 默认具体玩家名为空（存档键 `names_v11`）
+- 自己副露与手牌分层（v0.14.25）：避免平板/折叠横屏副露被遮挡
+
+规则层仍以 v0.14.24-rc 为准；本版仅为展示与布局修正。
+
+---
+
 ## v0.14.24 Release Candidate
 
 **状态**：Release Candidate（RC）  

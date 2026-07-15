@@ -118,7 +118,7 @@ const ChessAI = (() => {
           timedOut: false
         };
       }
-      if (evalState.status === "stalemate") {
+      if (evalState.status === "stalemate" || evalState.status === "insufficientMaterial") {
         return { score: 0, timedOut: false };
       }
 

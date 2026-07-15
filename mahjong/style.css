@@ -117,7 +117,10 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   --meld-tw:calc(var(--tile-w) * .46 * 1.1);
   --meld-th:calc(var(--tile-h) * .46 * 1.1);
   --band-top:calc(var(--tile-h) * .62 + 44px);
-  --band-bottom:calc(var(--tile-h) + 58px);
+  /* 底部分层：手牌带（尺寸不压） + 副露安全带（固定高度，可换行） */
+  --self-hand-band:calc(var(--tile-h) + 58px);
+  --self-meld-band:max(56px,calc(var(--meld-th) * 2 + 22px));
+  --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 8px);
   --meld-gap:4px;
   --discard-inset:calc(var(--band-side) + var(--meld-rail) + 8px);
   background:
@@ -146,18 +149,20 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   overflow:visible;
   z-index:7
 }
-/* 自己：固定底部，完整手牌；不压左右带 */
+/* 自己：固定底部手牌带；高度限制在手牌安全带内，不侵占副露区 */
 .seat-bottom{
   bottom:max(4px,env(safe-area-inset-bottom,0px));
   left:calc(var(--band-side) + 4px);right:calc(var(--band-side) + 4px);
-  max-height:none;
-  padding:10px 6px max(8px,env(safe-area-inset-bottom,0px));
+  height:var(--self-hand-band);
+  max-height:var(--self-hand-band);
+  padding:6px 6px max(6px,env(safe-area-inset-bottom,0px));
   overflow:visible;
   z-index:10;
   display:flex;
   flex-direction:column;
   justify-content:flex-end;
-  min-width:0
+  min-width:0;
+  box-sizing:border-box
 }
 /* 左/右家：桌面中部两侧，夹在上下安全带之间，不得侵入底栏 */
 .seat-left{
@@ -181,7 +186,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 .seat-text{min-width:0}
 .seat-label{
-  font-size:9px;font-weight:800;color:var(--muted);line-height:1.2;
+  font-size:12px;font-weight:850;color:inherit;line-height:1.25;
   letter-spacing:.02em
 }
 .seat-left .seat-header,
@@ -200,8 +205,10 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 .seat-name{font-weight:850;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seat-left .seat-name,
-.seat-right .seat-name{
-  font-size:11px;max-width:100%;
+.seat-right .seat-name,
+.seat-left .seat-label,
+.seat-right .seat-label{
+  font-size:12px;max-width:100%;
   white-space:normal;overflow:visible;text-overflow:unset;
   line-height:1.25;word-break:break-all
 }
@@ -544,15 +551,18 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     --band-side:clamp(44px,11.5vw,56px);
     --meld-rail:max(40px,calc(var(--tile-h) * .46 * 1.1 + 8px));
     --band-top:calc(var(--tile-h) * .62 + 38px);
-    --band-bottom:calc(var(--tile-h) + 54px)
+    --self-hand-band:calc(var(--tile-h) + 54px);
+    --self-meld-band:max(52px,calc(var(--meld-th) * 2 + 18px));
+    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 6px)
   }
   .table-center{width:124px;padding:9px}
   .remaining{font-size:23px}
   .sidebar{display:flex;flex-direction:column}
   .seat-left .seat-label,
-  .seat-right .seat-label{font-size:8px}
+  .seat-right .seat-label,
   .seat-left .seat-name,
-  .seat-right .seat-name{font-size:10px}
+  .seat-right .seat-name,
+  .seat-name{font-size:12px}
 }
 
 /* 2. 手机横屏紧凑 compact-landscape：手牌 > 牌桌 > 玩家信息，禁止重叠 */
@@ -591,7 +601,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     --band-side:clamp(36px,8vh,48px);
     --meld-rail:max(24px,calc(var(--tile-h) * .38 + 4px));
     --band-top:calc(var(--tile-h) * .48 + 26px);
-    --band-bottom:calc(var(--tile-h) + 40px);
+    --self-hand-band:calc(var(--tile-h) + 40px);
+    --self-meld-band:max(40px,calc(var(--meld-th) * 2 + 14px));
+    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 4px);
     --discard-inset:calc(var(--band-side) + var(--meld-rail) + 4px)
   }
   .table-center{width:96px;padding:5px;z-index:5}
@@ -617,16 +629,24 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     z-index:20;
     left:var(--band-side);right:var(--band-side);
     bottom:2px;
+    height:var(--self-hand-band);
+    max-height:var(--self-hand-band);
     padding:4px 2px max(2px,env(safe-area-inset-bottom,0px));
     overflow:visible
   }
   .seat-bottom .hand{padding-top:4px;gap:1px}
+  .meld-bottom{
+    z-index:18;
+    bottom:calc(var(--self-hand-band) + 2px);
+    height:var(--self-meld-band);
+    max-height:var(--self-meld-band)
+  }
   .seat-left .seat-label,
-  .seat-right .seat-label{font-size:7px}
+  .seat-right .seat-label,
   .seat-left .seat-name,
   .seat-right .seat-name{
-    font-size:8px;line-height:1.15;
-    max-height:2.4em;overflow:hidden
+    font-size:10px;line-height:1.15;
+    max-height:none;overflow:visible
   }
   .seat-left .seat-meta,
   .seat-right .seat-meta{font-size:7px}
@@ -665,7 +685,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     --band-side:clamp(88px,9.5vw,120px);
     --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 10px));
     --band-top:calc(var(--tile-h) * .62 + 46px);
-    --band-bottom:calc(var(--tile-h) + 60px);
+    --self-hand-band:calc(var(--tile-h) + 60px);
+    --self-meld-band:max(64px,calc(var(--meld-th) * 2 + 26px));
+    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 10px);
     --discard-inset:calc(var(--band-side) + var(--meld-rail) + 10px)
   }
   .seat-left,
@@ -676,17 +698,19 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     padding:6px 5px
   }
   .seat-left .seat-name,
-  .seat-right .seat-name{
+  .seat-right .seat-name,
+  .seat-left .seat-label,
+  .seat-right .seat-label,
+  .seat-name{
     white-space:normal;
     overflow:visible;
     text-overflow:unset;
-    font-size:13px;
+    font-size:12px;
     font-weight:850;
     line-height:1.3;
-    word-break:break-word
+    word-break:break-word;
+    color:inherit
   }
-  .seat-left .seat-label,
-  .seat-right .seat-label{font-size:11px;color:var(--gold)}
   .seat-left .seat-meta,
   .seat-right .seat-meta{font-size:11px;white-space:normal}
   .seat-left .seat-status,
@@ -723,7 +747,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     --band-side:clamp(72px,7.5%,96px);
     --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 12px));
     --band-top:calc(var(--tile-h) * .62 + 44px);
-    --band-bottom:calc(var(--tile-h) + 56px)
+    --self-hand-band:calc(var(--tile-h) + 56px);
+    --self-meld-band:max(60px,calc(var(--meld-th) * 2 + 24px));
+    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 8px)
   }
   .seat-left,
   .seat-right{
@@ -731,7 +757,10 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     overflow:visible
   }
   .seat-left .seat-name,
-  .seat-right .seat-name{
+  .seat-right .seat-name,
+  .seat-left .seat-label,
+  .seat-right .seat-label,
+  .seat-name{
     white-space:normal;overflow:visible;font-size:12px
   }
   .seat-left .seat-status,
@@ -959,11 +988,24 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 .meld-bottom{
   left:var(--discard-inset);
   right:var(--discard-inset);
-  bottom:calc(var(--band-bottom) + var(--meld-gap));
+  /* 坐在手牌安全带之上；高度固定为副露安全带，不进入手牌区 */
+  bottom:calc(var(--self-hand-band) + var(--meld-gap));
+  height:var(--self-meld-band);
+  max-height:var(--self-meld-band);
   justify-content:center;
+  align-content:center;
+  align-items:center;
   flex-wrap:wrap;
-  max-height:calc(var(--meld-th) + 12px);
-  z-index:8;
+  gap:6px;
+  overflow:hidden;
+  z-index:9;
+  pointer-events:none;
+}
+.meld-bottom:not(:empty){
+  display:flex;
+}
+.meld-bottom .meld-group{
+  flex:0 0 auto;
 }
 
 /* 左右副露：在座位与桌心之间，上半段排布，避开自家底栏手牌 */
@@ -1217,6 +1259,18 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   .meld-left,
   .meld-right{
     width:clamp(44px,5.5vw,64px);
+  }
+
+  .meld-bottom{
+    bottom:calc(var(--self-hand-band) + var(--meld-gap));
+    height:var(--self-meld-band);
+    max-height:var(--self-meld-band);
+    z-index:9
+  }
+
+  .seat-bottom{
+    height:var(--self-hand-band);
+    max-height:var(--self-hand-band)
   }
 
   .action-dock{

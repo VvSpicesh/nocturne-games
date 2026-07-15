@@ -15,6 +15,8 @@
     theme: "blue",
     gameStatus: "playing",
     gameOver: false,
+    endResult: null,
+    endModalVisible: false,
     aiBusy: false,
     elapsedSeconds: 0,
     sessionStartedAt: Date.now(),
@@ -30,8 +32,10 @@
       return this.elapsedSeconds + extra;
     },
 
-    syncEvaluation() {
+    syncEvaluation(options = {}) {
       const evaluation = ChessEngine.evaluateGameState(this.engineState);
+      const wasOver = this.gameOver;
+
       // Bake wall-clock time once when entering a terminal state so the
       // displayed total does not jump backward after gameOver becomes true.
       if (evaluation.gameOver && !this.gameOver) {
@@ -40,8 +44,64 @@
           Math.floor((Date.now() - this.sessionStartedAt) / 1000);
         this.sessionStartedAt = Date.now();
       }
+
       this.gameStatus = evaluation.status;
       this.gameOver = evaluation.gameOver;
+
+      if (evaluation.gameOver) {
+        this.aiBusy = false;
+        this.selected = null;
+        this.legalMoves = [];
+        this.endResult = ChessEngine.buildEndResult(evaluation, options);
+        if (!wasOver || options.forceModal) {
+          this.endModalVisible = true;
+        }
+      } else if (!options.keepResignation) {
+        this.endResult = null;
+        this.endModalVisible = false;
+      }
+    },
+
+    openEndModal() {
+      if (!this.endResult?.ended) return;
+      this.endModalVisible = true;
+      this.render();
+    },
+
+    dismissEndModal() {
+      if (!this.endResult?.ended) return;
+      this.endModalVisible = false;
+      this.render();
+      this.persist("end-dismiss");
+    },
+
+    resign() {
+      if (this.gameOver || this.aiBusy || this.pendingPromotion) return;
+
+      let loser = this.engineState.turn;
+      if (this.mode === "ai") {
+        // 人机固定玩家执白
+        loser = "w";
+      }
+
+      const label = loser === "w" ? "白方" : "黑方";
+      if (!window.confirm(`确定要认输吗？（${label}）`)) return;
+
+      this.elapsedSeconds =
+        this.elapsedSeconds +
+        Math.floor((Date.now() - this.sessionStartedAt) / 1000);
+      this.sessionStartedAt = Date.now();
+
+      this.aiBusy = false;
+      this.selected = null;
+      this.legalMoves = [];
+      this.pendingPromotion = null;
+      this.gameOver = true;
+      this.gameStatus = "resignation";
+      this.endResult = ChessEngine.buildEndResult(null, { resignation: loser });
+      this.endModalVisible = true;
+      this.render();
+      this.persist("resign");
     },
 
     buildSnapshot() {
@@ -57,6 +117,8 @@
         lastMove: this.lastMove,
         gameStatus: this.gameStatus,
         gameOver: this.gameOver,
+        endResult: this.endResult,
+        endModalVisible: this.endModalVisible,
         mode: this.mode,
         difficulty: this.difficulty,
         theme: this.theme,
@@ -104,6 +166,8 @@
       this.lastMove = data.lastMove ? { ...data.lastMove } : null;
       this.gameStatus = data.gameStatus;
       this.gameOver = data.gameOver;
+      this.endResult = data.endResult || null;
+      this.endModalVisible = Boolean(data.gameOver && data.endModalVisible);
       this.mode = data.mode;
       this.difficulty = data.difficulty;
       this.theme = data.theme;
@@ -114,7 +178,18 @@
       this.legalMoves = [];
       this.aiBusy = false;
       this.pendingPromotion = null;
-      this.syncEvaluation();
+
+      if (this.gameStatus === "resignation" && this.endResult?.ended) {
+        // 认输不重新走引擎判定，避免覆盖文案
+        return;
+      }
+      this.syncEvaluation({ keepResignation: false });
+      if (this.gameOver && this.endResult && data.endModalVisible === false) {
+        this.endModalVisible = false;
+      } else if (this.gameOver && this.endResult) {
+        // 刷新恢复：默认只显示芯片，避免每次加载强弹；若此前未关闭则按存档
+        this.endModalVisible = data.endModalVisible === true;
+      }
     },
 
     startFreshBoard(keepPrefs) {
@@ -127,13 +202,15 @@
       this.capturedPieces = { w: [], b: [] };
       this.gameStatus = "playing";
       this.gameOver = false;
+      this.endResult = null;
+      this.endModalVisible = false;
       this.aiBusy = false;
       this.pendingPromotion = null;
       this.elapsedSeconds = 0;
       this.resetRuntimeClockBase();
-      this.flipped = false;
-
+      // rematch / 保留设置时保留翻转；全新默认不翻转
       if (!keepPrefs) {
+        this.flipped = false;
         this.mode = "local";
         this.difficulty = "normal";
         this.theme = "blue";
@@ -182,6 +259,23 @@
         );
       });
       document.getElementById("resetChess").addEventListener("click", () => this.confirmNewGame());
+      document.getElementById("resignChess")?.addEventListener("click", () => this.resign());
+      document.getElementById("endGameRematch")?.addEventListener("click", () => {
+        this.startFreshBoard(true);
+        this.render();
+        this.persist("rematch");
+        document.getElementById("engineStatus").textContent = "新对局已开始";
+        ChessRenderer.showToast("再来一局");
+      });
+      document.getElementById("endGameReview")?.addEventListener("click", () => {
+        this.dismissEndModal();
+      });
+      document.getElementById("endGameChip")?.addEventListener("click", () => {
+        this.openEndModal();
+        this.persist("end-reopen");
+      });
+
+      this.setupDebugPanel();
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") {
@@ -325,6 +419,8 @@
         lastMove: this.lastMove ? { ...this.lastMove } : null,
         gameStatus: this.gameStatus,
         gameOver: this.gameOver,
+        endResult: this.endResult ? { ...this.endResult } : null,
+        endModalVisible: this.endModalVisible,
         elapsedSeconds: this.getElapsedSeconds()
       };
 
@@ -389,6 +485,8 @@
         this.lastMove = entry.lastMove ? { ...entry.lastMove } : null;
         this.gameStatus = entry.gameStatus;
         this.gameOver = entry.gameOver;
+        this.endResult = entry.endResult ? { ...entry.endResult } : null;
+        this.endModalVisible = Boolean(entry.endModalVisible);
         // Keep total elapsed; do not roll back timer.
       };
 
@@ -404,7 +502,16 @@
 
       this.selected = null;
       this.legalMoves = [];
+      if (this.gameStatus === "resignation" && this.endResult?.ended) {
+        this.render();
+        this.persist("undo");
+        return;
+      }
       this.syncEvaluation();
+      if (!this.gameOver) {
+        this.endResult = null;
+        this.endModalVisible = false;
+      }
       this.render();
       this.persist("undo");
     },
@@ -442,7 +549,7 @@
           this.aiBusy = false;
 
           if (!move) {
-            this.syncEvaluation();
+            this.syncEvaluation({ forceModal: true });
             this.render();
             this.persist("ai-null");
             return;
@@ -465,6 +572,103 @@
           this.render();
         }
       }, 360);
+    },
+
+    emptyBoard() {
+      return Array.from({ length: 8 }, () => Array(8).fill(null));
+    },
+
+    loadDebugPosition(name) {
+      const board = this.emptyBoard();
+      let turn = "w";
+      let note = "";
+
+      if (name === "mate-white") {
+        // Ka8 Qa7 Kb6 — 黑方被将死
+        board[0][0] = { color: "b", type: "k" };
+        board[1][0] = { color: "w", type: "q" };
+        board[2][1] = { color: "w", type: "k" };
+        turn = "b";
+        note = "将死（白方获胜）";
+      } else if (name === "mate-black") {
+        board[7][7] = { color: "w", type: "k" };
+        board[6][7] = { color: "b", type: "q" };
+        board[5][6] = { color: "b", type: "k" };
+        turn = "w";
+        note = "将死（黑方获胜）";
+      } else if (name === "stalemate") {
+        // Ka8, Pa7, Kb6 — 黑无合法着且未被将军
+        board[0][0] = { color: "b", type: "k" };
+        board[1][0] = { color: "w", type: "p" };
+        board[2][1] = { color: "w", type: "k" };
+        turn = "b";
+        note = "逼和";
+      } else if (name === "insufficient") {
+        board[0][4] = { color: "b", type: "k" };
+        board[7][4] = { color: "w", type: "k" };
+        board[4][2] = { color: "w", type: "n" };
+        turn = "w";
+        note = "子力不足";
+      } else {
+        ChessRenderer.showToast("未知调试场景");
+        return;
+      }
+
+      this.engineState = {
+        board,
+        turn,
+        castlingRights: { wK: false, wQ: false, bK: false, bQ: false },
+        enPassantTarget: null
+      };
+      this.moveHistory = [];
+      this.notation = [];
+      this.lastMove = null;
+      this.capturedPieces = { w: [], b: [] };
+      this.selected = null;
+      this.legalMoves = [];
+      this.aiBusy = false;
+      this.pendingPromotion = null;
+      this.endResult = null;
+      this.endModalVisible = false;
+      this.gameOver = false;
+      this.syncEvaluation({ forceModal: true });
+      this.render();
+      this.persist("debug");
+      ChessRenderer.showToast(note);
+      document.getElementById("engineStatus").textContent = `调试：${note}`;
+    },
+
+    setupDebugPanel() {
+      const host = location.hostname;
+      if (host !== "localhost" && host !== "127.0.0.1") return;
+      if (document.getElementById("chessDebugPanel")) return;
+
+      const panel = document.createElement("section");
+      panel.id = "chessDebugPanel";
+      panel.className = "panel side-card chess-debug";
+      panel.innerHTML = `
+        <h2>Debug Mode</h2>
+        <p class="muted">仅 localhost 可见</p>
+        <div class="button-grid debug-grid">
+          <button type="button" data-debug="mate-white">将死·白胜</button>
+          <button type="button" data-debug="mate-black">将死·黑胜</button>
+          <button type="button" data-debug="stalemate">逼和</button>
+          <button type="button" data-debug="insufficient">子力不足</button>
+          <button type="button" data-debug="resign">认输弹框</button>
+        </div>
+      `;
+      document.querySelector(".side-stack")?.appendChild(panel);
+      panel.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-debug]");
+        if (!btn) return;
+        const key = btn.getAttribute("data-debug");
+        if (key === "resign") {
+          if (this.gameOver) this.startFreshBoard(true);
+          this.resign();
+          return;
+        }
+        this.loadDebugPosition(key);
+      });
     },
 
     init() {

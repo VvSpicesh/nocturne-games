@@ -45,7 +45,13 @@ function wait(ms){
 }
 
 function seatWho(playerIndex){
-  return `${seatLabels[playerIndex]} ${state.players[playerIndex].name}`;
+  const name=state.players[playerIndex].name;
+  return name?`${seatLabels[playerIndex]} ${name}`:seatLabels[playerIndex];
+}
+
+function playerCall(playerIndex){
+  const name=state.players[playerIndex]?.name;
+  return name||seatLabels[playerIndex];
 }
 
 function formatWinLine(playerIndex,fanName){
@@ -207,9 +213,9 @@ function newGame(){
     dealing:false,
     discards:[],
     logs:[
-      `新牌局开始。${seatLabels[dealer]} ${names[dealer]} 坐庄。`,
+      `新牌局开始。${seatWho(dealer)} 坐庄。`,
       `换三张：${rules.exchangeThree?"开启":"关闭"}；刮风下雨：${rules.gangRain?"开启":"关闭"}。`,
-      `本局起始分：${scores.map((n,i)=>`${names[i]} ${n}`).join(" / ")}。`
+      `本局起始分：${scores.map((n,i)=>`${playerCall(i)} ${n}`).join(" / ")}。`
     ],
     drawnTileId:null,
     selectedTileIndex:null,
@@ -234,7 +240,7 @@ async function runOpeningSequence(){
 
   await playDiceAnimation({
     caption:"掷骰定庄…",
-    resultCaption:(a,b,c)=>`点数 ${a}+${b}+${c}=${a+b+c} · ${seatLabels[dealer]} ${names[dealer]} 坐庄`
+    resultCaption:(a,b,c)=>`点数 ${a}+${b}+${c}=${a+b+c} · ${seatWho(dealer)} 坐庄`
   });
   if(seq!==openingSeq||!state||state.phase!=="开局")return;
 
@@ -321,7 +327,7 @@ function confirmMissingSuits(humanSuit){
     state.players[i].missingSuit=pickAiMissingSuit(state.players[i].hand);
   }
   const line=state.players
-    .map((p,i)=>`${seatLabels[i]}${p.name}缺${SUIT_LABEL[p.missingSuit]}`)
+    .map((p,i)=>`${playerCall(i)}缺${SUIT_LABEL[p.missingSuit]}`)
     .join(" · ");
   state.logs.push(`定缺完成：${line}。`);
   hideMissingSuitModal();
@@ -355,7 +361,7 @@ function autoDraw(){
 
   state.drawnTileId=tile.id;
   state.selectedTileIndex=null;
-  state.logs.push(`${player.name}摸牌。`);
+  state.logs.push(`${playerCall(state.turn)}摸牌。`);
   state.phase="出牌";
 
   const info=canPlayerWin(player,player.hand,player.melds,{
@@ -450,7 +456,7 @@ function discard(playerIndex,tileIndex){
 
   state.discards.push({player:playerIndex,tile});
   state.lastDiscard={player:playerIndex,tile};
-  state.logs.push(`${player.name}打出 ${tileName(tile)}。`);
+  state.logs.push(`${playerCall(playerIndex)}打出 ${tileName(tile)}。`);
   state.drawnTileId=null;
   state.selectedTileIndex=null;
   state.phase="等待操作";
@@ -551,7 +557,7 @@ function claimPeng(playerIndex,tile,fromPlayer){
   state.turn=playerIndex;
   state.phase="出牌";
   state.lastAction={type:"peng",player:playerIndex};
-  state.logs.push(`${player2.name}碰 ${tileName(tile)}。`);
+  state.logs.push(`${playerCall(playerIndex)}碰 ${tileName(tile)}。`);
   showPlayerActionEffect(playerIndex,"碰",tile);
   commit();
 
@@ -571,7 +577,7 @@ function claimMingGang(playerIndex,tile,fromPlayer){
   state.turn=playerIndex;
   state.lastAction={type:"gang",player:playerIndex,kind:"mingGang"};
   const settled=settleMingGang(state,playerIndex,fromPlayer);
-  state.logs.push(settled?`${player.name}杠 ${tileName(tile)} · ${settled.logText}`:`${player.name}杠 ${tileName(tile)}。`);
+  state.logs.push(settled?`${playerCall(playerIndex)}杠 ${tileName(tile)} · ${settled.logText}`:`${playerCall(playerIndex)}杠 ${tileName(tile)}。`);
   showPlayerActionEffect(playerIndex,"杠",tile,settled?formatPoints(settled.pts):"");
   drawSupplement(playerIndex);
 }
@@ -585,8 +591,8 @@ function doConcealedGang(playerIndex,entry){
   const settled=settleAnOrBuGang(state,playerIndex,"暗杠");
   state.logs.push(
     settled
-      ?`${player.name}暗杠 ${tileName(entry.tile)} · ${settled.logText}`
-      :`${player.name}暗杠 ${tileName(entry.tile)}。`
+      ?`${playerCall(playerIndex)}暗杠 ${tileName(entry.tile)} · ${settled.logText}`
+      :`${playerCall(playerIndex)}暗杠 ${tileName(entry.tile)}。`
   );
   showPlayerActionEffect(
     playerIndex,
@@ -631,8 +637,8 @@ function completeAddedGang(playerIndex,entry){
   const settled=settleAnOrBuGang(state,playerIndex,"补杠");
   state.logs.push(
     settled
-      ?`${player.name}补杠 ${tileName(entry.tile)} · ${settled.logText}`
-      :`${player.name}补杠 ${tileName(entry.tile)}。`
+      ?`${playerCall(playerIndex)}补杠 ${tileName(entry.tile)} · ${settled.logText}`
+      :`${playerCall(playerIndex)}补杠 ${tileName(entry.tile)}。`
   );
   showPlayerActionEffect(
     playerIndex,
@@ -766,7 +772,7 @@ function declareDiscardWins(winChecks,tile,fromPlayer){
     :formatWinHeadline(winners[0],winInfos[0].name,manner);
   const first=winInfos[0];
   const scoreBits=winners.map((index,i)=>
-    `${state.players[index].name}${settled.fans[i]}番${formatPoints(settled.deltas[index])}`
+    `${playerCall(index)}${settled.fans[i]}番${formatPoints(settled.deltas[index])}`
   ).join(" · ");
   showWin(
     headline,
@@ -776,7 +782,7 @@ function declareDiscardWins(winChecks,tile,fromPlayer){
       fan:settled.fans[0],
       scoreDelta:settled.deltas[winners[0]],
       scoreTotal:state.scores[winners[0]],
-      scoreLine:`${scoreBits} · ${state.players[fromPlayer].name} ${formatPoints(settled.deltas[fromPlayer])}`
+      scoreLine:`${scoreBits} · ${playerCall(fromPlayer)} ${formatPoints(settled.deltas[fromPlayer])}`
     },
     ()=>continueAfterWin(fromPlayer),
     `${seatWho(fromPlayer)} 放炮${gangPaohu?"（杠上炮）":""}`,
@@ -826,7 +832,7 @@ function declareRobGangWins(winners,tile,fromPlayer){
     :formatWinHeadline(winnerIndexes[0],winInfos[0].name,"抢杠胡");
   const first=winInfos[0];
   const scoreBits=winnerIndexes.map((index,i)=>
-    `${state.players[index].name}${settled.fans[i]}番${formatPoints(settled.deltas[index])}`
+    `${playerCall(index)}${settled.fans[i]}番${formatPoints(settled.deltas[index])}`
   ).join(" · ");
   showWin(
     headline,
@@ -836,7 +842,7 @@ function declareRobGangWins(winners,tile,fromPlayer){
       fan:settled.fans[0],
       scoreDelta:settled.deltas[winnerIndexes[0]],
       scoreTotal:state.scores[winnerIndexes[0]],
-      scoreLine:`${scoreBits} · ${state.players[fromPlayer].name} ${formatPoints(settled.deltas[fromPlayer])}`
+      scoreLine:`${scoreBits} · ${playerCall(fromPlayer)} ${formatPoints(settled.deltas[fromPlayer])}`
     },
     ()=>continueAfterWin(fromPlayer),
     `抢 ${seatWho(fromPlayer)} 的补杠`,

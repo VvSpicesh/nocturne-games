@@ -101,6 +101,25 @@
   background:linear-gradient(135deg,#7ca8ff,#9d7cff);
 }
 
+.button-grid button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.chess-debug .debug-grid{
+  grid-template-columns:1fr 1fr;
+}
+
+@media(max-height:520px) and (orientation:landscape){
+  .end-game-card{
+    padding:12px 14px;
+  }
+  .end-game-card h2{font-size:22px;margin-bottom:4px}
+  .end-game-message{margin-bottom:10px;font-size:14px}
+  .end-game-actions .ghost-button,
+  .end-game-actions .primary-button{min-height:40px}
+}
+
 .captured-block{margin-bottom:12px}
 .captured-label{
   color:var(--muted);

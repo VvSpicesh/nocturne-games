@@ -472,8 +472,124 @@ const ChessEngine = (() => {
     return applyMoveRaw(state, move, true);
   }
 
+  function countPieces(state) {
+    const list = [];
+    const board = state.board;
+    for (let row = 0; row < 8; row++) {
+      for (let column = 0; column < 8; column++) {
+        const piece = board[row][column];
+        if (piece) list.push({ ...piece, row, column });
+      }
+    }
+    return list;
+  }
+
+  /**
+   * FIDE 自动和局：子力不足强制杀无法完成。
+   * 含：王对王；王马/王象对王；同色格双象对单王象。
+   * 不含：王双马对王（非正式自动和）。
+   */
+  function isInsufficientMaterial(state) {
+    const pieces = countPieces(state).filter((p) => p.type !== "k");
+    if (pieces.length === 0) return true;
+
+    if (pieces.length === 1) {
+      const type = pieces[0].type;
+      return type === "n" || type === "b";
+    }
+
+    if (pieces.length === 2) {
+      const [a, b] = pieces;
+      if (a.type === "b" && b.type === "b" && a.color !== b.color) {
+        const colorA = (a.row + a.column) % 2;
+        const colorB = (b.row + b.column) % 2;
+        return colorA === colorB;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * 统一终局描述；不在此伪造未实现规则（重复局面 / 五十回合等）。
+   * @returns {{ended:boolean,type:string,winner:'white'|'black'|null,title:string,message:string,status:string}|null}
+   */
+  function buildEndResult(evaluation, options = {}) {
+    if (options.resignation === "w" || options.resignation === "b") {
+      const loser = options.resignation;
+      const winnerColor = loser === "w" ? "b" : "w";
+      const winnerName = winnerColor === "w" ? "白方" : "黑方";
+      const loserName = loser === "w" ? "白方" : "黑方";
+      return {
+        ended: true,
+        type: "resignation",
+        winner: winnerColor === "w" ? "white" : "black",
+        title: "认输",
+        message: `${loserName}认输，${winnerName}获胜`,
+        status: "resignation"
+      };
+    }
+
+    if (!evaluation?.gameOver) return null;
+
+    if (evaluation.status === "checkmate") {
+      // side to move is mated
+      const winnerSide = evaluation.side === "w" ? "b" : "w";
+      const winnerName = winnerSide === "w" ? "白方" : "黑方";
+      return {
+        ended: true,
+        type: "checkmate",
+        winner: winnerSide === "w" ? "white" : "black",
+        title: "将死",
+        message: `${winnerName}获胜`,
+        status: "checkmate"
+      };
+    }
+
+    if (evaluation.status === "stalemate") {
+      return {
+        ended: true,
+        type: "stalemate",
+        winner: null,
+        title: "和局",
+        message: "无合法着法",
+        status: "stalemate"
+      };
+    }
+
+    if (evaluation.status === "insufficientMaterial") {
+      return {
+        ended: true,
+        type: "insufficientMaterial",
+        winner: null,
+        title: "和局",
+        message: "子力不足",
+        status: "insufficientMaterial"
+      };
+    }
+
+    return {
+      ended: true,
+      type: "other",
+      winner: null,
+      title: "对局结束",
+      message: evaluation.status || "已结束",
+      status: evaluation.status || "other"
+    };
+  }
+
   function evaluateGameState(state) {
     const side = state.turn;
+
+    if (isInsufficientMaterial(state)) {
+      return {
+        status: "insufficientMaterial",
+        gameOver: true,
+        inCheck: false,
+        side
+      };
+    }
+
     const inCheck = isInCheck(state, side);
     const moves = getAllLegalMoves(state, side);
 
@@ -558,6 +674,8 @@ const ChessEngine = (() => {
     getAllLegalMoves,
     applyMove,
     evaluateGameState,
+    buildEndResult,
+    isInsufficientMaterial,
     pieceValue,
     materialScore,
     centerBonus,

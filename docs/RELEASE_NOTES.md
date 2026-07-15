@@ -1,5 +1,19 @@
 # RELEASE NOTES
 
+## Mahjong v0.14.26
+
+**Service Worker**：`nocturne-games-v29`
+
+### 调整
+- 上家/下家方位字号与对家/自己一致；默认具体名为空
+- 自己副露与手牌分层，避免横屏遮挡（含 v0.14.25）
+
+同批发布：Chess stable11 — 将死/逼和/子力不足/认输结束弹框。
+
+完整稿：`mahjong/RELEASE_NOTES.md`。变更明细：`mahjong/CHANGELOG.md`。
+
+---
+
 ## Mahjong v0.14.24 Release Candidate
 
 **状态**：Release Candidate  

@@ -3,6 +3,10 @@ import {getLegalDiscardIndexes,SUIT_LABEL} from "./rules-guard.js";
 
 const SEAT_LABELS=["自己","上家","对家","下家"];
 
+function seatDisplayName(index,name){
+  return name?`${SEAT_LABELS[index]} ${name}`:SEAT_LABELS[index];
+}
+
 function wait(ms){
   return new Promise(resolve=>setTimeout(resolve,ms));
 }
@@ -27,10 +31,10 @@ export function renderGame(state,handlers){
   document.getElementById("phase").textContent=state.phase;
   const turnIndex=state.turn;
   const turnName=state.players[turnIndex]
-    ?`${SEAT_LABELS[turnIndex]} ${state.players[turnIndex].name}`
+    ?seatDisplayName(turnIndex,state.players[turnIndex].name)
     :"—";
   const dealerName=state.players[state.dealer]
-    ?`${SEAT_LABELS[state.dealer]} ${state.players[state.dealer].name}`
+    ?seatDisplayName(state.dealer,state.players[state.dealer].name)
     :"—";
   document.getElementById("turn").textContent=
     state.phase==="开局"?`庄：${dealerName}`:`轮到：${turnName}`;
@@ -61,7 +65,7 @@ function renderScores(state){
     row.className="score-row"+(scores[index]<0?" score-row-neg":"");
     const delta=deltas[index]||0;
     row.innerHTML=`
-      <div class="score-name">${SEAT_LABELS[index]} ${player.name}${player.won?'<span class="score-won">已胡</span>':""}</div>
+      <div class="score-name">${seatDisplayName(index,player.name)}${player.won?'<span class="score-won">已胡</span>':""}</div>
       <div class="score-total">${scores[index]}</div>
       <div class="score-delta">${delta>0?"+"+delta:String(delta)}</div>
     `;
@@ -87,23 +91,27 @@ function renderSeat(state,player,index,handlers){
   const statusText=player.won?"已胡":"进行中";
   const dealerBadge=isDealer?'<span class="dealer-badge">庄</span>':"";
   if(isSide){
+    const nameLine=player.name
+      ?`<div class="seat-name">${player.name}${dealerBadge}</div>`
+      :(dealerBadge?`<div class="seat-name">${dealerBadge}</div>`:"");
     header.innerHTML=`
       <div class="seat-id">
         <span class="seat-avatar" aria-hidden="true">${avatar}</span>
         <div class="seat-text">
           <div class="seat-label">${SEAT_LABELS[index]}</div>
-          <div class="seat-name">${player.name}${dealerBadge}</div>
+          ${nameLine}
           <div class="seat-meta">${player.hand.length}张${player.missingSuit?` · 缺${SUIT_LABEL[player.missingSuit]}`:""}</div>
           <div class="${statusClass}">${statusText}</div>
         </div>
       </div>
     `;
   }else{
+    const namePart=player.name?` ${player.name}`:"";
     header.innerHTML=`
       <div class="seat-id">
         <span class="seat-avatar" aria-hidden="true">${avatar}</span>
         <div class="seat-text">
-          <div class="seat-name">${SEAT_LABELS[index]} ${player.name}${dealerBadge}</div>
+          <div class="seat-name">${SEAT_LABELS[index]}${namePart}${dealerBadge}</div>
           <div class="seat-meta">${player.hand.length}张${player.missingSuit?` · 缺${SUIT_LABEL[player.missingSuit]}`:""}${player.melds.length?` · 碰/杠×${player.melds.length}`:""}</div>
         </div>
       </div>

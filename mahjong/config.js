@@ -1,6 +1,6 @@
 const KEY="nocturne_mahjong_rules_v10";
 const DEALER_KEY="nocturne_mahjong_dealer_v10";
-const NAMES_KEY="nocturne_mahjong_names_v10";
+const NAMES_KEY="nocturne_mahjong_names_v11";
 
 export const defaultRules={
   exchangeThree:true,
@@ -55,7 +55,7 @@ export function mergeDeep(base,patch){
   return out;
 }
 
-export const defaultNames=["瑞","安彬","兰儿","小诺"];
+export const defaultNames=["","","",""];
 
 export function loadRules(){
   try{
@@ -73,9 +73,8 @@ export function loadNames(){
   try{
     const raw=JSON.parse(localStorage.getItem(NAMES_KEY)||"null");
     if(Array.isArray(raw)&&raw.length===4){
-      return raw.map((name,index)=>{
-        const text=String(name??"").trim();
-        return text||defaultNames[index];
+      return raw.map((name)=>{
+        return String(name??"").trim().slice(0,8);
       });
     }
   }catch{/* ignore */}
@@ -83,9 +82,8 @@ export function loadNames(){
 }
 
 export function saveNames(list){
-  const next=list.map((name,index)=>{
-    const text=String(name??"").trim();
-    return text.slice(0,8)||defaultNames[index];
+  const next=list.map((name)=>{
+    return String(name??"").trim().slice(0,8);
   });
   localStorage.setItem(NAMES_KEY,JSON.stringify(next));
   return next;

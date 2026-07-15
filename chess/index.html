@@ -10,10 +10,10 @@
   <link rel="manifest" href="../manifest.webmanifest">
   <link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
-  <link rel="stylesheet" href="../shared/base.css?v=stable10">
-  <link rel="stylesheet" href="./css/board.css?v=stable10">
-  <link rel="stylesheet" href="./css/themes.css?v=stable10">
-  <link rel="stylesheet" href="./css/ui.css?v=stable10">
+  <link rel="stylesheet" href="../shared/base.css?v=stable11">
+  <link rel="stylesheet" href="./css/board.css?v=stable11">
+  <link rel="stylesheet" href="./css/themes.css?v=stable11">
+  <link rel="stylesheet" href="./css/ui.css?v=stable11">
 </head>
 <body>
   <main class="game-page">
@@ -27,7 +27,23 @@
 
     <section class="chess-layout">
       <div class="board-shell panel" data-theme="blue">
-        <div id="chessBoard" class="chess-board" aria-label="国际象棋棋盘"></div>
+        <div class="board-stage">
+          <div id="chessBoard" class="chess-board" aria-label="国际象棋棋盘"></div>
+          <div id="endGameOverlay" class="end-game-overlay hidden" aria-hidden="true">
+            <div class="end-game-card panel" role="dialog" aria-modal="true" aria-labelledby="endGameTitle">
+              <p id="endGameOutcome" class="end-game-outcome">对局结束</p>
+              <h2 id="endGameTitle">将死</h2>
+              <p id="endGameMessage" class="end-game-message">白方获胜</p>
+              <div class="end-game-actions">
+                <button type="button" id="endGameReview" class="ghost-button">查看棋盘</button>
+                <button type="button" id="endGameRematch" class="primary-button">再来一局</button>
+              </div>
+            </div>
+          </div>
+          <button type="button" id="endGameChip" class="end-game-chip hidden" aria-hidden="true">
+            对局已结束
+          </button>
+        </div>
       </div>
 
       <aside class="side-stack">
@@ -72,6 +88,7 @@
             <button type="button" id="undoChess">悔棋</button>
             <button type="button" id="flipChess">翻转棋盘</button>
             <button type="button" id="themeChess">切换棋盘</button>
+            <button type="button" id="resignChess">认输</button>
             <button type="button" id="resetChess" class="primary-button">新对局</button>
           </div>
         </section>
@@ -117,11 +134,11 @@
     </div>
   </div>
 
-  <script src="./js/engine.js?v=stable10"></script>
-  <script src="./js/storage.js?v=stable10"></script>
-  <script src="./js/renderer.js?v=stable10"></script>
-  <script src="./js/ai.js?v=stable10"></script>
-  <script src="./js/game.js?v=stable10"></script>
+  <script src="./js/engine.js?v=stable11"></script>
+  <script src="./js/storage.js?v=stable11"></script>
+  <script src="./js/renderer.js?v=stable11"></script>
+  <script src="./js/ai.js?v=stable11"></script>
+  <script src="./js/game.js?v=stable11"></script>
   <script type="module" src="../shared/pwa.js"></script>
 </body>
 </html>

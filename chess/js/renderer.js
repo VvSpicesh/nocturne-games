@@ -83,17 +83,11 @@ const ChessRenderer = (() => {
   function renderStatus(app) {
     const turnText = document.getElementById("turnText");
     const statusText = document.getElementById("statusText");
+    const result = app.endResult;
 
-    if (app.gameStatus === "checkmate") {
-      const winner = app.engineState.turn === "w" ? "黑方" : "白方";
-      turnText.textContent = "将死";
-      statusText.textContent = `${winner}胜利。对局结束。`;
-      return;
-    }
-
-    if (app.gameStatus === "stalemate") {
-      turnText.textContent = "和棋";
-      statusText.textContent = "逼和。对局结束。";
+    if (result?.ended) {
+      turnText.textContent = result.title;
+      statusText.textContent = result.message;
       return;
     }
 
@@ -111,6 +105,38 @@ const ChessRenderer = (() => {
     }
 
     statusText.textContent = "点击棋子开始走棋。";
+  }
+
+  function syncEndOverlay(app) {
+    const overlay = document.getElementById("endGameOverlay");
+    const chip = document.getElementById("endGameChip");
+    if (!overlay || !chip) return;
+
+    const result = app.endResult;
+    const showModal = Boolean(result?.ended && app.endModalVisible);
+    const showChip = Boolean(result?.ended && !app.endModalVisible);
+
+    overlay.classList.toggle("hidden", !showModal);
+    overlay.setAttribute("aria-hidden", showModal ? "false" : "true");
+
+    if (showModal) {
+      document.getElementById("endGameTitle").textContent = result.title;
+      document.getElementById("endGameMessage").textContent = result.message;
+      const outcome = document.getElementById("endGameOutcome");
+      if (result.winner === "white") {
+        outcome.textContent = "白方获胜";
+      } else if (result.winner === "black") {
+        outcome.textContent = "黑方获胜";
+      } else {
+        outcome.textContent = "和局";
+      }
+    }
+
+    chip.classList.toggle("hidden", !showChip);
+    chip.setAttribute("aria-hidden", showChip ? "false" : "true");
+    if (showChip) {
+      chip.textContent = `对局已结束 · ${result.title}`;
+    }
   }
 
   function renderMoves(app) {
@@ -218,10 +244,14 @@ const ChessRenderer = (() => {
     }
 
     renderStatus(app);
+    syncEndOverlay(app);
     renderMoves(app);
     renderCaptured(app);
     renderClock(app);
     renderSaveStatus(app);
+
+    const resignBtn = document.getElementById("resignChess");
+    if (resignBtn) resignBtn.disabled = Boolean(app.gameOver || app.aiBusy);
   }
 
   function showToast(message) {
@@ -294,6 +324,7 @@ const ChessRenderer = (() => {
     showBootError,
     formatMoveNotation,
     formatClock,
-    setTheme
+    setTheme,
+    syncEndOverlay
   };
 })();
