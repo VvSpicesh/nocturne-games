@@ -150,7 +150,10 @@ const BAMBOO_LAYOUT={
 function faceWan(n){
   return svg(`
     <text x="50" y="58" text-anchor="middle" dominant-baseline="middle"
-      font-size="48" font-weight="800" font-family="${FONT}" fill="${INK}">${NUM_CN[n]}</text>
+      font-size="48" font-weight="900" font-family="${FONT}" fill="${INK}"
+  stroke="${INK}"
+  stroke-width="0.8"
+  paint-order="stroke fill">${NUM_CN[n]}</text>
     <text x="50" y="108" text-anchor="middle" dominant-baseline="middle"
       font-size="34" font-weight="800" font-family="${FONT}" fill="${RED}">萬</text>
   `);
