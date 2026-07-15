@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>麻将牌面预览 · Nocturne Mahjong</title>
+  <style>
+    :root{
+      --tile-w:72px;
+      --tile-h:calc(var(--tile-w) * 1.42);
+      --bg:#0b251b;
+      --text:#f5fff8;
+      --muted:#a6c3b1;
+      --panel:rgba(8,31,23,.92);
+      --line:rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;color:var(--text);
+      font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+      background:linear-gradient(145deg,#071710,#10281e 60%,#06110c);
+      padding:20px 16px 48px
+    }
+    .wrap{max-width:980px;margin:0 auto}
+    h1{margin:0 0 6px;font-size:clamp(22px,4vw,32px)}
+    .sub{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.5}
+    .sub a{color:#efc768}
+    .toolbar{
+      display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+      margin-bottom:18px;padding:12px 14px;border-radius:14px;
+      background:var(--panel);border:1px solid var(--line)
+    }
+    .toolbar label{font-size:13px;color:var(--muted)}
+    .toolbar input[type=range]{width:min(240px,50vw)}
+    .toolbar strong{font-variant-numeric:tabular-nums}
+    section{
+      margin-bottom:22px;padding:16px;border-radius:18px;
+      background:var(--panel);border:1px solid var(--line)
+    }
+    section h2{margin:0 0 12px;font-size:16px}
+    .row{
+      display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-start
+    }
+    .card{display:flex;flex-direction:column;align-items:center;gap:8px}
+    .card span{font-size:12px;color:var(--muted)}
+    .tile{
+      width:var(--tile-w);height:var(--tile-h);flex:0 0 auto;
+      border-radius:8px 8px 6px 6px;overflow:hidden;
+      background:linear-gradient(160deg,#fbf6e8,#f3ead4 72%,#e4dcc4);
+      border:1.5px solid rgba(20,70,42,.45);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 4px 10px rgba(0,0,0,.28)
+    }
+    .tile svg{width:100%;height:100%;display:block}
+    @media(max-width:520px){
+      :root{--tile-w:58px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>麻将牌面预览</h1>
+    <p class="sub">
+      用于一次性核对万 / 条 / 筒全部 27 张牌面。
+      <a href="./index.html">← 返回牌局</a>
+    </p>
+    <div class="toolbar">
+      <label for="size">牌面大小</label>
+      <input id="size" type="range" min="44" max="110" value="72">
+      <strong id="sizeLabel">72px</strong>
+    </div>
+    <section>
+      <h2>万字（1–9）</h2>
+      <div class="row" id="row-w"></div>
+    </section>
+    <section>
+      <h2>条子（1–9）· 六条 2×3 / 七条上红下绿 / 八条上W下M / 九条中红</h2>
+      <div class="row" id="row-t"></div>
+    </section>
+    <section>
+      <h2>筒子（1–9）</h2>
+      <div class="row" id="row-b"></div>
+    </section>
+  </div>
+  <script type="module">
+    import {tileFace,tileName} from "./tiles.js?v=0.14.21";
+
+    const suits=[
+      {id:"row-w",s:"w"},
+      {id:"row-t",s:"t"},
+      {id:"row-b",s:"b"}
+    ];
+
+    for(const {id,s} of suits){
+      const row=document.getElementById(id);
+      for(let n=1;n<=9;n++){
+        const tile={s,n,id:`${s}${n}`};
+        const card=document.createElement("div");
+        card.className="card";
+        const el=document.createElement("div");
+        el.className="tile";
+        el.innerHTML=tileFace(tile);
+        el.title=tileName(tile);
+        const label=document.createElement("span");
+        label.textContent=tileName(tile);
+        card.append(el,label);
+        row.appendChild(card);
+      }
+    }
+
+    const size=document.getElementById("size");
+    const sizeLabel=document.getElementById("sizeLabel");
+    const apply=()=>{
+      document.documentElement.style.setProperty("--tile-w",`${size.value}px`);
+      sizeLabel.textContent=`${size.value}px`;
+    };
+    size.addEventListener("input",apply);
+    apply();
+  </script>
+</body>
+</html>

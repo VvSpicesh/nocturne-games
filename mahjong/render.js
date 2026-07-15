@@ -1,4 +1,4 @@
-import {tileFace,tileName} from "./tiles.js";
+import {tileFace,tileName} from "./tiles.js?v=0.14.21";
 
 const SEAT_LABELS=["自己","上家","对家","下家"];
 

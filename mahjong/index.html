@@ -6,11 +6,23 @@
   <meta name="theme-color" content="#0b251b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Nocturne Mahjong v0.14.18</title>
+  <title>Nocturne Mahjong v0.14.21</title>
   <link rel="manifest" href="../manifest.webmanifest">
   <link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=0.14.18">
+  <link rel="stylesheet" href="./style.css?v=0.14.21">
+  <script type="importmap">
+  {
+    "imports": {
+      "./render.js": "./render.js?v=0.14.21",
+      "./tiles.js": "./tiles.js?v=0.14.21",
+      "./storage.js": "./storage.js?v=0.14.21",
+      "./config.js": "./config.js?v=0.14.21",
+      "./hu.js": "./hu.js?v=0.14.21",
+      "./score.js": "./score.js?v=0.14.21"
+    }
+  }
+  </script>
 </head>
 <body>
   <main class="app">
@@ -20,7 +32,7 @@
         <div>
           <a class="back-link" href="../index.html">← 返回游戏大厅</a>
           <h1>Nocturne Mahjong</h1>
-          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.18</p>
+          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.21</p>
         </div>
       </div>
       <div class="topbar-actions">
@@ -194,7 +206,7 @@
 
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="./game.js?v=0.14.18"></script>
+  <script type="module" src="./game.js?v=0.14.21"></script>
   <script type="module" src="../shared/pwa.js"></script>
 </body>
 </html>
