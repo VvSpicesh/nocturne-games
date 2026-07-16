@@ -1,5 +1,19 @@
 # RELEASE NOTES — Nocturne Mahjong
 
+## v0.14.34
+
+**日期**：2026-07-16
+**Service Worker 缓存**：`nocturne-games-v39`
+
+### 设置
+- 麻将规则开关开始接入共享 `shared/settings.js`
+- 音频优先读取 `common.soundEnabled` / `common.speechEnabled`，保留旧本地键作兼容 fallback
+
+### 清理
+- 删除首页临时「测试语音」调试入口
+
+---
+
 ## v0.14.33
 
 **日期**：2026-07-16  

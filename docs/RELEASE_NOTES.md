@@ -1,5 +1,14 @@
 # RELEASE NOTES
 
+## Platform v0.14.34
+
+**Service Worker**：`nocturne-games-v39`
+
+- 新增 `shared/settings.js` 统一设置底座
+- 大厅 / 麻将 / 象棋开始读取共享设置；仍兼容旧配置
+
+---
+
 ## Mahjong v0.14.33
 
 **Service Worker**：`nocturne-games-v38`

@@ -1,3 +1,5 @@
+import {getSetting,updateSettings} from "../shared/settings.js";
+
 const KEY="nocturne_mahjong_rules_v10";
 const DEALER_KEY="nocturne_mahjong_dealer_v10";
 const NAMES_KEY="nocturne_mahjong_names_v11";
@@ -60,9 +62,19 @@ export const defaultNames=["","","",""];
 
 export function loadRules(){
   try{
-    return normalizeSettlementRules(mergeDeep(defaultRules,JSON.parse(localStorage.getItem(KEY)||"{}")));
+    const legacy=normalizeSettlementRules(mergeDeep(defaultRules,JSON.parse(localStorage.getItem(KEY)||"{}")));
+    const exchangeThree=getSetting("mahjong.exchangeThree");
+    const gangRain=getSetting("mahjong.gangRain");
+    if(typeof exchangeThree==="boolean")legacy.exchangeThree=exchangeThree;
+    if(typeof gangRain==="boolean")legacy.gangRain=gangRain;
+    return legacy;
   }catch{
-    return normalizeSettlementRules(mergeDeep(defaultRules,{}));
+    const fallback=normalizeSettlementRules(mergeDeep(defaultRules,{}));
+    const exchangeThree=getSetting("mahjong.exchangeThree");
+    const gangRain=getSetting("mahjong.gangRain");
+    if(typeof exchangeThree==="boolean")fallback.exchangeThree=exchangeThree;
+    if(typeof gangRain==="boolean")fallback.gangRain=gangRain;
+    return fallback;
   }
 }
 
@@ -87,7 +99,14 @@ export function normalizeSettlementRules(rules){
 }
 
 export function saveRules(rules){
-  localStorage.setItem(KEY,JSON.stringify(normalizeSettlementRules(rules)));
+  const next=normalizeSettlementRules(rules);
+  localStorage.setItem(KEY,JSON.stringify(next));
+  updateSettings({
+    mahjong:{
+      exchangeThree:next.exchangeThree,
+      gangRain:next.gangRain
+    }
+  });
 }
 
 export function loadNames(){

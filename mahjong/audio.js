@@ -1,3 +1,5 @@
+import {getSetting,subscribe,updateSettings} from "../shared/settings.js";
+
 /**
  * 本地预录语音（优先）+ Web Speech 回退 + Web Audio 音效
  * 语音文件：./sounds/voice/*.mp3
@@ -97,6 +99,11 @@ let localKeyQueue=[];
 let warmStarted=false;
 
 function readStoredEnabled(){
+  const sound=getSetting("common.soundEnabled");
+  const speech=getSetting("common.speechEnabled");
+  if(typeof sound==="boolean"||typeof speech==="boolean"){
+    return (sound!==false)&&(speech!==false);
+  }
   try{
     const raw=localStorage.getItem(AUDIO_KEY);
     if(raw===null||raw==="")return true;
@@ -107,6 +114,14 @@ function readStoredEnabled(){
 }
 
 enabled=readStoredEnabled();
+
+function syncEnabledFromSharedSettings(){
+  const sound=getSetting("common.soundEnabled");
+  const speech=getSetting("common.speechEnabled");
+  if(typeof sound!=="boolean"&&typeof speech!=="boolean")return;
+  enabled=(sound!==false)&&(speech!==false);
+  if(!enabled)stopSpeech();
+}
 
 function persistEnabled(){
   try{
@@ -502,6 +517,12 @@ export function initAudio(){
 export function setAudioEnabled(next){
   enabled=!!next;
   persistEnabled();
+  updateSettings({
+    common:{
+      soundEnabled:enabled,
+      speechEnabled:enabled
+    }
+  });
   if(!enabled){
     stopSpeech();
     return;
@@ -675,6 +696,8 @@ export function waitUntilSpeechIdle(timeoutMs=2500){
     setTimeout(tick,20);
   });
 }
+
+subscribe(syncEnabledFromSharedSettings);
 
 export function tileSpeechName(tile){
   if(!tile||!SUIT_CN[tile.s]||!NUM_CN[tile.n])return "";

@@ -1,3 +1,5 @@
+import {getSetting,setSetting} from "../../shared/settings.js";
+
 (() => {
   "use strict";
 
@@ -23,6 +25,18 @@
     hiddenAt: null,
     saveLabel: "未保存",
     pendingPromotion: null,
+    preferredSide: "white",
+
+    readSharedSettings() {
+      const difficulty = getSetting("chess.defaultDifficulty");
+      const side = getSetting("chess.defaultSide");
+      this.difficulty = ["easy", "normal", "hard"].includes(difficulty)
+        ? difficulty
+        : "normal";
+      this.preferredSide = ["white", "black", "random"].includes(side)
+        ? side
+        : "white";
+    },
 
     getElapsedSeconds() {
       let extra = 0;
@@ -212,7 +226,7 @@
       if (!keepPrefs) {
         this.flipped = false;
         this.mode = "local";
-        this.difficulty = "normal";
+        this.readSharedSettings();
         this.theme = "blue";
       }
 
@@ -245,6 +259,7 @@
 
       difficultySelect.addEventListener("change", () => {
         this.difficulty = difficultySelect.value;
+        setSetting("chess.defaultDifficulty", this.difficulty);
         this.persist("difficulty");
       });
 
@@ -703,6 +718,7 @@
       }
 
       const loaded = ChessStorage.load();
+      this.readSharedSettings();
 
       if (loaded.ok && loaded.data) {
         this.applySnapshot(loaded.data);

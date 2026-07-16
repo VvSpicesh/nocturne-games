@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b251b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Nocturne Mahjong v0.14.33</title>
+  <title>Nocturne Mahjong v0.14.34</title>
   <link rel="manifest" href="../manifest.webmanifest">
   <link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
@@ -17,12 +17,12 @@
       "./render.js": "./render.js?v=0.14.32",
       "./tiles.js": "./tiles.js?v=0.14.24",
       "./storage.js": "./storage.js?v=0.14.24",
-      "./config.js": "./config.js?v=0.14.32",
+      "./config.js": "./config.js?v=0.14.34",
       "./hu.js": "./hu.js?v=0.14.32",
       "./score.js": "./score.js?v=0.14.32",
       "./rules-guard.js": "./rules-guard.js?v=0.14.24",
       "./rule-tests.js": "./rule-tests.js?v=0.14.32",
-      "./audio.js": "./audio.js?v=0.14.33"
+      "./audio.js": "./audio.js?v=0.14.34"
     }
   }
   </script>
@@ -35,7 +35,7 @@
         <div>
           <a class="back-link" href="../index.html">← 返回游戏大厅</a>
           <h1>Nocturne Mahjong</h1>
-          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.33</p>
+          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.34</p>
         </div>
       </div>
       <div class="topbar-actions">
@@ -85,7 +85,6 @@
           </label>
         </section>
         <button id="editNamesBtn" class="btn" type="button">改名</button>
-        <button id="speechDebugBtn" class="btn" type="button" title="临时：排查 Android Chrome 无声音">测试语音</button>
         <button id="newGameBtn" class="btn btn-primary">新牌局</button>
       </div>
     </header>
@@ -292,17 +291,6 @@
       <div class="modal-actions modal-actions-split">
         <button id="namesCancel" class="btn" type="button">取消</button>
         <button id="namesSave" class="btn btn-primary" type="button">保存</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="speechDebugModal" class="modal">
-    <div class="modal-box speech-debug-box">
-      <h2>speechSynthesis 调试</h2>
-      <p class="speech-debug-hint">临时排查用，不改动正式播音逻辑</p>
-      <pre id="speechDebugOut" class="speech-debug-out"></pre>
-      <div class="modal-actions">
-        <button id="speechDebugClose" class="btn" type="button">关闭</button>
       </div>
     </div>
   </div>

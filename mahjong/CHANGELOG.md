@@ -1,4 +1,15 @@
-﻿# v0.14.33
+﻿# v0.14.34
+
+## 平台 / 设置
+- 接入 `shared/settings.js`：`exchangeThree` / `gangRain` 与共享设置同步，音频优先读取 `common.soundEnabled`、`common.speechEnabled`
+- 删除首页临时「测试语音」入口与调试弹窗，不影响正式本地预录播报
+
+## 平台
+- Service Worker：`nocturne-games-v39`
+
+---
+
+# v0.14.33
 
 ## 语音
 - **本地预录 mp3**（`sounds/voice/`）：牌名 / 碰杠胡 / 座位 / 放炮 / 常用牌型，不依赖系统 TTS
