@@ -1,5 +1,15 @@
 # RELEASE NOTES — Nocturne Mahjong
 
+## v0.14.35
+
+**日期**：2026-07-16
+**Service Worker 缓存**：`nocturne-games-v40`
+
+### 平台
+- 接入共用 Fullscreen 按钮与状态同步；偏好写入统一 settings，但刷新不强制进入全屏
+
+---
+
 ## v0.14.34
 
 **日期**：2026-07-16

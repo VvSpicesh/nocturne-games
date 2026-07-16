@@ -26,12 +26,20 @@ a{color:inherit;text-decoration:none}
 button,select{font:inherit}
 .shell{width:min(1160px,92vw);margin:auto;padding:28px 0 48px}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:30px}
+.header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .brand{display:flex;align-items:center;gap:14px}
 .brand-mark{width:52px;height:52px;border-radius:17px;display:grid;place-items:center;font-size:28px;background:rgba(255,255,255,.07);border:1px solid var(--line)}
 h1,h2,h3,p{margin-top:0}
 .brand h1{margin-bottom:3px;font-size:28px}
 .brand p{margin-bottom:0;color:var(--muted);font-size:13px}
 .pill,.tag,.eyebrow{display:inline-flex;padding:7px 10px;border:1px solid var(--line);border-radius:999px;font-size:11px;color:#dce5fb;background:rgba(255,255,255,.05)}
+.fullscreen-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:34px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;
+  color:#dce5fb;background:rgba(255,255,255,.05);cursor:pointer;font-size:12px;font-weight:750
+}
+.fullscreen-btn:hover{background:rgba(255,255,255,.12)}
+.fullscreen-btn:disabled{opacity:.45;cursor:not-allowed}
 .panel{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
 .hero{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;padding:28px;border-radius:28px;margin-bottom:24px}
 .hero h2{font-size:clamp(30px,5vw,58px);letter-spacing:-.05em;margin:12px 0}

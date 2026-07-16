@@ -26,6 +26,7 @@ import {
   roundSummary
 } from "./score.js";
 import {runRuleTests} from "./rule-tests.js";
+import {setupFullscreenButton} from "../shared/fullscreen.js";
 import {
   initAudio,
   setAudioEnabled,
@@ -156,6 +157,13 @@ function syncAudioUi(){
 syncAudioUi();
 syncCapFanUi();
 armAudioGestureUnlock();
+setupFullscreenButton({
+  button:"#fullscreenBtn",
+  target:document.documentElement,
+  onError(){
+    toast("当前浏览器无法进入全屏");
+  }
+});
 
 ruleExchange.addEventListener("change",()=>{
   rules.exchangeThree=ruleExchange.checked;

@@ -1,4 +1,15 @@
-﻿# v0.14.34
+﻿# v0.14.35
+
+## 平台 / 交互
+- 新增共用 `shared/fullscreen.js`；麻将页接入 `⛶ 全屏`，与大厅 / 象棋共用同一套逻辑
+- `common.fullscreenPreferred` 仅记录偏好，不会在刷新后自动强制全屏
+
+## 平台
+- Service Worker：`nocturne-games-v40`
+
+---
+
+# v0.14.34
 
 ## 平台 / 设置
 - 接入 `shared/settings.js`：`exchangeThree` / `gangRain` 与共享设置同步，音频优先读取 `common.soundEnabled`、`common.speechEnabled`

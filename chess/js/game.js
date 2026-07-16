@@ -1,4 +1,5 @@
 import {getSetting,setSetting} from "../../shared/settings.js";
+import {setupFullscreenButton} from "../../shared/fullscreen.js";
 
 (() => {
   "use strict";
@@ -281,6 +282,11 @@ import {getSetting,setSetting} from "../../shared/settings.js";
       });
       document.getElementById("resetChess").addEventListener("click", () => this.confirmNewGame());
       document.getElementById("resignChess")?.addEventListener("click", () => this.resign());
+      setupFullscreenButton({
+        button:"#fullscreenBtn",
+        target:document.documentElement,
+        onError:() => ChessRenderer.showToast("当前浏览器无法进入全屏")
+      });
       document.getElementById("endGameRematch")?.addEventListener("click", () => {
         this.startFreshBoard(true);
         this.render();

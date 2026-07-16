@@ -1,4 +1,5 @@
 import {getSettings,subscribe} from "./settings.js";
+import {setupFullscreenButton} from "./fullscreen.js";
 
 function applySharedSettings(){
   const settings=getSettings();
@@ -10,3 +11,8 @@ function applySharedSettings(){
 
 applySharedSettings();
 subscribe(applySharedSettings);
+
+setupFullscreenButton({
+  button:"#fullscreenBtn",
+  target:document.documentElement
+});

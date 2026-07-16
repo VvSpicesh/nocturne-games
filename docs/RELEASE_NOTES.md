@@ -1,5 +1,14 @@
 # RELEASE NOTES
 
+## Platform v0.14.35
+
+**Service Worker**：`nocturne-games-v40`
+
+- 新增 `shared/fullscreen.js`，大厅 / 国际象棋 / 四川麻将共用 Fullscreen
+- `common.fullscreenPreferred` 记录用户偏好，不会在刷新后强制进全屏
+
+---
+
 ## Platform v0.14.34
 
 **Service Worker**：`nocturne-games-v39`
