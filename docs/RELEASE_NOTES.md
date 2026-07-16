@@ -1,5 +1,15 @@
 # RELEASE NOTES
 
+## Mahjong v0.14.32-speech3
+
+**Service Worker**：`nocturne-games-v37`
+
+- 平板 TTS 不可用时跳过播报，避免拖慢发牌；Web Audio 音效保留
+
+完整稿：`mahjong/RELEASE_NOTES.md`。变更明细：`mahjong/CHANGELOG.md`。
+
+---
+
 ## Mahjong v0.14.32-speech2 + Chess audio
 
 **Service Worker**：`nocturne-games-v36`

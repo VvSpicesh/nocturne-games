@@ -1,5 +1,15 @@
 # RELEASE NOTES — Nocturne Mahjong
 
+## v0.14.32-speech3
+
+**日期**：2026-07-16  
+**Service Worker 缓存**：`nocturne-games-v37`
+
+### 语音（Android / 小新平板）
+- 无语音包或 speak 挂死时跳过 TTS，恢复发牌速度；骰子 / 发牌 Web Audio 仍可用
+
+---
+
 ## v0.14.32-speech2
 
 **日期**：2026-07-16  

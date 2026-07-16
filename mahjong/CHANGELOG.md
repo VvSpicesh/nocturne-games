@@ -1,9 +1,11 @@
-﻿# v0.14.32-speech1
+﻿# v0.14.32-speech3
 
-## 临时调试（最小发布）
-- 顶栏增加「测试语音」：输出 speechSynthesis 是否存在、`getVoices()`、试播「五万」、捕获 onstart/onend/onerror
-- **不改动** `audio.js` 正式播音逻辑及其他玩法
-- Service Worker：`nocturne-games-v35`
+## 语音（Android Chrome / 小新平板）
+- `getVoices` 长期为空或 `speak` 无 onstart：本会话标记 TTS 不可用，跳过播报，避免发牌被 `waitUntilSpeechIdle` 拖慢
+- 保留骰子 / 发牌 Web Audio；调试面板说明「拿不到语音包」
+
+## 平台
+- Service Worker：`nocturne-games-v37`
 
 ---
 
@@ -19,6 +21,15 @@
 
 ## 平台
 - Service Worker：`nocturne-games-v36`
+
+---
+
+# v0.14.32-speech1
+
+## 临时调试（最小发布）
+- 顶栏增加「测试语音」：输出 speechSynthesis 是否存在、`getVoices()`、试播「五万」、捕获 onstart/onend/onerror
+- **不改动** `audio.js` 正式播音逻辑及其他玩法
+- Service Worker：`nocturne-games-v35`
 
 ---
 
