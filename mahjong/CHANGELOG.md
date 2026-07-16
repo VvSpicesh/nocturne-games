@@ -1,3 +1,19 @@
+﻿# v0.14.32
+
+## 功能
+- 声音播报（`audio.js`）：打牌 / 碰杠胡语音，大厅可开关
+- 查叫 / 未下叫结算；花猪与未下叫共用封顶番（默认 8，大厅可选）
+- 终局 reveal：每人一行得分说明与最终牌面
+
+## 布局
+- 正式版继续使用 **v0.14.30** 可玩牌桌（absolute / media），不启用 v0.16 Grid / fitTiles / Golden / Random Stress
+- 失败布局实验归档在分支 `backup/layout-v016-failed`
+
+## 平台
+- Service Worker 缓存：`nocturne-games-v34`
+
+---
+
 # v0.14.30
 
 ## 布局
@@ -411,3 +427,4 @@
 
 ## 修复
 - 换三张无法点击（SVG 事件代理、选中序号、确认按钮状态）
+

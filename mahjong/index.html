@@ -6,22 +6,23 @@
   <meta name="theme-color" content="#0b251b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Nocturne Mahjong v0.14.30</title>
+  <title>Nocturne Mahjong v0.14.32</title>
   <link rel="manifest" href="../manifest.webmanifest">
   <link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=0.14.30">
+  <link rel="stylesheet" href="./style.css?v=0.14.32">
   <script type="importmap">
   {
     "imports": {
-      "./render.js": "./render.js?v=0.14.26",
+      "./render.js": "./render.js?v=0.14.32",
       "./tiles.js": "./tiles.js?v=0.14.24",
       "./storage.js": "./storage.js?v=0.14.24",
-      "./config.js": "./config.js?v=0.14.26",
-      "./hu.js": "./hu.js?v=0.14.24",
-      "./score.js": "./score.js?v=0.14.24",
+      "./config.js": "./config.js?v=0.14.32",
+      "./hu.js": "./hu.js?v=0.14.32",
+      "./score.js": "./score.js?v=0.14.32",
       "./rules-guard.js": "./rules-guard.js?v=0.14.24",
-      "./rule-tests.js": "./rule-tests.js?v=0.14.24"
+      "./rule-tests.js": "./rule-tests.js?v=0.14.32",
+      "./audio.js": "./audio.js?v=0.14.32"
     }
   }
   </script>
@@ -34,7 +35,7 @@
         <div>
           <a class="back-link" href="../index.html">← 返回游戏大厅</a>
           <h1>Nocturne Mahjong</h1>
-          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.30</p>
+          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.32</p>
         </div>
       </div>
       <div class="topbar-actions">
@@ -58,6 +59,29 @@
             <span class="quick-rule-text">
               <strong>刮风下雨</strong>
             </span>
+          </label>
+
+          <label class="quick-rule" id="ruleAudioLabel" title="打牌与碰杠胡时语音播报">
+            <input id="ruleAudio" type="checkbox" checked>
+            <span class="quick-switch"></span>
+            <span class="quick-rule-text">
+              <strong id="ruleAudioText">声音</strong>
+            </span>
+          </label>
+
+          <label class="quick-rule quick-rule-cap" title="花猪、未下叫按封顶番结算（新局生效）">
+            <span class="quick-rule-text">
+              <strong>封顶</strong>
+            </span>
+            <select id="ruleCapFan" aria-label="封顶番数">
+              <option value="4">4番</option>
+              <option value="5">5番</option>
+              <option value="6">6番</option>
+              <option value="7">7番</option>
+              <option value="8" selected>8番</option>
+              <option value="10">10番</option>
+              <option value="12">12番</option>
+            </select>
           </label>
         </section>
         <button id="editNamesBtn" class="btn" type="button">改名</button>
@@ -215,9 +239,65 @@
     </div>
   </div>
 
+  <div id="roundRevealModal" class="modal modal-reveal">
+    <div class="modal-box reveal-box">
+      <h2>本局结束</h2>
+      <div id="roundRevealReason" class="win-title"></div>
+      <p id="roundRevealDetail">每人一行得分说明与最终牌面。</p>
+      <div id="roundRevealList" class="reveal-list"></div>
+      <div class="modal-actions modal-actions-split">
+        <button id="roundRevealClose" class="btn" type="button">关闭</button>
+        <button id="roundRevealNew" class="btn btn-primary" type="button">再来一局</button>
+        <button id="roundRevealSettle" class="btn" type="button" hidden>查看结算</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="roundEndModal" class="modal">
+    <div class="modal-box win-box">
+      <h2>本局结束</h2>
+      <div id="roundEndTitle" class="win-title"></div>
+      <p id="roundEndDetail">本局战况如下。</p>
+      <div id="roundEndSummary" class="round-end-summary"></div>
+      <div class="modal-actions modal-actions-split">
+        <button id="roundEndStay" class="btn" type="button">再看看</button>
+        <button id="roundEndNew" class="btn btn-primary" type="button">新牌局</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="newGameModal" class="modal">
+    <div class="modal-box win-box">
+      <h2>新牌局</h2>
+      <div class="win-title">确定开始新牌局吗？</div>
+      <p id="newGameDetail">将轮到下一位坐庄，并重新掷骰发牌。</p>
+      <div class="modal-actions modal-actions-split">
+        <button id="newGameCancel" class="btn" type="button">取消</button>
+        <button id="newGameConfirm" class="btn btn-primary" type="button">开始</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="namesModal" class="modal">
+    <div class="modal-box win-box">
+      <h2>修改名字</h2>
+      <p>最多 8 个字。方位固定：自己 / 上家 / 对家 / 下家。</p>
+      <div class="names-form">
+        <label>自己 <input id="nameInput0" type="text" maxlength="8" autocomplete="off"></label>
+        <label>上家 <input id="nameInput1" type="text" maxlength="8" autocomplete="off"></label>
+        <label>对家 <input id="nameInput2" type="text" maxlength="8" autocomplete="off"></label>
+        <label>下家 <input id="nameInput3" type="text" maxlength="8" autocomplete="off"></label>
+      </div>
+      <div class="modal-actions modal-actions-split">
+        <button id="namesCancel" class="btn" type="button">取消</button>
+        <button id="namesSave" class="btn btn-primary" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="./game.js?v=0.14.26"></script>
+  <script type="module" src="./game.js?v=0.14.32"></script>
   <script type="module" src="../shared/pwa.js"></script>
 </body>
 </html>

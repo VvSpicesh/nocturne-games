@@ -1,5 +1,20 @@
 # RELEASE NOTES — Nocturne Mahjong
 
+## v0.14.32
+
+**日期**：2026-07-16  
+**Service Worker 缓存**：`nocturne-games-v34`
+
+### 功能
+- 声音播报（打牌 / 碰杠胡），大厅开关
+- 查叫 / 未下叫结算；封顶番（花猪与未下叫共用，大厅可选）
+- 终局 reveal：每家得分说明 + 最终牌面
+
+### 布局
+- 牌桌仍为 v0.14.30 compact-landscape / absolute 方案；v0.16 布局实验仅保留在 `backup/layout-v016-failed`
+
+---
+
 ## v0.14.30
 
 **日期**：2026-07-15  

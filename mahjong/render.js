@@ -461,6 +461,177 @@ export function showRoundEnd(reason,summary,onNewGame,settlement=null){
   };
 }
 
+export function hideRoundReveal(){
+  const modal=document.getElementById("roundRevealModal");
+  if(modal)modal.classList.remove("show");
+}
+
+/**
+ * 终局合并面板：得分说明 + 每家一行牌面（副露/手牌/听牌）
+ */
+export function renderRoundReveal(state,settlement,handlers={}){
+  const modal=document.getElementById("roundRevealModal");
+  const list=document.getElementById("roundRevealList");
+  if(!modal||!list)return;
+
+  const reason=handlers.reason||"";
+  const summary=handlers.summary||null;
+  const titleEl=document.getElementById("roundRevealReason");
+  const detailEl=document.getElementById("roundRevealDetail");
+  if(titleEl)titleEl.textContent=reason||"本局结束";
+  if(detailEl){
+    detailEl.textContent="";
+    detailEl.hidden=true;
+  }
+
+  const pigs=new Set(
+    (settlement?.flowerPigResults||[])
+      .filter(r=>r.isFlowerPig)
+      .map(r=>r.playerIndex)
+  );
+  const readyMap=new Map(
+    (settlement?.readyHandResults||[]).map(r=>[r.playerIndex,r])
+  );
+  const summaryMap=new Map(
+    (summary||[]).map((row,i)=>[i,row])
+  );
+
+  list.innerHTML="";
+  (state.players||[]).forEach((player,index)=>{
+    const card=document.createElement("section");
+    card.className="reveal-seat";
+
+    const sum=summaryMap.get(index);
+    const ready=readyMap.get(index);
+    const tags=[];
+    if(player.won||sum?.won)tags.push(["已胡","reveal-tag-won"]);
+    if(pigs.has(index)||sum?.flowerPig)tags.push(["花猪","reveal-tag-pig"]);
+    if(!(player.won||sum?.won)&&!(pigs.has(index)||sum?.flowerPig)){
+      if(ready?.isReady||sum?.isReady)tags.push(["已下叫","reveal-tag-ready"]);
+      else if(ready||sum?.isReady===false)tags.push(["未下叫","reveal-tag-noready"]);
+    }
+    const missLabel=sum?.missingSuitLabel||(player.missingSuit?SUIT_LABEL[player.missingSuit]:"");
+    if(missLabel)tags.push([`缺${missLabel}`,"reveal-tag-miss"]);
+
+    const bits=sum?.bits||[];
+    const delta=sum?.delta??0;
+    const total=sum?.total??0;
+
+    const head=document.createElement("div");
+    head.className="reveal-seat-head";
+    head.innerHTML=`
+      <div class="reveal-seat-top">
+        <div class="reveal-seat-name">${seatDisplayName(index,player.name)}</div>
+        <div class="reveal-seat-tags">${
+          tags.map(([text,cls])=>`<span class="reveal-tag ${cls}">${text}</span>`).join("")
+        }</div>
+        <div class="reveal-seat-bits">${
+          bits.length
+            ?bits.map(b=>`<span class="reveal-bit">${b}</span>`).join("")
+            :`<span class="reveal-bit reveal-bit-muted">${sum?.status||"本局无独立流水"}</span>`
+        }</div>
+        <div class="reveal-seat-score">
+          <span class="reveal-delta">${delta>0?"+"+delta:String(delta)}</span>
+          <span class="reveal-total">总分 ${total}</span>
+        </div>
+      </div>
+    `;
+    card.appendChild(head);
+
+    const tilesRow=document.createElement("div");
+    tilesRow.className="reveal-tiles-row";
+
+    (player.melds||[]).forEach(meld=>{
+      const group=document.createElement("div");
+      group.className="reveal-meld-group";
+      (meld.tiles||[]).forEach(tile=>{
+        group.appendChild(createTileElement(tile,"tile-reveal"));
+      });
+      tilesRow.appendChild(group);
+    });
+
+    const handGroup=document.createElement("div");
+    handGroup.className="reveal-hand-inline";
+    const winTile=player.won?player.winTile:null;
+    const hand=player.hand||[];
+    let winHandIndex=-1;
+    if(winTile){
+      for(let i=hand.length-1;i>=0;i--){
+        const t=hand[i];
+        if(winTile.id&&t.id===winTile.id){winHandIndex=i;break;}
+        if(t.s===winTile.s&&t.n===winTile.n){winHandIndex=i;break;}
+      }
+    }
+    hand.forEach((tile,tileIndex)=>{
+      const el=createTileElement(tile,"tile-reveal");
+      if(tileIndex===winHandIndex)el.classList.add("tile-reveal-win");
+      handGroup.appendChild(el);
+    });
+    if(hand.length)tilesRow.appendChild(handGroup);
+
+    if(player.won&&winTile){
+      const winGroup=document.createElement("div");
+      winGroup.className="reveal-win-inline";
+      const lab=document.createElement("span");
+      lab.className="reveal-win-inline-label";
+      lab.textContent="胡";
+      winGroup.appendChild(lab);
+      const winEl=createTileElement(
+        {s:winTile.s,n:winTile.n,id:winTile.id||`reveal-hu-${index}`},
+        "tile-reveal tile-reveal-win"
+      );
+      winGroup.appendChild(winEl);
+      tilesRow.appendChild(winGroup);
+    }
+
+    const waits=ready?.waitingTiles||sum?.waitingTiles||[];
+    if((ready?.isReady||sum?.isReady)&&waits.length){
+      const waitGroup=document.createElement("div");
+      waitGroup.className="reveal-wait-inline";
+      const lab=document.createElement("span");
+      lab.className="reveal-wait-inline-label";
+      lab.textContent="听";
+      waitGroup.appendChild(lab);
+      waits.forEach((tile,ti)=>{
+        waitGroup.appendChild(
+          createTileElement(
+            {s:tile.s,n:tile.n,id:`reveal-wait-${index}-${ti}`},
+            "tile-reveal"
+          )
+        );
+      });
+      tilesRow.appendChild(waitGroup);
+    }
+
+    card.appendChild(tilesRow);
+    list.appendChild(card);
+  });
+
+  modal.classList.add("show");
+  document.getElementById("roundEndModal")?.classList.remove("show");
+
+  const btnNew=document.getElementById("roundRevealNew");
+  const btnSettle=document.getElementById("roundRevealSettle");
+  const btnClose=document.getElementById("roundRevealClose");
+  if(btnNew){
+    btnNew.onclick=()=>{
+      hideRoundReveal();
+      handlers.onNewGame?.();
+    };
+  }
+  if(btnSettle){
+    btnSettle.hidden=true;
+    btnSettle.onclick=null;
+  }
+  if(btnClose){
+    btnClose.onclick=()=>{
+      hideRoundReveal();
+      handlers.onClose?.();
+    };
+  }
+}
+
+
 export function showMissingSuitModal(hand,onPick){
   const modal=document.getElementById("missingSuitModal");
   if(!modal)return;

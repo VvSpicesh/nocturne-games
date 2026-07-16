@@ -8,6 +8,7 @@ export const defaultRules={
   baseStake:1,
   selfDrawAddsBase:true,
   settlementRules:{
+    capFan:8,
     flowerPigEnabled:true,
     flowerPigFan:8,
     noReadyEnabled:true,
@@ -59,14 +60,34 @@ export const defaultNames=["","","",""];
 
 export function loadRules(){
   try{
-    return mergeDeep(defaultRules,JSON.parse(localStorage.getItem(KEY)||"{}"));
+    return normalizeSettlementRules(mergeDeep(defaultRules,JSON.parse(localStorage.getItem(KEY)||"{}")));
   }catch{
-    return mergeDeep(defaultRules,{});
+    return normalizeSettlementRules(mergeDeep(defaultRules,{}));
   }
 }
 
+/** 封顶番：花猪 / 未下叫统一使用；与 flowerPigFan、noReadyFan 保持同步 */
+export function normalizeSettlementRules(rules){
+  const out=rules&&typeof rules==="object"?rules:{...defaultRules};
+  const sr={...(out.settlementRules||{})};
+  let cap=Number(sr.capFan);
+  if(!Number.isFinite(cap)||cap<1){
+    cap=Number(sr.flowerPigFan);
+  }
+  if(!Number.isFinite(cap)||cap<1){
+    cap=Number(sr.noReadyFan);
+  }
+  if(!Number.isFinite(cap)||cap<1)cap=8;
+  cap=Math.max(1,Math.min(16,Math.round(cap)));
+  sr.capFan=cap;
+  sr.flowerPigFan=cap;
+  sr.noReadyFan=cap;
+  out.settlementRules=sr;
+  return out;
+}
+
 export function saveRules(rules){
-  localStorage.setItem(KEY,JSON.stringify(rules));
+  localStorage.setItem(KEY,JSON.stringify(normalizeSettlementRules(rules)));
 }
 
 export function loadNames(){

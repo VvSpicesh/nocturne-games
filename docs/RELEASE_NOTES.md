@@ -1,5 +1,19 @@
 # RELEASE NOTES
 
+## Mahjong v0.14.32
+
+**Service Worker**：`nocturne-games-v34`
+
+### 功能
+- 声音播报、查叫/未下叫结算、封顶番、终局 reveal
+
+### 布局
+- 继续使用 v0.14.30 可玩牌桌；v0.16 布局实验见分支 `backup/layout-v016-failed`
+
+完整稿：`mahjong/RELEASE_NOTES.md`。变更明细：`mahjong/CHANGELOG.md`。
+
+---
+
 ## Mahjong v0.14.30
 
 **Service Worker**：`nocturne-games-v33`
