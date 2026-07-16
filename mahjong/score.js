@@ -2,11 +2,11 @@
  * 计分：倍数 = 2^(totalFan-1)；底金 baseStake（默认 1）
  * 自摸：每家付 baseStake×multiplier + baseStake×1（加底，非 +1 番）
  * 杠分独立：暗杠未胡各 2 底、直杠放杠 2 底、弯杠未胡各 1 底
- * 花猪：向其余每位玩家各付 baseStake×2^(flowerPigFan-1)
+ * 花猪 / 未下叫：向其余每位各付 baseStake×2^(capFan-1)（封顶番，默认 8）
  */
 
 import {emptyRoundSettlement,isFlowerPig,SUIT_LABEL} from "./rules-guard.js";
-import {fanMultiplier} from "./hu.js";
+import {fanMultiplier,getReadyHandInfo} from "./hu.js";
 
 export const START_SCORE=20000;
 
@@ -14,6 +14,16 @@ const SCORE_KEY="nocturne_mahjong_session_score_v10";
 const SESSION_START_KEY="nocturne_mahjong_session_started_v10";
 const EYE_WARN_KEY="nocturne_mahjong_eye_warned_v10";
 export const EYE_WARN_MS=2*60*60*1000;
+
+/** 封顶番：花猪 / 未下叫共用 */
+export function capFanOf(state){
+  const sr=state?.activeRules?.settlementRules||{};
+  let fan=Number(sr.capFan);
+  if(!Number.isFinite(fan)||fan<1)fan=Number(sr.flowerPigFan);
+  if(!Number.isFinite(fan)||fan<1)fan=Number(sr.noReadyFan);
+  if(!Number.isFinite(fan)||fan<1)fan=8;
+  return Math.max(1,Math.min(16,Math.round(fan)));
+}
 
 export function defaultScores(){
   return [START_SCORE,START_SCORE,START_SCORE,START_SCORE];
@@ -309,7 +319,7 @@ export function settleFlowerPigs(state){
     state.roundSettlement.flowerPigResults=[];
     return null;
   }
-  const fan=Number(sr.flowerPigFan);
+  const fan=capFanOf(state);
   if(!Number.isFinite(fan)||fan<1){
     // 未配置有效番数：只检测展示
     const results=state.players.map((p,i)=>{
@@ -361,8 +371,6 @@ export function settleFlowerPigs(state){
   });
 
   state.roundSettlement.flowerPigResults=results;
-  // 查叫占位：本轮不处罚
-  state.roundSettlement.readyHandResults=state.roundSettlement.readyHandResults||[];
 
   if(!results.length)return {deltas:[0,0,0,0],results};
 
@@ -370,6 +378,96 @@ export function settleFlowerPigs(state){
     .map(r=>`${r.name}花猪(${r.missingSuitLabel}) ${formatPoints(deltas[r.playerIndex])}`)
     .join("；");
   const applied=applyDeltas(state,deltas,`花猪结算：${text}`);
+  return {deltas,results,logText:applied.logText};
+}
+
+/**
+ * 除当前玩家手牌外的全桌牌（他人手牌、所有副露、牌河、牌墙）。
+ * 用于查叫「已出现 4 张」判定。
+ */
+export function collectVisibleTilesForReady(state,playerIndex){
+  const tiles=[];
+  (state.players||[]).forEach((p,i)=>{
+    if(i!==playerIndex){
+      (p.hand||[]).forEach(t=>tiles.push(t));
+    }
+    (p.melds||[]).forEach(m=>{
+      (m.tiles||[]).forEach(t=>tiles.push(t));
+    });
+  });
+  (state.discards||[]).forEach(item=>{
+    if(item?.tile)tiles.push(item.tile);
+  });
+  (state.wall||[]).forEach(t=>tiles.push(t));
+  return tiles;
+}
+
+/**
+ * 查叫 / 未下叫：优先花猪；默认不叠罚。
+ * 未下叫付款模型与花猪相同：向其余每位玩家各付一份。
+ */
+export function settleReadyHands(state){
+  ensureScoreFields(state);
+  const sr=state.activeRules?.settlementRules||{};
+  const pigSet=new Set(
+    (state.roundSettlement.flowerPigResults||[])
+      .filter(r=>r.isFlowerPig)
+      .map(r=>r.playerIndex)
+  );
+  const stack=sr.stackFlowerPigAndNoReady===true;
+  const enabled=sr.noReadyEnabled!==false;
+  const fan=capFanOf(state);
+  const stake=baseStakeOf(state);
+  const mult=fan>=1?fanMultiplier(fan):0;
+  const unit=enabled&&mult>0?stake*mult:0;
+  const deltas=[0,0,0,0];
+  const results=[];
+  const rules=state.activeRules||null;
+
+  state.players.forEach((p,i)=>{
+    if(p.won)return;
+    const isPig=pigSet.has(i)||isFlowerPig(p).isFlowerPig;
+    if(isPig&&!stack)return;
+
+    const visible=collectVisibleTilesForReady(state,i);
+    const ready=getReadyHandInfo(p,visible,rules);
+    const payments=[];
+
+    if(!ready.isReady&&enabled&&unit>0){
+      for(let j=0;j<4;j++){
+        if(j===i)continue;
+        deltas[i]-=unit;
+        deltas[j]+=unit;
+        payments.push({from:i,to:j,amount:unit});
+      }
+    }
+
+    results.push({
+      playerIndex:i,
+      name:p.name,
+      isReady:ready.isReady,
+      waitingTiles:ready.waitingTiles||[],
+      maxWinInfo:ready.maxWinInfo,
+      fan:ready.isReady?null:(Number.isFinite(fan)?fan:null),
+      multiplier:ready.isReady?null:(mult||null),
+      unit:ready.isReady?0:unit,
+      payments,
+      paid:!ready.isReady&&payments.length>0,
+      reason:ready.isReady?"已下叫":"未下叫"
+    });
+  });
+
+  state.roundSettlement.readyHandResults=results;
+
+  if(!results.some(r=>!r.isReady&&r.paid)){
+    return {deltas:[0,0,0,0],results};
+  }
+
+  const text=results
+    .filter(r=>!r.isReady&&r.paid)
+    .map(r=>`${r.name}未下叫 ${formatPoints(deltas[r.playerIndex])}`)
+    .join("；");
+  const applied=applyDeltas(state,deltas,`查叫结算：${text}`);
   return {deltas,results,logText:applied.logText};
 }
 
@@ -395,18 +493,123 @@ export function roundSummary(state,reason){
       .filter(r=>r.isFlowerPig)
       .map(r=>r.playerIndex)
   );
-  return state.players.map((player,i)=>({
-    name:player.name,
-    won:!!player.won,
-    delta:state.roundDelta[i]||0,
-    total:state.scores[i]||0,
-    missingSuit:player.missingSuit||null,
-    missingSuitLabel:player.missingSuit?SUIT_LABEL[player.missingSuit]:null,
-    flowerPig:pigs.has(i),
-    status:player.won
-      ?"已胡"
-      :pigs.has(i)
-        ?"花猪"
-        :(reason.includes("流")||reason.includes("摸完")?"未胡":"留局")
-  }));
+  const readyMap=new Map(
+    (state.roundSettlement?.readyHandResults||[])
+      .map(r=>[r.playerIndex,r])
+  );
+  return state.players.map((player,i)=>{
+    const ready=readyMap.get(i);
+    let status="留局";
+    if(player.won)status="已胡";
+    else if(pigs.has(i))status="花猪";
+    else if(ready?.isReady)status="已下叫";
+    else if(ready&&ready.isReady===false)status="未下叫";
+    else if(reason.includes("流")||reason.includes("摸完")||reason.includes("三家"))status="未胡";
+    return {
+      name:player.name,
+      won:!!player.won,
+      delta:state.roundDelta[i]||0,
+      total:state.scores[i]||0,
+      missingSuit:player.missingSuit||null,
+      missingSuitLabel:player.missingSuit?SUIT_LABEL[player.missingSuit]:null,
+      flowerPig:pigs.has(i),
+      isReady:ready?!!ready.isReady:null,
+      waitingTiles:ready?.waitingTiles||[],
+      status,
+      bits:playerSettlementBits(state,i)
+    };
+  });
+}
+
+const SEAT_SHORT=["自己","上家","对家","下家"];
+
+function seatShort(state,index){
+  const name=state.players[index]?.name;
+  return name?`${SEAT_SHORT[index]} ${name}`:SEAT_SHORT[index];
+}
+
+/**
+ * 从本局流水提炼短文案：如「平胡 1番 +2」「放炮 对家 -2」
+ */
+export function playerSettlementBits(state,playerIndex){
+  ensureScoreFields(state);
+  const rs=state.roundSettlement||emptyRoundSettlement();
+  const bits=[];
+
+  (rs.huPayments||[]).forEach(h=>{
+    if(h.winner===playerIndex){
+      const gained=(h.payments||[])
+        .filter(p=>p.to===playerIndex)
+        .reduce((s,p)=>s+(Number(p.amount)||0),0);
+      const kind=
+        h.kind==="selfDraw"?"自摸":
+        h.kind==="robGang"?"抢杠胡":
+        h.kind==="gangDiscard"?"杠上炮":"";
+      const pattern=h.basePattern||"平胡";
+      const fan=h.totalFan??"?";
+      bits.push(
+        `${kind?kind+" ":""}${pattern} ${fan}番 ${formatPoints(gained)}`.trim()
+      );
+    }
+    (h.payments||[]).forEach(pay=>{
+      if(pay.from!==playerIndex)return;
+      if(h.winner===playerIndex)return;
+      const amt=-(Number(pay.amount)||0);
+      if(h.kind==="selfDraw"){
+        bits.push(`被自摸 ${seatShort(state,h.winner)} ${formatPoints(amt)}`);
+      }else if(h.kind==="robGang"){
+        bits.push(`被抢杠 ${seatShort(state,h.winner)} ${formatPoints(amt)}`);
+      }else{
+        bits.push(`放炮 ${seatShort(state,h.winner)} ${formatPoints(amt)}`);
+      }
+    });
+  });
+
+  (rs.gangPayments||[]).forEach(g=>{
+    if(g.actor===playerIndex){
+      const gained=(g.payments||[]).reduce((s,p)=>s+(Number(p.amount)||0),0);
+      bits.push(`${g.label||"杠"} ${formatPoints(gained)}`);
+    }
+    let paid=0;
+    (g.payments||[]).forEach(pay=>{
+      if(pay.from===playerIndex)paid+=Number(pay.amount)||0;
+    });
+    if(paid){
+      bits.push(`付${g.label||"杠"} ${seatShort(state,g.actor)} ${formatPoints(-paid)}`);
+    }
+  });
+
+  (rs.flowerPigResults||[]).forEach(f=>{
+    if(f.playerIndex===playerIndex&&f.paid){
+      const lost=(f.payments||[]).reduce((s,p)=>s+(Number(p.amount)||0),0);
+      bits.push(`花猪 ${f.fan||"?"}番 ${formatPoints(-lost)}`);
+    }
+    let got=0;
+    (f.payments||[]).forEach(pay=>{
+      if(pay.to===playerIndex)got+=Number(pay.amount)||0;
+    });
+    if(got){
+      const pigIncome=`收花猪 ${formatPoints(got)}`;
+      if(bits.length)bits[bits.length-1]+=` · ${pigIncome}`;
+      else bits.push(pigIncome);
+    }
+  });
+
+  (rs.readyHandResults||[]).forEach(r=>{
+    if(r.playerIndex===playerIndex){
+      if(!r.isReady&&r.paid){
+        const lost=(r.payments||[]).reduce((s,p)=>s+(Number(p.amount)||0),0);
+        bits.push(`未下叫 ${r.fan||"?"}番 ${formatPoints(-lost)}`);
+      }
+    }
+    let got=0;
+    if(!r.isReady){
+      (r.payments||[]).forEach(pay=>{
+        if(pay.to===playerIndex)got+=Number(pay.amount)||0;
+      });
+    }
+    if(got)bits.push(`查叫收入 ${formatPoints(got)}`);
+  });
+
+  return bits;
 }

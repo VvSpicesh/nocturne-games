@@ -361,4 +361,58 @@ export function canPlayerWin(player,hand,melds,context={},rules=null){
   return info;
 }
 
-export {fanMultiplier};
+function countTileType(tiles,suit,number){
+  let count=0;
+  for(const tile of tiles||[]){
+    if(tile&&tile.s===suit&&tile.n===number)count++;
+  }
+  return count;
+}
+
+/**
+ * 查叫：遍历 27 种候选牌，调用 canPlayerWin / getWinInfo。
+ * visibleTiles：用于「已出现 4 张」判定的集合（建议：除当前玩家手牌外的
+ * 全桌牌——他人手牌、所有副露、牌河、剩余牌墙）。已满 4 张不可作等待牌。
+ */
+export function getReadyHandInfo(player,visibleTiles=[],rules=null){
+  if(!player||player.won){
+    return {isReady:false,waitingTiles:[],maxWinInfo:null};
+  }
+  const hand=player.hand||[];
+  const melds=player.melds||[];
+  const waitingTiles=[];
+  let maxWinInfo=null;
+
+  for(const suit of ["w","t","b"]){
+    for(let number=1;number<=9;number++){
+      if(countTileType(visibleTiles,suit,number)>=4)continue;
+      const trialHand=hand.concat([{s:suit,n:number,id:`ting-${suit}${number}`}]);
+      const info=canPlayerWin(player,trialHand,melds,{},rules);
+      if(!info.canWin)continue;
+      waitingTiles.push({s:suit,n:number});
+      if(
+        !maxWinInfo ||
+        (info.totalFan||0)>(maxWinInfo.totalFan||0) ||
+        ((info.totalFan||0)===(maxWinInfo.totalFan||0) &&
+          (info.multiplier||0)>(maxWinInfo.multiplier||0))
+      ){
+        maxWinInfo={
+          basePattern:info.basePattern||info.name||"平胡",
+          baseFan:info.baseFan??info.totalFan??1,
+          rootCount:info.rootCount||0,
+          extraFans:info.extraFans||[],
+          totalFan:info.totalFan||1,
+          multiplier:info.multiplier||fanMultiplier(info.totalFan||1)
+        };
+      }
+    }
+  }
+
+  return {
+    isReady:waitingTiles.length>0,
+    waitingTiles,
+    maxWinInfo
+  };
+}
+
+export {fanMultiplier,countTileType};

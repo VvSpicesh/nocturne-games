@@ -2,7 +2,7 @@
  * 完整规则验收套件（固定牌面，无随机）。
  * 返回 { cases, passed, failed, blocked, lines, ok }
  */
-import {getWinInfo,canPlayerWin,countRoots,fanMultiplier} from "./hu.js";
+import {getWinInfo,canPlayerWin,countRoots,fanMultiplier,getReadyHandInfo} from "./hu.js";
 import {
   hasMissingSuit,
   getLegalDiscardIndexes,
@@ -17,9 +17,13 @@ import {
   settleDiscardWins,
   settleMingGang,
   settleAnOrBuGang,
-  settleFlowerPigs
+  settleFlowerPigs,
+  settleReadyHands,
+  collectVisibleTilesForReady,
+  capFanOf
 } from "./score.js";
-import {defaultRules,mergeDeep} from "./config.js";
+import {defaultRules,mergeDeep,normalizeSettlementRules} from "./config.js";
+import {tileSpeechName} from "./audio.js";
 
 function T(s,n,id=0){return {s,n,id};}
 function tiles(pairs,startId=1){
@@ -35,6 +39,14 @@ function meld(type,s,n,count=3){
 }
 function pingHuHand(){
   return tiles([["w",1],["w",2],["w",3],["w",4],["w",5],["w",6],["t",7],["t",8],["t",9],["b",1,3],["b",5,2]]);
+}
+/** 13 张听牌：听 5 筒；无万，可定缺万 */
+function tingPingHuHand(){
+  return tiles([["t",1],["t",2],["t",3],["t",4],["t",5],["t",6],["t",7],["t",8],["t",9],["b",1,3],["b",5]]);
+}
+/** 13 张散牌非听；无万，可定缺万 */
+function noReadyHand(){
+  return tiles([["t",1],["t",3],["t",5],["t",7],["t",9],["b",1],["b",3],["b",5],["b",7],["b",9],["t",2],["t",4],["t",6]]);
 }
 function qingYiSeHand(){
   // 副露碰1万 + 手牌 234567 88 999 —— 清一色且无根
@@ -102,11 +114,28 @@ export function runRuleTests(){
   record("S1","config 新配置默认值齐全","settlementRules/patterns/extraPatterns/gangRules/baseStake",()=>{
     const r=defaultRules;
     assert(r.baseStake===1&&r.selfDrawAddsBase===true);
+    assert(r.settlementRules.capFan===8);
     assert(r.settlementRules.flowerPigFan===8&&r.settlementRules.noReadyFan===8);
     assert(r.settlementRules.stackFlowerPigAndNoReady===false);
     assert(r.patterns.goldenHook===false);
     assert(r.extraPatterns.gangFlower===true&&r.extraPatterns.lastTile===false&&r.extraPatterns.lastAvailableTile===false);
     assert(r.gangRules.drizzleMode===false);
+  });
+
+  record("S3","封顶番规范化","capFan 同步 flowerPigFan/noReadyFan",()=>{
+    const n=normalizeSettlementRules(mergeDeep(defaultRules,{settlementRules:{capFan:6}}));
+    assert(n.settlementRules.capFan===6);
+    assert(n.settlementRules.flowerPigFan===6&&n.settlementRules.noReadyFan===6);
+    const state={activeRules:n};
+    assert(capFanOf(state)===6);
+  });
+
+  record("A1","牌名语音中文数字","五万/三条/八筒",()=>{
+    assert(tileSpeechName({s:"w",n:5})==="五万");
+    assert(tileSpeechName({s:"t",n:3})==="三条");
+    assert(tileSpeechName({s:"b",n:8})==="八筒");
+    assert(tileSpeechName({s:"w",n:1})==="一万");
+    assert(tileSpeechName({s:"b",n:9})==="九筒");
   });
 
   record("S2","旧存档缺字段 mergeDeep 不崩溃","缺字段补全后可访问",()=>{
@@ -193,14 +222,135 @@ export function runRuleTests(){
     assert(sum(settled.deltas)===0);
   });
 
-  record("7","花猪与未下叫同时","不追加未下叫；readyHandResults 空",()=>{
+  record("7","花猪与未下叫同时","不追加未下叫；readyHandResults 无该家",()=>{
+    const state=makeState();
+    state.players[0].missingSuit="w";
+    state.players[0].hand=[T("w",1),...noReadyHand().slice(0,12)];
+    state.players[1].missingSuit="w";
+    state.players[1].hand=tingPingHuHand();
+    state.players[2].missingSuit="w";
+    state.players[2].hand=tingPingHuHand();
+    state.players[3].missingSuit="w";
+    state.players[3].hand=tingPingHuHand();
+    settleFlowerPigs(state);
+    settleReadyHands(state);
+    assert(state.roundSettlement.flowerPigResults.every(r=>r.reason==="花猪"));
+    assert(!state.roundSettlement.readyHandResults.some(r=>r.playerIndex===0));
+    assert(sum(state.roundSettlement.playerDeltas)===0);
+  });
+
+  record("RH1","自己非花猪未下叫","readyHandResults+处罚+status",()=>{
+    const state=makeState();
+    state.players.forEach((p,i)=>{
+      p.missingSuit="w";
+      p.hand=i===0?noReadyHand():tingPingHuHand();
+    });
+    settleFlowerPigs(state);
+    settleReadyHands(state);
+    assert((state.roundSettlement.flowerPigResults||[]).length===0);
+    const mine=state.roundSettlement.readyHandResults.find(r=>r.playerIndex===0);
+    assert(mine&&mine.isReady===false&&mine.reason==="未下叫");
+    assert(mine.paid===true&&mine.payments.length===3);
+    assert(mine.fan===8&&mine.multiplier===128);
+    assert(state.roundDelta[0]===-384);
+    assert(sum(state.roundSettlement.playerDeltas)===0);
+  });
+
+  record("RH2","自己已下叫","有 waitingTiles 图案数据、不处罚",()=>{
+    const state=makeState();
+    state.players.forEach((p)=>{
+      p.missingSuit="w";
+      p.hand=tingPingHuHand();
+    });
+    settleFlowerPigs(state);
+    settleReadyHands(state);
+    const mine=state.roundSettlement.readyHandResults.find(r=>r.playerIndex===0);
+    assert(mine&&mine.isReady===true&&mine.reason==="已下叫");
+    assert(mine.waitingTiles.some(t=>t.s==="b"&&t.n===5));
+    assert(mine.payments.length===0&&mine.paid===false);
+    assert(state.roundDelta[0]===0);
+    assert(sum(state.roundSettlement.playerDeltas)===0);
+  });
+
+  record("RH3","自己花猪默认不叠未下叫","只花猪流水",()=>{
+    const state=makeState();
+    state.players[0].missingSuit="b";
+    state.players[0].hand=[T("b",9),...noReadyHand().slice(0,12)];
+    for(let i=1;i<4;i++){
+      state.players[i].missingSuit="w";
+      state.players[i].hand=tingPingHuHand();
+    }
+    settleFlowerPigs(state);
+    settleReadyHands(state);
+    assert(state.roundSettlement.flowerPigResults.some(r=>r.playerIndex===0));
+    assert(!state.roundSettlement.readyHandResults.some(r=>r.playerIndex===0));
+    assert(sum(state.roundSettlement.playerDeltas)===0);
+  });
+
+  record("RH4","AI 未下叫检测并结算","playerIndex=1 处罚",()=>{
+    const state=makeState();
+    state.players.forEach((p,i)=>{
+      p.missingSuit="w";
+      p.hand=i===1?noReadyHand():tingPingHuHand();
+    });
+    settleFlowerPigs(state);
+    settleReadyHands(state);
+    const ai=state.roundSettlement.readyHandResults.find(r=>r.playerIndex===1);
+    assert(ai&&ai.isReady===false&&ai.paid===true);
+    assert(state.roundDelta[1]===-384);
+    assert(sum(state.roundSettlement.playerDeltas)===0);
+  });
+
+  record("RH5","已出现4张不可作等待牌","getReadyHandInfo 过滤",()=>{
+    const player={
+      name:"X",
+      hand:tingPingHuHand(),
+      melds:[],
+      missingSuit:"w",
+      won:false
+    };
+    const visible=tiles([["b",5,4]]);
+    const info=getReadyHandInfo(player,visible,defaultRules);
+    assert(!info.waitingTiles.some(t=>t.s==="b"&&t.n===5),"5筒应被滤掉");
+  });
+
+  record("RH6","三家已胡剩余一家仍查叫","仅未胡家写入",()=>{
+    const state=makeState();
+    state.players[0].won=true;
+    state.players[1].won=true;
+    state.players[2].won=true;
+    state.players[3].missingSuit="w";
+    state.players[3].hand=noReadyHand();
+    settleFlowerPigs(state);
+    settleReadyHands(state);
+    assert(state.roundSettlement.readyHandResults.length===1);
+    assert(state.roundSettlement.readyHandResults[0].playerIndex===3);
+    assert(state.roundSettlement.readyHandResults[0].isReady===false);
+    assert(sum(state.roundSettlement.playerDeltas)===0);
+  });
+
+  record("RH7","结算守恒","花猪+未下叫合计0",()=>{
     const state=makeState();
     state.players[0].missingSuit="w";
     state.players[0].hand=tiles([["w",1]]);
+    state.players[1].missingSuit="w";
+    state.players[1].hand=noReadyHand();
+    state.players[2].missingSuit="w";
+    state.players[2].hand=tingPingHuHand();
+    state.players[3].missingSuit="w";
+    state.players[3].hand=tingPingHuHand();
     settleFlowerPigs(state);
-    assert(state.roundSettlement.readyHandResults.length===0);
-    assert(state.roundSettlement.flowerPigResults.every(r=>r.reason==="花猪"));
+    settleReadyHands(state);
+    assert(state.roundSettlement.flowerPigResults.length===1);
+    assert(state.roundSettlement.readyHandResults.some(r=>r.playerIndex===1&&!r.isReady));
     assert(sum(state.roundSettlement.playerDeltas)===0);
+    assert(collectVisibleTilesForReady(state,1).length>=0);
+  });
+
+  record("RH8","revealAllHands 标记语义","phase结束应亮牌",()=>{
+    const state=makeState({phase:"结束",revealAllHands:true});
+    assert(state.revealAllHands===true);
+    assert(state.phase==="结束");
   });
 
   record("P1","平胡","baseFan=1 multiplier=1",()=>{

@@ -1,7 +1,15 @@
 import {tileFace,tileName} from "./tiles.js?v=0.14.24";
 import {getLegalDiscardIndexes,SUIT_LABEL} from "./rules-guard.js";
+import {initTableLayout,relayoutTable} from "./table-layout.js";
 
 const SEAT_LABELS=["自己","上家","对家","下家"];
+
+let tableLayoutReady=false;
+function ensureTableLayout(){
+  if(tableLayoutReady)return;
+  tableLayoutReady=true;
+  initTableLayout(document.querySelector(".table"));
+}
 
 function seatDisplayName(index,name){
   return name?`${SEAT_LABELS[index]} ${name}`:SEAT_LABELS[index];
@@ -27,6 +35,7 @@ export function createTileElement(tile,className=""){
 }
 
 export function renderGame(state,handlers){
+  ensureTableLayout();
   document.getElementById("remaining").textContent=state.wall.length;
   document.getElementById("phase").textContent=state.phase;
   const turnIndex=state.turn;
@@ -44,11 +53,15 @@ export function renderGame(state,handlers){
   document.getElementById("statWall").textContent=state.wall.length;
   document.getElementById("statStatus").textContent=state.players[0].won?"已胡":"未胡";
 
-  state.players.forEach((player,index)=>renderSeat(state,player,index,handlers));
+  state.players.forEach((player,index)=>{
+    renderInfo(state,player,index);
+    renderSeat(state,player,index,handlers);
+  });
   renderDiscards(state);
   renderMelds(state);
   renderActions(state);
   renderScores(state);
+  relayoutTable(document.querySelector(".table"));
 }
 
 function renderScores(state){
@@ -78,47 +91,43 @@ function renderScores(state){
   }
 }
 
-function renderSeat(state,player,index,handlers){
-  const seat=document.getElementById(`seat-${index}`);
-  seat.innerHTML="";
+/** Compact Info：名字永不消失；张数 + 定缺常显；次要说明可藏 */
+function renderInfo(state,player,index){
+  const info=document.getElementById(`info-${index}`);
+  if(!info)return;
+  info.innerHTML="";
+  info.classList.add("player-info");
+  if(index===1||index===3)info.classList.add("player-info-side");
 
   const isDealer=Number.isInteger(state.dealer)&&state.dealer===index;
-  const isSide=index===1||index===3;
   const avatar=index===0?"🙂":"🤖";
-  const header=document.createElement("div");
-  header.className="seat-header"+(isSide?" seat-header-side":"");
   const statusClass=player.won?"seat-status seat-status-won":"seat-status seat-status-play";
   const statusText=player.won?"已胡":"进行中";
   const dealerBadge=isDealer?'<span class="dealer-badge">庄</span>':"";
-  if(isSide){
-    const nameLine=player.name
-      ?`<div class="seat-name">${player.name}${dealerBadge}</div>`
-      :(dealerBadge?`<div class="seat-name">${dealerBadge}</div>`:"");
-    header.innerHTML=`
-      <div class="seat-id">
-        <span class="seat-avatar" aria-hidden="true">${avatar}</span>
-        <div class="seat-text">
-          <div class="seat-label">${SEAT_LABELS[index]}</div>
-          ${nameLine}
-          <div class="seat-meta">${player.hand.length}张${player.missingSuit?` · 缺${SUIT_LABEL[player.missingSuit]}`:""}</div>
-          <div class="${statusClass}">${statusText}</div>
+  const name=player.name||SEAT_LABELS[index];
+  const missing=player.missingSuit?SUIT_LABEL[player.missingSuit]:"—";
+
+  info.innerHTML=`
+    <div class="seat-id">
+      <span class="seat-avatar" aria-hidden="true">${avatar}</span>
+      <div class="seat-text">
+        <div class="seat-label info-secondary">${SEAT_LABELS[index]}</div>
+        <div class="seat-name">${name}${dealerBadge}</div>
+        <div class="seat-meta">
+          <span class="info-tiles">${player.hand.length}张</span>
+          <span class="info-missing">缺${missing}</span>
+          <span class="info-secondary info-meld-hint">${player.melds.length?`碰/杠×${player.melds.length}`:""}</span>
         </div>
+        <div class="${statusClass} info-secondary">${statusText}</div>
       </div>
-    `;
-  }else{
-    const namePart=player.name?` ${player.name}`:"";
-    header.innerHTML=`
-      <div class="seat-id">
-        <span class="seat-avatar" aria-hidden="true">${avatar}</span>
-        <div class="seat-text">
-          <div class="seat-name">${SEAT_LABELS[index]}${namePart}${dealerBadge}</div>
-          <div class="seat-meta">${player.hand.length}张${player.missingSuit?` · 缺${SUIT_LABEL[player.missingSuit]}`:""}${player.melds.length?` · 碰/杠×${player.melds.length}`:""}</div>
-        </div>
-      </div>
-      <div class="${statusClass}">${statusText}</div>
-    `;
-  }
-  seat.appendChild(header);
+    </div>
+  `;
+}
+
+function renderSeat(state,player,index,handlers){
+  const seat=document.getElementById(`seat-${index}`);
+  if(!seat)return;
+  seat.innerHTML="";
 
   const hand=document.createElement("div");
   hand.className="hand";
@@ -141,10 +150,11 @@ function renderSeat(state,player,index,handlers){
       tile.s===winTile.s &&
       tile.n===winTile.n;
 
+    const revealAll=state.revealAllHands===true||state.phase==="结束";
     let el;
-    if(index===0){
-      el=createTileElement(tile);
-      if(legalSelf&&!legalSelf.has(tileIndex))el.classList.add("tile-illegal");
+    if(index===0||revealAll){
+      el=createTileElement(tile,index===0?"":"tile-small");
+      if(index===0&&legalSelf&&!legalSelf.has(tileIndex))el.classList.add("tile-illegal");
     }else if(isWinFace){
       el=createTileElement(tile,"tile-small");
     }else{
@@ -154,7 +164,7 @@ function renderSeat(state,player,index,handlers){
     if(isWinFace)el.classList.add("tile-win-show");
     if(dealing&&tileIndex===lastIndex)el.classList.add("tile-deal-in");
 
-    if(index===0&&!player.won){
+    if(index===0&&!player.won&&!revealAll){
       if(tile.id===state.drawnTileId)el.classList.add("tile-drawn");
       if(tileIndex===state.selectedTileIndex)el.classList.add("tile-selected");
 
@@ -167,7 +177,6 @@ function renderSeat(state,player,index,handlers){
   });
 
   seat.appendChild(hand);
-
 }
 
 function renderMelds(state){
@@ -338,8 +347,8 @@ export function hideReaction(){
  * Does not pause game flow.
  */
 export function showPlayerActionEffect(playerIndex,actionName,tile,scoreText=""){
-  const table=document.querySelector(".table");
-  if(!table)return;
+  const overlay=document.querySelector(".table-overlay")||document.querySelector(".table");
+  if(!overlay)return;
 
   const sides=["bottom","left","top","right"];
   const el=document.createElement("div");
@@ -365,7 +374,7 @@ export function showPlayerActionEffect(playerIndex,actionName,tile,scoreText="")
     el.appendChild(tileWrap);
   }
 
-  table.appendChild(el);
+  overlay.appendChild(el);
 
   const cleanup=()=>{
     if(el.parentNode)el.remove();
@@ -415,50 +424,183 @@ export function showWin(headline,info,onContinue,mannerNote="",winTile=null){
 }
 
 export function showRoundEnd(reason,summary,onNewGame,settlement=null){
-  document.getElementById("roundEndTitle").textContent=reason;
-  const pigLines=(settlement?.flowerPigResults||[])
-    .filter(r=>r.isFlowerPig)
-    .map(r=>{
-      const suit=r.missingSuitLabel||r.missingSuit||"";
-      return r.paid
-        ?`${r.name}花猪（缺${suit}）${r.note?` · ${r.note}`:""}`
-        :`${r.name}花猪（缺${suit}）· 罚分待配置`;
-    });
-  const detail=[
-    "本局战况如下，可再看一眼桌面，或直接开下一局。",
-    pigLines.length?`花猪：${pigLines.join("；")}`:""
-  ].filter(Boolean).join("\n");
-  document.getElementById("roundEndDetail").textContent=detail;
+  document.getElementById("roundEndModal")?.classList.remove("show");
+  if(typeof onNewGame==="function"){
+    const neu=document.getElementById("roundEndNew");
+    const stay=document.getElementById("roundEndStay");
+    if(stay)stay.onclick=()=>document.getElementById("roundEndModal")?.classList.remove("show");
+    if(neu)neu.onclick=()=>{document.getElementById("roundEndModal")?.classList.remove("show");hideRoundReveal();onNewGame();};
+  }
+}
 
-  const list=document.getElementById("roundEndSummary");
-  if(list){
-    list.innerHTML="";
-    (summary||[]).forEach(row=>{
-      const el=document.createElement("div");
-      el.className="round-sum-row"+(row.total<0?" score-row-neg":"");
-      const delta=row.delta||0;
-      const miss=row.missingSuitLabel?` · 缺${row.missingSuitLabel}`:"";
-      el.innerHTML=`
-        <div class="round-sum-name">${row.name}${miss}</div>
-        <div class="round-sum-status">${row.status||(row.won?"已胡":"未胡")}</div>
-        <div class="round-sum-delta">${delta>0?"+"+delta:String(delta)}</div>
-        <div class="round-sum-total">总分 ${row.total}</div>
-      `;
-      list.appendChild(el);
-    });
+export function hideRoundReveal(){
+  const modal=document.getElementById("roundRevealModal");
+  if(modal)modal.classList.remove("show");
+}
+
+/**
+ * 终局合并面板：得分说明 + 每家一行牌面（副露/手牌/听牌）
+ */
+export function renderRoundReveal(state,settlement,handlers={}){
+  const modal=document.getElementById("roundRevealModal");
+  const list=document.getElementById("roundRevealList");
+  if(!modal||!list)return;
+
+  const reason=handlers.reason||"";
+  const summary=handlers.summary||null;
+  const titleEl=document.getElementById("roundRevealReason");
+  const detailEl=document.getElementById("roundRevealDetail");
+  if(titleEl)titleEl.textContent=reason||"本局结束";
+  if(detailEl){
+    detailEl.textContent="";
+    detailEl.hidden=true;
   }
 
-  document.getElementById("roundEndModal").classList.add("show");
+  const pigs=new Set(
+    (settlement?.flowerPigResults||[])
+      .filter(r=>r.isFlowerPig)
+      .map(r=>r.playerIndex)
+  );
+  const readyMap=new Map(
+    (settlement?.readyHandResults||[]).map(r=>[r.playerIndex,r])
+  );
+  const summaryMap=new Map(
+    (summary||[]).map((row,i)=>[i,row])
+  );
 
-  const stay=document.getElementById("roundEndStay");
-  const neu=document.getElementById("roundEndNew");
-  stay.onclick=()=>{
-    document.getElementById("roundEndModal").classList.remove("show");
-  };
-  neu.onclick=()=>{
-    document.getElementById("roundEndModal").classList.remove("show");
-    onNewGame();
-  };
+  list.innerHTML="";
+  (state.players||[]).forEach((player,index)=>{
+    const card=document.createElement("section");
+    card.className="reveal-seat";
+
+    const sum=summaryMap.get(index);
+    const ready=readyMap.get(index);
+    const tags=[];
+    if(player.won||sum?.won)tags.push(["已胡","reveal-tag-won"]);
+    if(pigs.has(index)||sum?.flowerPig)tags.push(["花猪","reveal-tag-pig"]);
+    if(!(player.won||sum?.won)&&!(pigs.has(index)||sum?.flowerPig)){
+      if(ready?.isReady||sum?.isReady)tags.push(["已下叫","reveal-tag-ready"]);
+      else if(ready||sum?.isReady===false)tags.push(["未下叫","reveal-tag-noready"]);
+    }
+    const missLabel=sum?.missingSuitLabel||(player.missingSuit?SUIT_LABEL[player.missingSuit]:"");
+    if(missLabel)tags.push([`缺${missLabel}`,"reveal-tag-miss"]);
+
+    const bits=sum?.bits||[];
+    const delta=sum?.delta??0;
+    const total=sum?.total??0;
+
+    const head=document.createElement("div");
+    head.className="reveal-seat-head";
+    head.innerHTML=`
+      <div class="reveal-seat-top">
+        <div class="reveal-seat-name">${seatDisplayName(index,player.name)}</div>
+        <div class="reveal-seat-tags">${
+          tags.map(([text,cls])=>`<span class="reveal-tag ${cls}">${text}</span>`).join("")
+        }</div>
+        <div class="reveal-seat-bits">${
+          bits.length
+            ?bits.map(b=>`<span class="reveal-bit">${b}</span>`).join("")
+            :`<span class="reveal-bit reveal-bit-muted">${sum?.status||"本局无独立流水"}</span>`
+        }</div>
+        <div class="reveal-seat-score">
+          <span class="reveal-delta">${delta>0?"+"+delta:String(delta)}</span>
+          <span class="reveal-total">总分 ${total}</span>
+        </div>
+      </div>
+    `;
+    card.appendChild(head);
+
+    const tilesRow=document.createElement("div");
+    tilesRow.className="reveal-tiles-row";
+
+    (player.melds||[]).forEach(meld=>{
+      const group=document.createElement("div");
+      group.className="reveal-meld-group";
+      (meld.tiles||[]).forEach(tile=>{
+        group.appendChild(createTileElement(tile,"tile-reveal"));
+      });
+      tilesRow.appendChild(group);
+    });
+
+    const handGroup=document.createElement("div");
+    handGroup.className="reveal-hand-inline";
+    const winTile=player.won?player.winTile:null;
+    const hand=player.hand||[];
+    let winHandIndex=-1;
+    if(winTile){
+      for(let i=hand.length-1;i>=0;i--){
+        const t=hand[i];
+        if(winTile.id&&t.id===winTile.id){winHandIndex=i;break;}
+        if(t.s===winTile.s&&t.n===winTile.n){winHandIndex=i;break;}
+      }
+    }
+    hand.forEach((tile,tileIndex)=>{
+      const el=createTileElement(tile,"tile-reveal");
+      if(tileIndex===winHandIndex)el.classList.add("tile-reveal-win");
+      handGroup.appendChild(el);
+    });
+    if(hand.length)tilesRow.appendChild(handGroup);
+
+    if(player.won&&winTile){
+      const winGroup=document.createElement("div");
+      winGroup.className="reveal-win-inline";
+      const lab=document.createElement("span");
+      lab.className="reveal-win-inline-label";
+      lab.textContent="胡";
+      winGroup.appendChild(lab);
+      const winEl=createTileElement(
+        {s:winTile.s,n:winTile.n,id:winTile.id||`reveal-hu-${index}`},
+        "tile-reveal tile-reveal-win"
+      );
+      winGroup.appendChild(winEl);
+      tilesRow.appendChild(winGroup);
+    }
+
+    const waits=ready?.waitingTiles||sum?.waitingTiles||[];
+    if((ready?.isReady||sum?.isReady)&&waits.length){
+      const waitGroup=document.createElement("div");
+      waitGroup.className="reveal-wait-inline";
+      const lab=document.createElement("span");
+      lab.className="reveal-wait-inline-label";
+      lab.textContent="听";
+      waitGroup.appendChild(lab);
+      waits.forEach((tile,ti)=>{
+        waitGroup.appendChild(
+          createTileElement(
+            {s:tile.s,n:tile.n,id:`reveal-wait-${index}-${ti}`},
+            "tile-reveal"
+          )
+        );
+      });
+      tilesRow.appendChild(waitGroup);
+    }
+
+    card.appendChild(tilesRow);
+    list.appendChild(card);
+  });
+
+  modal.classList.add("show");
+  document.getElementById("roundEndModal")?.classList.remove("show");
+
+  const btnNew=document.getElementById("roundRevealNew");
+  const btnSettle=document.getElementById("roundRevealSettle");
+  const btnClose=document.getElementById("roundRevealClose");
+  if(btnNew){
+    btnNew.onclick=()=>{
+      hideRoundReveal();
+      handlers.onNewGame?.();
+    };
+  }
+  if(btnSettle){
+    btnSettle.hidden=true;
+    btnSettle.onclick=null;
+  }
+  if(btnClose){
+    btnClose.onclick=()=>{
+      hideRoundReveal();
+      handlers.onClose?.();
+    };
+  }
 }
 
 export function showMissingSuitModal(hand,onPick){

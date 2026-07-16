@@ -111,6 +111,22 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 .quick-rule input:checked + .quick-switch{background:linear-gradient(135deg,#43bc83,#268e62)}
 .quick-rule input:checked + .quick-switch::after{transform:translateX(16px)}
+.quick-rule-cap{
+  grid-template-columns:auto auto;gap:6px;align-items:center
+}
+.quick-rule-cap select{
+  appearance:none;-webkit-appearance:none;
+  min-width:3.6em;height:28px;padding:0 8px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.28);
+  color:#eef6f0;font-size:12px;font-weight:800;cursor:pointer
+}
+.quick-rule-cap select:focus{outline:2px solid rgba(212,175,55,.45);outline-offset:1px}
+.quick-rule input:disabled + .quick-switch{
+  opacity:.45
+}
+.quick-rule:has(input:disabled){
+  cursor:not-allowed;opacity:.85
+}
 .quick-rule-text{min-width:0;display:flex;flex-direction:column}
 .quick-rule-text strong{font-size:12px;white-space:nowrap}
 .quick-rule-text small{display:none}
@@ -121,85 +137,15 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   flex:0 0 auto;align-items:stretch
 }
 .table{
-  position:relative;width:100%;min-width:0;min-height:0;overflow:hidden;
-  flex:0 0 auto;
-  /* 默认 4:3 + 最低 720；宽屏桌面布局再覆盖 */
-  aspect-ratio:4/3;
-  min-height:720px;
-  max-height:none;
-  max-width:100%;
-  margin-inline:auto;
-  border-radius:24px;
-  /* 固定分区：座位带 / 副露轨 / 弃牌区互不互侵 */
-  --band-side:clamp(48px,6.8vw,62px);
-  --meld-rail:max(44px,calc(var(--tile-h) * .46 + 10px));
-  --meld-tw:calc(var(--tile-w) * .46 * 1.1);
-  --meld-th:calc(var(--tile-h) * .46 * 1.1);
-  --band-top:calc(var(--tile-h) * .62 + 44px);
-  /* 底部分层：手牌带（尺寸不压） + 副露安全带（固定高度，可换行） */
-  --self-hand-band:calc(var(--tile-h) + 58px);
-  --self-meld-band:max(56px,calc(var(--meld-th) * 2 + 22px));
-  --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 8px);
-  --meld-gap:4px;
-  --discard-inset:calc(var(--band-side) + var(--meld-rail) + 8px);
-  background:
-    radial-gradient(circle at center,rgba(38,139,94,.24),transparent 50%),
-    linear-gradient(145deg,#0b5238,#073623);
-  border:1px solid rgba(255,255,255,.13);
-  box-shadow:0 24px 60px rgba(0,0,0,.34)
+  /* 几何由 table.css（v0.16 Grid）接管；此处仅保留非布局回退色，勿再加 absolute */
+  position:relative;width:100%;min-width:0;min-height:0;
 }
-.table::before{
-  content:"";position:absolute;inset:12%;border-radius:35%;
-  border:1px solid rgba(255,255,255,.07);
-  box-shadow:inset 0 0 70px rgba(0,0,0,.2)
-}
+.table::before{/* moved to table.css */}
 .seat{
-  position:absolute;z-index:6;padding:6px 8px;border-radius:15px;
-  background:rgba(4,24,17,.78);border:1px solid rgba(255,255,255,.1);
-  overflow:hidden;box-sizing:border-box
-}
-/* 上家：固定顶部，夹在左右安全带之间 */
-.seat-top{
-  top:4px;left:calc(var(--band-side) + 4px);right:calc(var(--band-side) + 4px);
-  width:auto;transform:none;
-  max-height:none;
-  min-height:calc(var(--tile-h) * .62 + 34px);
-  padding:4px 8px;
-  overflow:visible;
-  z-index:7
-}
-/* 自己：固定底部手牌带；高度限制在手牌安全带内，不侵占副露区 */
-.seat-bottom{
-  bottom:max(4px,env(safe-area-inset-bottom,0px));
-  left:calc(var(--band-side) + 4px);right:calc(var(--band-side) + 4px);
-  height:var(--self-hand-band);
-  max-height:var(--self-hand-band);
-  padding:6px 6px max(6px,env(safe-area-inset-bottom,0px));
-  overflow:visible;
-  z-index:10;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-  min-width:0;
+  /* 定位由 table.css .zone .seat；此处仅外观兜底 */
   box-sizing:border-box
 }
-/* 左/右家：夹在对家安全带与自己座位上线之间；下间隔 = 上间隔（对称对家 +6px） */
-.seat-left{
-  left:2px;
-  top:calc(var(--band-top) + 6px);
-  bottom:calc(var(--self-hand-band) + max(4px,env(safe-area-inset-bottom,0px)) + 6px);
-  width:var(--band-side);transform:none;
-  display:flex;flex-direction:column;padding:3px;
-  overflow:visible;z-index:6
-}
-.seat-right{
-  right:2px;
-  top:calc(var(--band-top) + 6px);
-  bottom:calc(var(--self-hand-band) + max(4px,env(safe-area-inset-bottom,0px)) + 6px);
-  width:var(--band-side);transform:none;
-  display:flex;flex-direction:column;padding:3px;
-  overflow:visible;z-index:6
-}
+/* seat-top/bottom/left/right：不再 absolute；外观见 table.css / player-info */
 .seat-header{display:flex;justify-content:space-between;gap:6px;margin-bottom:5px;flex:0 0 auto}
 .seat-id{display:flex;align-items:center;gap:6px;min-width:0}
 .seat-avatar{
@@ -244,43 +190,15 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   font-size:9px;padding:1px 5px;border-radius:999px
 }
 .hand{
-  display:flex;justify-content:center;align-items:flex-end;gap:2px;
-  min-height:calc(var(--tile-h) + 14px);min-width:0
+  display:flex;justify-content:center;align-items:flex-end;gap:var(--fit-gap,2px);
+  min-height:0;min-width:0
 }
-.seat-top .hand{
-  min-height:calc(var(--tile-h) * .62 + 4px);
-  align-items:center;
-  padding-bottom:2px;
-  gap:1px
-}
-.seat-top .hand .tile{
-  width:calc(var(--tile-w) * .58);
-  height:calc(var(--tile-h) * .58)
-}
-/*
-  左右手牌：旋转后视觉高度≈牌宽。
-  用负 margin 把布局间距收成「牌宽」，再按容器高度自适应，保证 13 张都能露出。
-*/
-.hand-vertical{
-  flex:1 1 auto;flex-direction:column;gap:0;min-height:0;
-  justify-content:center;align-items:center;overflow:visible;
-  container-type:size
-}
-.hand-left .tile{transform:rotate(90deg)}
-.hand-right .tile{transform:rotate(-90deg)}
-.seat-left .hand .tile,
-.seat-right .hand .tile{
-  --side-w:min(calc(var(--tile-w)*.58),calc(100cqh / 13.15));
-  width:var(--side-w);
-  height:calc(var(--side-w) * 1.42);
-  margin:0 0 calc(var(--side-w) - var(--side-w) * 1.42);
-  flex:0 0 auto
-}
-.seat-left .hand .tile:last-child,
-.seat-right .hand .tile:last-child{margin-bottom:0}
+/* seat-* / hand-vertical 几何与旋转 → table.css */
 
 .tile{
-  width:var(--tile-w);height:var(--tile-h);flex:0 0 auto;
+  width:var(--fit-tile-w,var(--tile-w));
+  height:var(--fit-tile-h,var(--tile-h));
+  flex:0 0 auto;min-width:0;
   border-radius:8px 8px 6px 6px;overflow:hidden;cursor:pointer;
   background:linear-gradient(160deg,#fbf6e8,#f3ead4 72%,#e4dcc4);
   border:1.5px solid rgba(20,70,42,.45);
@@ -303,16 +221,23 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   width:100%
 }
 .missing-suit-hand{
-  display:flex;flex-wrap:wrap;justify-content:center;gap:6px;
+  display:flex;flex-wrap:nowrap;justify-content:center;align-items:flex-end;
+  gap:clamp(1px,.35cqi,5px);
   margin:14px 0 6px;padding:10px 8px;
   background:rgba(0,0,0,.18);border-radius:12px;
   border:1px solid rgba(212,175,105,.22);
-  max-height:min(42vh,280px);overflow:auto
+  width:100%;max-width:100%;
+  overflow:hidden;
+  container-type:inline-size;
+  container-name:missing-suit-hand
 }
 .missing-suit-hand .tile{
   cursor:default;
-  width:calc(var(--tile-w) * .92);
-  height:calc(var(--tile-h) * .92)
+  flex:0 0 auto;
+  /* 13 张一行：按容器宽度缩放，上限接近桌面手牌 */
+  --ms-fit:calc((100cqi - 16px) / 13.35);
+  width:min(calc(var(--tile-w) * .92),var(--ms-fit));
+  height:calc(min(calc(var(--tile-w) * .92),var(--ms-fit)) * 1.42)
 }
 .missing-suit-hand .tile:hover{transform:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset -2px -3px 0 rgba(83,113,89,.14),0 5px 9px rgba(0,0,0,.3)}
 .missing-suit-actions{
@@ -362,72 +287,25 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   content:"";display:block;width:65%;height:67%;margin:16% auto;
   border:1px solid rgba(255,255,255,.25);border-radius:4px
 }
-.tile-small{width:calc(var(--tile-w)*.72);height:calc(var(--tile-h)*.72);cursor:default}
+.tile-small{
+  /* 尺寸完全跟 fitTiles；不再用 0.72 缩放打乱比例 */
+  width:var(--fit-tile-w,var(--tile-w));
+  height:var(--fit-tile-h,var(--tile-h));
+  min-width:0;cursor:default
+}
 .tile-discard{
-  width:calc(var(--tile-w)*.5);
-  height:calc(var(--tile-h)*.5);
+  width:var(--fit-tile-w,calc(var(--tile-w) * .5));
+  height:var(--fit-tile-h,calc(var(--tile-h) * .5));
+  min-width:0;
   cursor:default;
   border-radius:5px
 }
 
-.discard-zone{
-  position:absolute;z-index:12;display:flex;flex-wrap:wrap;gap:2px;align-content:flex-start
-}
-/* 弃牌集中在桌心；对家带宽收窄后可略外扩 */
-.discard-top{
-  top:30%;
-  left:30%;
-  right:30%;
-  justify-content:center;
-  flex-direction:row;
-  flex-wrap:wrap;
-  max-height:16%
-}
-.discard-bottom{
-  bottom:30%;
-  left:30%;
-  right:30%;
-  justify-content:center;
-  flex-direction:row;
-  flex-wrap:wrap;
-  max-height:16%
-}
-.discard-left,
-.discard-right{
-  top:26%;
-  bottom:26%;
-  width:calc(var(--tile-w) * .48 * 2 + 8px);
-  max-width:calc(var(--tile-w) * .48 * 2 + 8px);
-  flex-direction:column;
-  flex-wrap:wrap;
-  align-items:center;
-  align-content:center;
-  justify-content:flex-start;
-  gap:1px;
-  overflow:visible
-}
-.discard-left{left:26%}
-.discard-right{right:26%}
-.discard-left .tile,
-.discard-right .tile{
-  width:calc(var(--tile-w)*.48);
-  height:calc(var(--tile-h)*.48)
-}
-.discard-left .tile{
-  transform:rotate(90deg);
-  margin-bottom:calc(var(--tile-w)*.48 - var(--tile-h)*.48)
-}
-.discard-right .tile{
-  transform:rotate(-90deg);
-  margin-bottom:calc(var(--tile-w)*.48 - var(--tile-h)*.48)
-}
-.discard-left .tile:last-child,
-.discard-right .tile:last-child{margin-bottom:0}
-
+/* 弃牌区几何 → table.css；此处不再 absolute */
+.discard-zone{/* layout in table.css */}
 .table-center{
-  position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:150px;text-align:center;padding:12px;border-radius:20px;
-  background:rgba(4,22,16,.9);border:1px solid var(--line)
+  /* 几何 → table.css；仅保留字色相关见下 */
+  text-align:center
 }
 .remaining{font-size:29px;font-weight:900;color:var(--gold)}
 .phase{font-size:11px;color:var(--muted);margin-top:3px}
@@ -516,6 +394,131 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 .round-sum-status{font-size:12px;color:var(--muted)}
 .round-sum-delta{font-size:14px;font-weight:800;min-width:3em;text-align:right}
 .round-sum-total{font-size:15px;font-weight:900;min-width:5.5em;text-align:right}
+
+.modal-reveal{
+  align-items:center;justify-content:center;
+  overflow:hidden;padding:6px
+}
+.reveal-box{
+  width:min(960px,98vw);max-height:min(96vh,96dvh);margin:0 auto;
+  text-align:left;overflow:hidden;
+  display:flex;flex-direction:column;
+  padding:10px 12px 8px
+}
+.reveal-box h2{margin:0;text-align:center;font-size:clamp(16px,2.4vw,20px);line-height:1.2}
+.reveal-box .win-title{
+  text-align:center;margin:2px 0 4px;font-size:clamp(14px,2vw,18px);line-height:1.2
+}
+.reveal-box>p,
+#roundRevealDetail{display:none!important;margin:0}
+.reveal-list{
+  display:flex;flex-direction:column;gap:6px;margin:4px 0 6px;flex:1 1 auto;min-height:0
+}
+.reveal-seat{
+  padding:6px 8px;border-radius:12px;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);min-width:0
+}
+.reveal-seat-head{margin-bottom:4px}
+.reveal-seat-top{
+  display:flex;flex-wrap:nowrap;align-items:center;gap:6px;
+  min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch
+}
+.reveal-seat-name{
+  font-size:clamp(13px,1.8vw,16px);font-weight:850;white-space:nowrap;flex:0 0 auto
+}
+.reveal-seat-tags{display:flex;flex-wrap:nowrap;gap:4px;flex:0 1 auto}
+.reveal-seat-bits{
+  display:flex;flex-wrap:nowrap;gap:4px;align-items:center;flex:1 1 auto;min-width:0
+}
+.reveal-seat-score{
+  display:flex;align-items:baseline;gap:8px;margin-left:auto;font-weight:850;
+  flex:0 0 auto;white-space:nowrap
+}
+.reveal-delta{color:var(--gold);font-size:13px}
+.reveal-total{font-size:12px;opacity:.9}
+.reveal-bit{
+  display:inline-block;padding:2px 6px;border-radius:7px;
+  background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.1);
+  font-size:11px;font-weight:700;color:#e8f0ea;white-space:nowrap
+}
+.reveal-bit-muted{opacity:.7;font-weight:600}
+.reveal-tag{
+  display:inline-block;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;
+  background:rgba(255,255,255,.1);color:var(--muted);white-space:nowrap
+}
+.reveal-tag-won{background:rgba(212,175,55,.25);color:var(--gold)}
+.reveal-tag-pig{background:rgba(220,80,80,.28);color:#ffb4b4}
+.reveal-tag-ready{background:rgba(80,180,120,.25);color:#b8f0cc}
+.reveal-tag-noready{background:rgba(180,140,60,.25);color:#f0d78a}
+.reveal-tag-miss{background:rgba(120,140,180,.22);color:#c8d4f0}
+
+/* 一家一行：副露 + 手牌 + 听牌，可横向滚动 */
+.reveal-tiles-row{
+  display:flex;flex-wrap:nowrap;align-items:flex-end;gap:4px;
+  max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  padding-bottom:0
+}
+.reveal-hand-inline,
+.reveal-wait-inline,
+.reveal-win-inline{
+  display:flex;flex-wrap:nowrap;align-items:flex-end;gap:1px;flex:0 0 auto
+}
+.reveal-wait-inline,
+.reveal-win-inline{
+  margin-left:2px;padding-left:6px;
+  border-left:1px dashed rgba(255,255,255,.22)
+}
+.reveal-wait-inline-label,
+.reveal-win-inline-label{
+  align-self:center;margin-right:3px;
+  font-size:10px;font-weight:800;color:var(--gold);white-space:nowrap
+}
+.reveal-box .tile.tile-reveal-win,
+.reveal-tiles-row .tile.tile-reveal-win{
+  box-shadow:0 0 0 2px var(--gold),0 4px 10px rgba(0,0,0,.35)!important;
+  border-color:rgba(212,175,55,.75)!important
+}
+.reveal-meld-group{
+  display:flex;flex-wrap:nowrap;gap:1px;padding:2px;flex:0 0 auto;
+  border-radius:6px;background:rgba(4,24,17,.82);
+  border:1px solid rgba(255,255,255,.12)
+}
+.reveal-melds,.reveal-hand,.reveal-waits,.reveal-wait-label{display:none}
+
+/* 终局面板牌面：稍压缩以塞进一屏 */
+.reveal-box .tile,
+.reveal-box .tile.tile-small,
+.reveal-box .tile.tile-reveal,
+.reveal-tiles-row .tile,
+.reveal-meld-group .tile{
+  --reveal-tw:clamp(16px,min(3.8vw,3.4vh),26px);
+  width:var(--reveal-tw)!important;
+  height:calc(var(--reveal-tw) * 1.42)!important;
+  min-width:0!important;
+  max-width:26px!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  transform:none!important;
+  cursor:default;
+  overflow:hidden
+}
+.reveal-box .tile svg{
+  width:100%!important;
+  height:100%!important;
+  display:block;
+  max-width:100%;
+  max-height:100%
+}
+.reveal-box .modal-actions{
+  margin-top:4px;padding-top:6px;flex:0 0 auto
+}
+.modal-actions-triple{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+  position:sticky;bottom:0;padding-top:10px;
+  background:linear-gradient(180deg,transparent,rgba(13,42,32,.95) 28%)
+}
+.modal-actions-triple .btn{min-width:6.5em}
+
 .effect-score{
   margin-top:4px;font-size:clamp(14px,2vw,18px);font-weight:900;color:var(--gold);
   text-shadow:0 2px 8px rgba(0,0,0,.45)
@@ -565,61 +568,25 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
    默认：单列中档（约 601–899 宽，且非矮横屏）
 */
 
-/* 1. 手机竖屏（横屏不走此档，避免与 compact-landscape 抢权） */
+/* 1. 手机竖屏：仅非牌桌几何 */
 @media(max-width:600px) and (orientation:portrait){
   :root{--tile-w:clamp(30px,8vw,42px)}
   .topbar-actions{width:100%;justify-content:stretch}
   .quick-rules{flex:1;min-width:0;justify-content:space-between}
   .quick-rules-title{display:none}
-  .table{
-    --band-side:clamp(44px,11.5vw,56px);
-    --meld-rail:max(40px,calc(var(--tile-h) * .46 * 1.1 + 8px));
-    --band-top:calc(var(--tile-h) * .62 + 38px);
-    --self-hand-band:calc(var(--tile-h) + 54px);
-    --self-meld-band:max(52px,calc(var(--meld-th) * 2 + 18px));
-    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 6px)
-  }
   .table-center{width:124px;padding:9px}
   .remaining{font-size:23px}
   .sidebar{display:flex;flex-direction:column}
-  .seat-left .seat-label,
-  .seat-right .seat-label,
-  .seat-left .seat-name,
-  .seat-right .seat-name,
   .seat-name{font-size:12px}
 }
 
-/* 2. 手机横屏紧凑 → 见文件末尾 @media (orientation:landscape) and (max-height:600px) */
+/* 2. 手机横屏紧凑 → 见文件末尾（若仍有） */
 
-/* 3. 折叠屏 / 平板：宽侧带 + 完整左右家信息，单列牌桌（min-height:601 与 compact 互斥） */
+/* 3. 折叠屏 / 平板：侧栏与字号；牌桌几何 → table.css */
 @media(min-width:900px) and (max-width:1399px) and (min-height:601px),
        (min-width:1400px) and (max-aspect-ratio:5/4) and (min-height:601px){
   :root{--tile-w:clamp(44px,4.2vw,64px)}
   .game-layout{display:flex;flex-direction:column}
-  .table{
-    aspect-ratio:4/3;
-    min-height:720px;
-    max-height:none;
-    max-width:100%;
-    --band-side:clamp(88px,9.5vw,120px);
-    --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 10px));
-    --band-top:calc(var(--tile-h) * .62 + 46px);
-    --self-hand-band:calc(var(--tile-h) + 60px);
-    --self-meld-band:max(64px,calc(var(--meld-th) * 2 + 26px));
-    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 10px);
-    --discard-inset:calc(var(--band-side) + var(--meld-rail) + 10px)
-  }
-  .seat-left,
-  .seat-right{
-    width:var(--band-side);
-    min-width:88px;
-    overflow:visible;
-    padding:6px 5px
-  }
-  .seat-left .seat-name,
-  .seat-right .seat-name,
-  .seat-left .seat-label,
-  .seat-right .seat-label,
   .seat-name{
     white-space:normal;
     overflow:visible;
@@ -630,18 +597,11 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     word-break:break-word;
     color:inherit
   }
-  .seat-left .seat-meta,
-  .seat-right .seat-meta{font-size:11px;white-space:normal}
-  .seat-left .seat-status,
-  .seat-right .seat-status{
-    display:inline-block;
-    font-size:10px;padding:2px 7px;margin-top:3px
-  }
   .seat-avatar{width:26px;height:26px;font-size:14px}
   .sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-/* 4. PC：宽屏桌面（牌桌 + 右侧栏） */
+/* 4. PC：宽屏桌面（牌桌 + 右侧栏）；牌桌轨道 → table.css */
 @media(min-width:1400px) and (min-aspect-ratio:5/4){
   :root{--tile-w:clamp(48px,3.8vw,72px)}
   .app{
@@ -657,36 +617,13 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     min-height:0;
     gap:8px
   }
-  .table{
-    aspect-ratio:16/10;
-    min-height:0;
-    width:100%;
-    height:auto;
-    max-height:calc(100vh - 7.5rem);
-    max-height:calc(100dvh - 7.5rem);
-    max-width:min(100%,calc((100vh - 7.5rem) * 16 / 10));
-    max-width:min(100%,calc((100dvh - 7.5rem) * 16 / 10));
-    --band-side:clamp(72px,7.5%,96px);
-    --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 12px));
-    --band-top:calc(var(--tile-h) * .62 + 44px);
-    --self-hand-band:calc(var(--tile-h) + 56px);
-    --self-meld-band:max(60px,calc(var(--meld-th) * 2 + 24px));
-    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 8px)
+  .table-center{
+    width:128px;
+    padding:9px
   }
-  .seat-left,
-  .seat-right{
-    min-width:72px;
-    overflow:visible
-  }
-  .seat-left .seat-name,
-  .seat-right .seat-name,
-  .seat-left .seat-label,
-  .seat-right .seat-label,
   .seat-name{
     white-space:normal;overflow:visible;font-size:12px
   }
-  .seat-left .seat-status,
-  .seat-right .seat-status{display:inline-block}
   .sidebar{
     display:flex;
     flex-direction:column;
@@ -735,7 +672,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)
 }
 .meld .tile{
-  width:calc(var(--tile-w)*.62);height:calc(var(--tile-h)*.62);cursor:default
+  width:var(--fit-tile-w, calc(var(--tile-w)*.62));
+  height:var(--fit-tile-h, calc(var(--tile-h)*.62));
+  cursor:default
 }
 .reaction-box{text-align:center}
 .win-box{text-align:center}
@@ -879,84 +818,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 
 
-/* v0.9 exposed meld and action layout fix */
-
-/* 四家副露轨：不旋转、不压弃牌、不被底座位裁切 */
-.meld-zone{
-  position:absolute;
-  z-index:8;
-  display:flex;
-  gap:5px;
-  align-items:center;
-  pointer-events:none;
-  overflow:visible;
-  box-sizing:border-box;
-}
-
-.meld-zone:empty{
-  display:none;
-}
-
-.meld-top{
-  top:calc(var(--band-top) + var(--meld-gap));
-  left:var(--discard-inset);
-  right:var(--discard-inset);
-  transform:none;
-  justify-content:center;
-  flex-wrap:wrap;
-  max-height:calc(var(--meld-th) + 12px);
-}
-
-.meld-bottom{
-  left:var(--discard-inset);
-  right:var(--discard-inset);
-  /* 座位盒外侧、紧贴座位顶边（与左右家副露在座位外一致，勿叠入自己座位） */
-  bottom:calc(var(--self-hand-band) + var(--meld-gap) + max(4px,env(safe-area-inset-bottom,0px)));
-  height:auto;
-  max-height:var(--self-meld-band);
-  justify-content:center;
-  align-content:flex-end;
-  align-items:flex-end;
-  flex-wrap:wrap;
-  gap:6px;
-  overflow:hidden;
-  z-index:9;
-  pointer-events:none;
-}
-.meld-bottom:not(:empty){
-  display:flex;
-}
-.meld-bottom .meld-group{
-  flex:0 0 auto;
-}
-
-/* 左右副露：上下止点对称对家（top = band-top+10 / bottom = self-hand-band+safe+10） */
-.meld-left,
-.meld-right{
-  top:calc(var(--band-top) + 10px);
-  bottom:calc(var(--self-hand-band) + max(4px,env(safe-area-inset-bottom,0px)) + 10px);
-  width:var(--meld-rail);
-  max-height:none;
-  transform:none;
-  flex-direction:column;
-  flex-wrap:nowrap;
-  align-content:center;
-  align-items:center;
-  justify-content:flex-start;
-  padding-top:clamp(8px,4%,28px);
-  padding-bottom:0;
-  gap:6px;
-  overflow:visible;
-  z-index:9;
-}
-
-.meld-left{
-  left:calc(var(--band-side) + 4px);
-}
-
-.meld-right{
-  right:calc(var(--band-side) + 4px);
-}
+/* v0.16：副露几何 → table.css；仅保留 meld-group 外观 */
+.meld-zone{/* layout in table.css */}
+.meld-zone:empty{display:none}
 
 .meld-group{
   display:flex;
@@ -973,71 +837,33 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 
 .meld-group .tile{
-  width:var(--meld-tw);
-  height:var(--meld-th);
   cursor:default;
   margin:0;
-  transform:none!important;
 }
 
-/* 左右：组内竖排 + 单牌旋转，朝向该家；负 margin 压紧布局间距 */
-.meld-left .meld-group,
-.meld-right .meld-group{
-  flex-direction:column;
-  gap:0;
-  transform:none!important;
-  margin:0;
-  padding:4px 3px;
-}
-
-.meld-left .meld-group .tile{
-  transform:rotate(90deg)!important;
-  margin:0 0 calc(var(--meld-tw) - var(--meld-th));
-}
-
-.meld-right .meld-group .tile{
-  transform:rotate(-90deg)!important;
-  margin:0 0 calc(var(--meld-tw) - var(--meld-th));
-}
-
-.meld-left .meld-group .tile:last-child,
-.meld-right .meld-group .tile:last-child{
-  margin-bottom:0;
-}
-
-/* 旧的 seat 内副露隐藏，防止重复和遮挡。 */
+/* 旧的 seat 内副露隐藏 */
 .seat > .melds{
   display:none!important;
 }
 
-/* 操作按钮落在底部带之上、副露轨之内。 */
+/* 操作条：定位改由 table.css .table-overlay .action-dock 接管 */
 .action-dock{
-  position:absolute!important;
-  z-index:50!important;
-  right:var(--discard-inset)!important;
-  bottom:calc(var(--band-bottom) + calc(var(--tile-h) * .58 + 24px))!important;
-  max-width:min(60%,620px)!important;
-  overflow:visible!important;
+  position:absolute;
+  z-index:50;
+  overflow:visible;
 }
 
 .seat-bottom .hand{
   width:100%;
   min-width:0;
-  container-type:inline-size;
-  container-name:self-hand;
-  padding-top:14px;
+  padding-top:4px;
   min-height:0;
-  gap:clamp(0px,.2cqi,3px);
+  gap:var(--fit-gap, 2px);
   justify-content:center;
   align-items:flex-end;
   overflow:visible
 }
-/* 按座位宽度自适应，保证约 14 张一手牌完整露出、不横滚 */
-.seat-bottom .hand .tile{
-  --fit-w:calc((100cqi - 6px) / 14.35);
-  width:min(var(--tile-w),var(--fit-w));
-  height:calc(min(var(--tile-w),var(--fit-w)) * 1.42)
-}
+/* 手牌尺寸由 fitTiles → --fit-tile-w/h 驱动（见 table.css），勿在此覆盖 */
 .seat-bottom .seat-header{
   margin-bottom:2px;
   flex-shrink:0
@@ -1110,22 +936,22 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 .player-action-bottom{
   left:50%;
-  bottom:calc(var(--band-bottom) + 56px);
+  bottom:22%;
   transform:translateX(-50%);
 }
 .player-action-top{
   left:50%;
-  top:calc(var(--band-top) + 40px);
+  top:18%;
   transform:translateX(-50%);
 }
 .player-action-left{
-  left:22%;
-  top:42%;
+  left:10%;
+  top:45%;
   transform:translateY(-50%);
 }
 .player-action-right{
-  right:22%;
-  top:42%;
+  right:10%;
+  top:45%;
   transform:translateY(-50%);
 }
 @keyframes playerActionFloat{
@@ -1147,22 +973,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   }
 }
 
-/* 小屏副露 / 操作区（仅竖屏；横屏走 compact-landscape） */
+/* 小屏操作区（仅竖屏）；定位 → table.css */
 @media(max-width:600px) and (orientation:portrait){
-  .meld-group .tile{
-    width:calc(var(--tile-w) * .46 * 1.1);
-    height:calc(var(--tile-h) * .46 * 1.1);
-  }
-
-  .meld-left,
-  .meld-right{
-    width:clamp(38px,11vw,56px);
-    gap:6px;
-  }
-
   .action-dock{
-    right:calc(var(--band-side) + 4px)!important;
-    bottom:calc(var(--band-bottom) + calc(var(--tile-h) * .72 + 22px))!important;
     max-width:92%!important;
   }
 
@@ -1171,34 +984,12 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     width:clamp(40px,11vw,50px);
     height:calc(clamp(40px,11vw,50px) * 1.42);
   }
-
-  .player-action-left{left:calc(var(--band-side) + 12%)}
-  .player-action-right{right:calc(var(--band-side) + 12%)}
-  .player-action-bottom{bottom:calc(var(--band-bottom) + 48px)}
 }
 
-/* 平板 / 折叠（<1300）副露轨 */
+/* 平板字号；禁止再写 --band-* 几何 */
 @media(min-width:900px) and (max-width:1399px) and (min-height:601px){
-  .meld-left,
-  .meld-right{
-    width:clamp(44px,5.5vw,64px);
-  }
-
-  .meld-bottom{
-    bottom:calc(var(--self-hand-band) + var(--meld-gap) + max(4px,env(safe-area-inset-bottom,0px)));
-    height:auto;
-    max-height:var(--self-meld-band);
-    z-index:9
-  }
-
-  .seat-bottom{
-    height:var(--self-hand-band);
-    max-height:var(--self-hand-band)
-  }
-
-  .action-dock{
-    right:calc(var(--band-side) + 10px)!important;
-    bottom:calc(var(--band-bottom) + calc(var(--tile-h) * .72 + 20px))!important;
+  .action-dock-button{
+    min-width:92px;
   }
 }
 
@@ -1349,426 +1140,6 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   from{opacity:0}
   to{opacity:1}
 }
-/* ============================================================
- * Compact Landscape — 普通手机横屏专用（最终生效层，放文件末尾）
- * 触发：orientation:landscape + max-height:600px
- * 与竖屏 / 折叠 / 平板 / PC 互斥，勿再叠补丁
- *
- * 垂直分区（相对 .table）：
- *   上家信息+暗牌  0%–22%
- *   上家副露        22%–34%
- *   中央弃牌+计数   34%–64%
- *   自己副露        64%–76%
- *   自己手牌        76%–100%
- * ============================================================ */
-@media (orientation: landscape) and (max-height: 600px) {
-  :root {
-    --tile-w: clamp(20px, 8.2vh, 34px);
-  }
 
-  .app {
-    padding: 2px max(4px, env(safe-area-inset-right)) 2px max(4px, env(safe-area-inset-left));
-    max-height: 100vh;
-    max-height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: hidden;
-  }
+/* v0.16：已删除 neutralize；布局真源仅 table.css + table-layout.js */
 
-  .topbar {
-    margin-bottom: 2px;
-    gap: 4px;
-    align-items: center;
-    flex-wrap: nowrap;
-  }
-  .brand .logo,
-  .brand h1,
-  .brand p,
-  .hint {
-    display: none;
-  }
-  .back-link {
-    font-size: 11px;
-    margin: 0;
-  }
-  .quick-rules {
-    padding: 3px 6px;
-    gap: 4px;
-  }
-  .quick-rules-title {
-    display: none;
-  }
-  .quick-rule {
-    padding: 3px 6px;
-    gap: 4px;
-    grid-template-columns: 32px auto;
-  }
-  .quick-switch {
-    width: 32px;
-    height: 18px;
-  }
-  .quick-switch::after {
-    width: 14px;
-    height: 14px;
-    top: 2px;
-    left: 2px;
-  }
-  .quick-rule input:checked + .quick-switch::after {
-    transform: translateX(14px);
-  }
-  .btn {
-    padding: 4px 8px;
-    font-size: 11px;
-    border-radius: 10px;
-  }
-
-  .game-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-
-  .sidebar {
-    display: none;
-  }
-
-  .table {
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    aspect-ratio: auto;
-    height: calc(100vh - 3.2rem);
-    height: calc(100dvh - 3.2rem);
-    max-height: calc(100vh - 3.2rem);
-    max-height: calc(100dvh - 3.2rem);
-    min-height: 0;
-    border-radius: 12px;
-    overflow: hidden;
-    container-type: size;
-
-    --band-side: clamp(38px, 6.8vh, 50px);
-    --meld-rail: max(20px, calc(var(--tile-h) * .34 + 3px));
-    --discard-inset: calc(var(--band-side) + var(--meld-rail) + 6px);
-    /* 与分区一致的兼容变量（避免旧规则残留引用） */
-    --band-top: 22%;
-    --self-hand-band: 24%;
-    --self-meld-band: 12%;
-    --band-bottom: 36%;
-    --meld-gap: 0px;
-    --meld-tw: calc(var(--tile-w) * .38);
-    --meld-th: calc(var(--tile-h) * .38);
-  }
-
-  .seat {
-    padding: 2px 4px;
-    border-radius: 8px;
-  }
-
-  /* —— 1) 上家信息 + 暗牌：0%–22% —— */
-  .seat-top {
-    top: 0;
-    left: var(--band-side);
-    right: var(--band-side);
-    height: 22%;
-    max-height: 22%;
-    min-height: 0;
-    bottom: auto;
-    padding: 2px 4px 0;
-    overflow: hidden;
-    z-index: 8;
-  }
-  .seat-top .seat-meta {
-    display: none;
-  }
-  .seat-top .seat-header {
-    margin-bottom: 1px;
-  }
-  .seat-top .hand {
-    max-height: none;
-    min-height: 0;
-    overflow: hidden;
-    justify-content: center;
-    padding-bottom: 0;
-  }
-  .seat-top .hand .tile {
-    width: calc(var(--tile-w) * .52);
-    height: calc(var(--tile-h) * .52);
-  }
-  .seat-top .seat-name,
-  .seat-top .seat-label {
-    font-size: 10px;
-  }
-  .seat-top .seat-status {
-    font-size: 8px;
-    padding: 1px 4px;
-  }
-
-  /* —— 2) 上家副露：22%–34% —— */
-  .meld-top {
-    top: 22%;
-    left: var(--discard-inset);
-    right: var(--discard-inset);
-    height: 12%;
-    max-height: 12%;
-    bottom: auto;
-    padding: 1px 0;
-    overflow: hidden;
-    flex-wrap: wrap;
-    align-content: center;
-    justify-content: center;
-    gap: 3px;
-    z-index: 9;
-  }
-
-  /* —— 3) 中央弃牌 + 计数：34%–64% —— */
-  .table-center {
-    top: 49%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: clamp(110px, 14vw, 130px);
-    padding: 6px 8px;
-    border-radius: 14px;
-    z-index: 15;
-    box-sizing: border-box;
-  }
-  .table-center .remaining {
-    font-size: clamp(16px, 3.4vh, 22px);
-  }
-  .table-center .phase,
-  .table-center .turn {
-    font-size: 9px;
-    line-height: 1.15;
-    margin-top: 2px;
-  }
-
-  .discard-zone {
-    z-index: 4;
-  }
-  .discard-top {
-    top: 34%;
-    left: max(32%, calc(50% - 9rem));
-    right: max(32%, calc(50% - 9rem));
-    bottom: auto;
-    max-height: 14%;
-    overflow: hidden;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-content: flex-start;
-  }
-  .discard-bottom {
-    top: auto;
-    bottom: 36%;
-    left: max(32%, calc(50% - 9rem));
-    right: max(32%, calc(50% - 9rem));
-    max-height: 14%;
-    overflow: hidden;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-content: flex-end;
-  }
-  .discard-left,
-  .discard-right {
-    top: 34%;
-    bottom: 36%;
-    max-height: 30%;
-    width: calc(var(--tile-w) * .42 * 2 + 6px);
-    max-width: calc(var(--tile-w) * .42 * 2 + 6px);
-    overflow: hidden;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    justify-content: flex-start;
-  }
-  .discard-left {
-    left: calc(var(--band-side) + var(--meld-rail) + 2px);
-  }
-  .discard-right {
-    right: calc(var(--band-side) + var(--meld-rail) + 2px);
-  }
-  .discard-left .tile,
-  .discard-right .tile {
-    width: calc(var(--tile-w) * .42);
-    height: calc(var(--tile-h) * .42);
-  }
-  .discard-left .tile {
-    margin-bottom: calc(var(--tile-w) * .42 - var(--tile-h) * .42);
-  }
-  .discard-right .tile {
-    margin-bottom: calc(var(--tile-w) * .42 - var(--tile-h) * .42);
-  }
-
-  /* —— 4) 自己副露：64%–76% —— */
-  .meld-bottom {
-    top: 64%;
-    left: var(--discard-inset);
-    right: var(--discard-inset);
-    height: 12%;
-    max-height: 12%;
-    bottom: auto;
-    padding: 1px 0;
-    overflow: hidden;
-    flex-wrap: wrap;
-    align-content: center;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    z-index: 9;
-  }
-
-  /* —— 5) 自己手牌：76%–100% —— */
-  .seat-bottom {
-    top: 76%;
-    left: var(--band-side);
-    right: var(--band-side);
-    bottom: 0;
-    height: auto;
-    max-height: 24%;
-    min-height: 0;
-    padding: 0 4px 2px;
-    overflow: hidden;
-    z-index: 10;
-  }
-  .seat-bottom .seat-meta {
-    display: none;
-  }
-  .seat-bottom .seat-header {
-    margin-bottom: 1px;
-  }
-  .seat-bottom .seat-name,
-  .seat-bottom .seat-label {
-    font-size: 10px;
-  }
-  .seat-bottom .hand {
-    gap: 1px;
-    padding-top: 0;
-    overflow: hidden;
-    max-width: 100%;
-    min-height: 0;
-    justify-content: center;
-  }
-  .seat-bottom .hand .tile {
-    --fit-w: calc((100cqi - 4px) / 14.2);
-    width: min(calc(var(--tile-w) * .9), var(--fit-w));
-    height: calc(min(calc(var(--tile-w) * .9), var(--fit-w)) * 1.42);
-  }
-  .seat-bottom .hand .tile.drawn {
-    margin-left: 5px;
-  }
-  .seat-bottom .hand .tile.tile-selected {
-    transform: translateY(-6px) !important;
-  }
-
-  /* —— 左右座位：两侧中部，不进上下玩家区 —— */
-  .seat-left,
-  .seat-right {
-    top: 22%;
-    bottom: 24%;
-    max-height: none;
-    overflow: hidden;
-    padding: 2px;
-    z-index: 8;
-  }
-  .seat-left {
-    left: 2px;
-    width: var(--band-side);
-  }
-  .seat-right {
-    right: 2px;
-    width: var(--band-side);
-  }
-  .seat-left .seat-meta,
-  .seat-right .seat-meta {
-    display: none;
-  }
-  .seat-left .seat-label,
-  .seat-right .seat-label,
-  .seat-left .seat-name,
-  .seat-right .seat-name {
-    font-size: 10px;
-    line-height: 1.15;
-  }
-  .seat-left .seat-status,
-  .seat-right .seat-status {
-    display: inline-block;
-    font-size: 8px;
-    padding: 1px 4px;
-  }
-  .seat-left .hand,
-  .seat-right .hand {
-    overflow: hidden;
-  }
-
-  /* —— 左右副露：限制在中央高度 34%–64% —— */
-  .meld-left,
-  .meld-right {
-    top: 34%;
-    bottom: 36%;
-    max-height: 30%;
-    width: var(--meld-rail);
-    overflow: hidden;
-    flex-wrap: wrap;
-    flex-direction: column;
-    align-content: flex-start;
-    justify-content: flex-start;
-    padding-top: 2px;
-    padding-bottom: 0;
-    gap: 2px;
-    z-index: 9;
-  }
-  .meld-left {
-    left: calc(2px + var(--band-side) + 2px);
-  }
-  .meld-right {
-    right: calc(2px + var(--band-side) + 2px);
-  }
-
-  .meld-group {
-    padding: 2px;
-    gap: 0;
-  }
-  .meld-group .tile {
-    width: var(--meld-tw);
-    height: var(--meld-th);
-  }
-  .meld-left .meld-group .tile {
-    margin: 0 0 calc(var(--meld-tw) - var(--meld-th));
-  }
-  .meld-right .meld-group .tile {
-    margin: 0 0 calc(var(--meld-tw) - var(--meld-th));
-  }
-
-  /* 操作栏：高于中央计数器，落在自己手牌带之上 */
-  .action-dock {
-    z-index: 50 !important;
-    right: 8px !important;
-    bottom: calc(24% + 6px) !important;
-    max-width: min(240px, 42vw) !important;
-    padding: 6px !important;
-  }
-  .action-dock-button {
-    min-height: 40px;
-    min-width: 64px;
-    padding: 6px 10px;
-    font-size: 13px;
-  }
-  .action-dock-button .tile-reaction,
-  .action-dock-button .reaction-tile .tile {
-    width: clamp(28px, 4vh, 40px);
-    height: calc(clamp(28px, 4vh, 40px) * 1.42);
-  }
-
-  .player-action-top {
-    top: 23%;
-  }
-  .player-action-bottom {
-    bottom: calc(24% + 8px);
-  }
-  .player-action-left {
-    left: calc(var(--band-side) + 8%);
-    top: 49%;
-  }
-  .player-action-right {
-    right: calc(var(--band-side) + 8%);
-    top: 49%;
-  }
-}

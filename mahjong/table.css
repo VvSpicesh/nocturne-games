@@ -1,0 +1,472 @@
+/**
+ * Nocturne Mahjong — 牌桌 Grid（v0.16）
+ * data-layout: 仅 portrait | landscape
+ * 设备差异：Container Query
+ *
+ * 7 列 × 9 行；南北手牌/副露占中五列；侧副露在弃牌带（勿贴顶）：
+ *   w0 wi ni ni ni ei e0
+ *   wh nh nh nh nh nh eh
+ *   wh nm nm nm nm nm eh
+ *   wh wm nd nd nd em eh   ← 侧副露占北弃+中央带（中部，勿贴顶）
+ *   wh wm ct ct ct em eh
+ *   wh wd sd sd sd ed eh
+ *   wh sm sm sm sm sm eh
+ *   wh sh sh sh sh sh eh
+ *   s0 si si si si si s1
+ */
+
+.game-layout {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.table {
+  --aspect: 1.42;
+  --fit-tile-w: 36px;
+  --fit-tile-h: calc(var(--fit-tile-w) * var(--aspect));
+  --fit-gap: 2px;
+  --info-row: 36px;
+  --hand-row-n: minmax(48px, 11%);
+  --meld-row: minmax(40px, 9%);
+  --disc-row: minmax(56px, 13%);
+  --hand-row-s: minmax(88px, 18%);
+  --col-hand: minmax(56px, 11%);
+  --col-aux: minmax(44px, 9%);
+  --center-min: 72px;
+
+  position: relative;
+  container-type: size;
+  container-name: table;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  margin-inline: auto;
+  border-radius: 24px;
+  overflow: hidden;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at center, rgba(38, 139, 94, 0.24), transparent 50%),
+    linear-gradient(145deg, #0b5238, #073623);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+  grid-template-columns:
+    var(--col-hand)
+    var(--col-aux)
+    minmax(0, 1fr)
+    minmax(0, 1.1fr)
+    minmax(0, 1fr)
+    var(--col-aux)
+    var(--col-hand);
+  grid-template-areas:
+    "w0 wi ni ni ni ei e0"
+    "wh nh nh nh nh nh eh"
+    "wh nm nm nm nm nm eh"
+    "wh wm nd nd nd em eh"
+    "wh wm ct ct ct em eh"
+    "wh wd sd sd sd ed eh"
+    "wh sm sm sm sm sm eh"
+    "wh sh sh sh sh sh eh"
+    "s0 si si si si si s1";
+}
+
+.table::before {
+  content: "";
+  position: absolute;
+  inset: 10%;
+  border-radius: 35%;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.table[data-layout="portrait"] {
+  --info-row: clamp(32px, 6%, 44px);
+  --hand-row-n: minmax(52px, 11%);
+  --meld-row: minmax(44px, 9%);
+  --disc-row: minmax(64px, 13%);
+  --hand-row-s: minmax(100px, 20%);
+  /* 侧栏别抢中间：390 宽时中五列才够 14 张单行 */
+  --col-hand: minmax(40px, 11%);
+  --col-aux: minmax(36px, 9%);
+  aspect-ratio: 3 / 4;
+  max-height: calc(100dvh - 7.5rem);
+  max-width: min(100%, calc((100dvh - 7.5rem) * 3 / 4));
+  /* 9 行：info/hand/meld/discN/center/discS/meld/hand/info */
+  grid-template-rows:
+    var(--info-row)
+    var(--hand-row-n)
+    var(--meld-row)
+    var(--disc-row)
+    minmax(var(--center-min), 1fr)
+    var(--disc-row)
+    var(--meld-row)
+    var(--hand-row-s)
+    var(--info-row);
+}
+
+.table[data-layout="landscape"] {
+  --info-row: clamp(20px, 4.5%, 28px);
+  --hand-row-n: minmax(28px, 9%);
+  --meld-row: minmax(36px, 10%);
+  --disc-row: minmax(56px, 14%);
+  --hand-row-s: minmax(56px, 16%);
+  --col-hand: minmax(48px, 9%);
+  --col-aux: minmax(40px, 9%);
+  --center-min: 48px;
+  aspect-ratio: 16 / 10;
+  max-height: calc(100dvh - 5.5rem);
+  max-width: min(100%, calc((100dvh - 5.5rem) * 16 / 10));
+  grid-template-rows:
+    var(--info-row)
+    var(--hand-row-n)
+    var(--meld-row)
+    var(--disc-row)
+    minmax(var(--center-min), 1fr)
+    var(--disc-row)
+    var(--meld-row)
+    var(--hand-row-s)
+    var(--info-row);
+}
+
+/* 窄/矮/宽等：由 table-layout.js 按实测桌面尺寸写 data-*（CQ 无法改容器自身） */
+.table[data-layout="landscape"][data-short="1"] {
+  --info-row: 18px;
+  --hand-row-n: minmax(36px, 12%);
+  --meld-row: minmax(40px, 11%);
+  --disc-row: minmax(56px, 14%);
+  --hand-row-s: minmax(56px, 16%);
+  --center-min: 40px;
+  --col-hand: minmax(48px, 10%);
+  --col-aux: minmax(40px, 9%);
+}
+
+.table[data-layout="landscape"] .info-secondary {
+  display: none;
+}
+.table[data-layout="landscape"] .player-info {
+  font-size: 11px;
+}
+.table[data-layout="landscape"] .seat-name {
+  font-size: 12px;
+  font-weight: 850;
+}
+.table[data-layout="landscape"] .seat-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.table[data-wide="1"] {
+  --col-hand: minmax(56px, 8%);
+  --col-aux: minmax(72px, 11%);
+  --disc-row: minmax(72px, 14%);
+}
+.table[data-tall="1"] {
+  --hand-row-s: minmax(120px, 22%);
+  --hand-row-n: minmax(64px, 12%);
+}
+.table[data-narrow="1"] {
+  /* 侧栏要装得下副露/弃牌最小牌；南家手牌已占中五列 */
+  --col-hand: minmax(44px, 11%);
+  --col-aux: minmax(42px, 10%);
+  --hand-row-s: minmax(52px, 11%);
+  --hand-row-n: minmax(40px, 8%);
+  --fit-gap: 1px;
+}
+
+.zone {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  box-sizing: border-box;
+  padding: 2px;
+  /* 副露/弃牌裁切以防叠中央；手牌区见下（旋转牌不可 clip） */
+  overflow: clip;
+}
+.zone-w-hand,
+.zone-e-hand,
+.zone-n-hand,
+.zone-s-hand {
+  overflow: visible;
+  z-index: 3;
+}
+
+.zone-n-info { grid-area: ni; align-items: center; justify-content: center; }
+.zone-n-hand { grid-area: nh; }
+.zone-n-meld { grid-area: nm; }
+.zone-n-disc { grid-area: nd; }
+
+.zone-w-info { grid-area: wi; }
+.zone-w-hand { grid-area: wh; }
+.zone-w-meld { grid-area: wm; }
+.zone-w-disc { grid-area: wd; }
+
+.zone-e-info { grid-area: ei; }
+.zone-e-hand { grid-area: eh; }
+.zone-e-meld { grid-area: em; }
+.zone-e-disc { grid-area: ed; }
+
+.zone-s-info { grid-area: si; align-items: center; justify-content: center; }
+.zone-s-hand { grid-area: sh; }
+.zone-s-meld { grid-area: sm; }
+.zone-s-disc { grid-area: sd; }
+
+.player-info {
+  width: 100%;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(4, 24, 17, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+}
+.player-info .seat-id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.player-info-side .seat-id {
+  flex-direction: column;
+  text-align: center;
+}
+.player-info .seat-name {
+  font-weight: 850;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.zone .seat {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+}
+
+.hand {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  align-content: center;
+  gap: var(--fit-gap, 2px);
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  width: 100%;
+}
+.hand-vertical {
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+.zone-w-hand .hand .tile { transform: rotate(90deg); }
+.zone-e-hand .hand .tile { transform: rotate(-90deg); }
+
+.hand .tile,
+.meld-zone .tile,
+.discard-zone .tile,
+.tile {
+  /* 尺寸由区级变量提供；无变量时回退 */
+  width: var(--fit-tile-w, 36px);
+  height: var(--fit-tile-h, calc(var(--fit-tile-w, 36px) * 1.42));
+}
+
+.meld-zone {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fit-gap, 2px);
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  pointer-events: none;
+}
+.meld-zone:empty { display: none; }
+.zone-w-meld .meld-zone,
+.zone-e-meld .meld-zone {
+  flex-direction: column;
+}
+
+.meld-group {
+  display: flex;
+  gap: 1px;
+  padding: 2px;
+  border-radius: 7px;
+  background: rgba(4, 24, 17, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  flex: 0 0 auto;
+}
+.meld-group-angang { outline: 1px dashed rgba(239, 199, 104, 0.35); }
+.zone-w-meld .meld-group,
+.zone-e-meld .meld-group { flex-direction: column; }
+.zone-w-meld .meld-group .tile { transform: rotate(90deg); }
+.zone-e-meld .meld-group .tile { transform: rotate(-90deg); }
+
+.discard-zone {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fit-gap, 2px);
+  align-content: flex-start;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.zone-s-disc .discard-zone { align-content: flex-end; }
+.zone-w-disc .discard-zone,
+.zone-e-disc .discard-zone {
+  flex-direction: column;
+  align-content: center;
+}
+.zone-w-disc .discard-zone .tile { transform: rotate(90deg); }
+.zone-e-disc .discard-zone .tile { transform: rotate(-90deg); }
+
+.table-center {
+  grid-area: ct;
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  justify-self: stretch;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden; /* 仅中央文案，不含麻将牌 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(4px, 1.2cqh, 10px) clamp(6px, 1.5cqw, 10px);
+  border-radius: 18px;
+  background: rgba(4, 22, 16, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-sizing: border-box;
+}
+.table-center .remaining {
+  font-size: clamp(16px, 4cqh, 29px);
+}
+.table-center .phase,
+.table-center .turn {
+  font-size: clamp(9px, 2.2cqh, 11px);
+}
+
+.table-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+.table-overlay .start-overlay,
+.table-overlay .action-dock.show { pointer-events: auto; }
+
+.table-overlay .action-dock {
+  position: absolute !important;
+  right: 12px !important;
+  bottom: 18% !important;
+  left: auto !important;
+  top: auto !important;
+  z-index: 50 !important;
+  max-width: min(52%, 480px) !important;
+}
+
+.table-overlay .player-action-effect {
+  position: absolute;
+  z-index: 45;
+  pointer-events: none;
+}
+.table-overlay .player-action-bottom {
+  left: 50%;
+  bottom: 22%;
+  transform: translateX(-50%);
+}
+.table-overlay .player-action-top {
+  left: 50%;
+  top: 18%;
+  transform: translateX(-50%);
+}
+.table-overlay .player-action-left {
+  left: 10%;
+  top: 45%;
+  transform: translateY(-50%);
+}
+.table-overlay .player-action-right {
+  right: 10%;
+  top: 45%;
+  transform: translateY(-50%);
+}
+
+[data-fit="fail"] {
+  outline: 2px dashed rgba(255, 80, 80, 0.85);
+}
+
+.table[data-debug-layout="on"] .zone-n-hand,
+.table[data-debug-layout="on"] .zone-s-hand,
+.table[data-debug-layout="on"] .zone-w-hand,
+.table[data-debug-layout="on"] .zone-e-hand {
+  outline: 2px solid rgba(80, 180, 255, 0.9);
+  outline-offset: -2px;
+}
+.table[data-debug-layout="on"] .zone-n-meld,
+.table[data-debug-layout="on"] .zone-s-meld,
+.table[data-debug-layout="on"] .zone-w-meld,
+.table[data-debug-layout="on"] .zone-e-meld {
+  outline: 2px solid rgba(255, 200, 80, 0.9);
+  outline-offset: -2px;
+}
+.table[data-debug-layout="on"] .zone-n-disc,
+.table[data-debug-layout="on"] .zone-s-disc,
+.table[data-debug-layout="on"] .zone-w-disc,
+.table[data-debug-layout="on"] .zone-e-disc {
+  outline: 2px solid rgba(120, 255, 140, 0.9);
+  outline-offset: -2px;
+}
+.table[data-debug-layout="on"] .table-center {
+  outline: 2px solid rgba(255, 100, 200, 0.95);
+  outline-offset: -2px;
+}
+
+@media (min-width: 1400px) and (min-aspect-ratio: 5/4) {
+  .game-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
+    align-items: stretch;
+    gap: 8px;
+  }
+  .app {
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+  .table {
+    max-height: calc(100dvh - 5.5rem);
+  }
+  .sidebar {
+    max-height: calc(100dvh - 5.5rem);
+    overflow: auto;
+  }
+}
