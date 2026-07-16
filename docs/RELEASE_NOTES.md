@@ -1,5 +1,16 @@
 # RELEASE NOTES
 
+## Mahjong v0.14.32-speech1
+
+**Service Worker**：`nocturne-games-v35`
+
+### 临时调试
+- 「测试语音」按钮（不改正式播音）
+
+完整稿：`mahjong/RELEASE_NOTES.md`。变更明细：`mahjong/CHANGELOG.md`。
+
+---
+
 ## Mahjong v0.14.32
 
 **Service Worker**：`nocturne-games-v34`

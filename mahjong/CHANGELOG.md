@@ -1,4 +1,13 @@
-﻿# v0.14.32
+﻿# v0.14.32-speech1
+
+## 临时调试（最小发布）
+- 顶栏增加「测试语音」：输出 speechSynthesis 是否存在、`getVoices()`、试播「五万」、捕获 onstart/onend/onerror
+- **不改动** `audio.js` 正式播音逻辑及其他玩法
+- Service Worker：`nocturne-games-v35`
+
+---
+
+# v0.14.32
 
 ## 功能
 - 声音播报（`audio.js`）：打牌 / 碰杠胡语音，大厅可开关

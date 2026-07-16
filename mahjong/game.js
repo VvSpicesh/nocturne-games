@@ -1365,6 +1365,98 @@ function openNamesModal(){
 
 document.getElementById("editNamesBtn")?.addEventListener("click",openNamesModal);
 
+/** 临时：排查部分 Android Chrome 无声音；不走 audio.js 播音队列 */
+const speechDebugModal=document.getElementById("speechDebugModal");
+const speechDebugOut=document.getElementById("speechDebugOut");
+let speechDebugVoicesHooked=false;
+
+function speechDebugAppend(line){
+  if(!speechDebugOut)return;
+  const stamp=new Date().toISOString().slice(11,23);
+  speechDebugOut.textContent+=`[${stamp}] ${line}\n`;
+  speechDebugOut.scrollTop=speechDebugOut.scrollHeight;
+  console.log("[speech-debug]",line);
+}
+
+function speechDebugFormatVoices(list){
+  if(!list||!list.length)return "(空列表)";
+  return list.map((v,i)=>`  [${i}] name=${v.name} | lang=${v.lang} | default=${!!v.default}`).join("\n");
+}
+
+function speechDebugListVoices(label){
+  try{
+    const list=speechSynthesis.getVoices()||[];
+    speechDebugAppend(`${label} getVoices() count=${list.length}`);
+    speechDebugAppend(speechDebugFormatVoices(list));
+    return list;
+  }catch(err){
+    speechDebugAppend(`${label} getVoices() 异常: ${err?.message||err}`);
+    return [];
+  }
+}
+
+function runSpeechSynthesisDebug(){
+  if(speechDebugOut)speechDebugOut.textContent="";
+  speechDebugModal?.classList.add("show");
+
+  const exists=typeof globalThis!=="undefined"&&"speechSynthesis" in globalThis;
+  speechDebugAppend(`1. speechSynthesis 是否存在: ${exists}`);
+  if(!exists){
+    speechDebugAppend("结束：当前环境无 speechSynthesis，无法继续测试。");
+    return;
+  }
+
+  try{
+    speechDebugAppend(`   speaking=${speechSynthesis.speaking} pending=${speechSynthesis.pending} paused=${speechSynthesis.paused}`);
+  }catch(err){
+    speechDebugAppend(`   读取 speaking/pending 异常: ${err?.message||err}`);
+  }
+
+  speechDebugAppend("2. speechSynthesis.getVoices()");
+  speechDebugListVoices("   [立即]");
+
+  if(!speechDebugVoicesHooked){
+    speechDebugVoicesHooked=true;
+    try{
+      speechSynthesis.addEventListener("voiceschanged",()=>{
+        speechDebugAppend("voiceschanged 触发");
+        speechDebugListVoices("   [voiceschanged]");
+      });
+    }catch(err){
+      speechDebugAppend(`挂接 voiceschanged 失败: ${err?.message||err}`);
+    }
+  }
+
+  speechDebugAppend('3. 测试播放 speechSynthesis.speak(new SpeechSynthesisUtterance("五万"))');
+  try{
+    const utter=new SpeechSynthesisUtterance("五万");
+    utter.lang="zh-CN";
+    utter.onstart=()=>{
+      speechDebugAppend("4. onstart");
+      try{
+        speechDebugAppend(`   speaking=${speechSynthesis.speaking} pending=${speechSynthesis.pending}`);
+      }catch{/* ignore */}
+    };
+    utter.onend=()=>{
+      speechDebugAppend("4. onend");
+    };
+    utter.onerror=(ev)=>{
+      speechDebugAppend(`4. onerror error=${ev?.error||"(unknown)"} type=${ev?.type||""}`);
+    };
+    speechSynthesis.speak(utter);
+    speechDebugAppend("   speak() 已调用（等待 onstart / onend / onerror）");
+  }catch(err){
+    speechDebugAppend(`3. speak() 抛错: ${err?.message||err}`);
+  }
+}
+
+document.getElementById("speechDebugBtn")?.addEventListener("click",()=>{
+  runSpeechSynthesisDebug();
+});
+document.getElementById("speechDebugClose")?.addEventListener("click",()=>{
+  speechDebugModal?.classList.remove("show");
+});
+
 document.getElementById("namesCancel")?.addEventListener("click",()=>{
   document.getElementById("namesModal").classList.remove("show");
 });

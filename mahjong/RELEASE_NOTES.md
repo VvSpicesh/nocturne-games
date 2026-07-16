@@ -1,5 +1,15 @@
 # RELEASE NOTES — Nocturne Mahjong
 
+## v0.14.32-speech1
+
+**日期**：2026-07-16  
+**Service Worker 缓存**：`nocturne-games-v35`
+
+### 临时调试
+- 顶栏「测试语音」：排查部分 Android Chrome 无声音（不改正式播音逻辑）
+
+---
+
 ## v0.14.32
 
 **日期**：2026-07-16  

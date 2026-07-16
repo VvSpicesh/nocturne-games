@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#0b251b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Nocturne Mahjong v0.14.32</title>
+  <title>Nocturne Mahjong v0.14.32-speech1</title>
   <link rel="manifest" href="../manifest.webmanifest">
   <link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
-  <link rel="stylesheet" href="./style.css?v=0.14.32">
+  <link rel="stylesheet" href="./style.css?v=0.14.32-speech1">
   <script type="importmap">
   {
     "imports": {
@@ -35,7 +35,7 @@
         <div>
           <a class="back-link" href="../index.html">← 返回游戏大厅</a>
           <h1>Nocturne Mahjong</h1>
-          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.32</p>
+          <p>四川麻将 · 血战到底 · 家庭大字版 v0.14.32-speech1</p>
         </div>
       </div>
       <div class="topbar-actions">
@@ -85,6 +85,7 @@
           </label>
         </section>
         <button id="editNamesBtn" class="btn" type="button">改名</button>
+        <button id="speechDebugBtn" class="btn" type="button" title="临时：排查 Android Chrome 无声音">测试语音</button>
         <button id="newGameBtn" class="btn btn-primary">新牌局</button>
       </div>
     </header>
@@ -295,9 +296,20 @@
     </div>
   </div>
 
+  <div id="speechDebugModal" class="modal">
+    <div class="modal-box speech-debug-box">
+      <h2>speechSynthesis 调试</h2>
+      <p class="speech-debug-hint">临时排查用，不改动正式播音逻辑</p>
+      <pre id="speechDebugOut" class="speech-debug-out"></pre>
+      <div class="modal-actions">
+        <button id="speechDebugClose" class="btn" type="button">关闭</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="./game.js?v=0.14.32"></script>
+  <script type="module" src="./game.js?v=0.14.32-speech1"></script>
   <script type="module" src="../shared/pwa.js"></script>
 </body>
 </html>
