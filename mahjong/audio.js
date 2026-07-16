@@ -22,6 +22,9 @@ const ACTION_SPEECH={
 let enabled=true;
 let unlocked=false;
 let supported=typeof globalThis!=="undefined"&&"speechSynthesis" in globalThis;
+/** 本会话内 speechSynthesis 不可用（无语音包 / speak 挂死）→ 跳过播报，不拖慢发牌 */
+let speechDead=false;
+let voicesKnownEmpty=false;
 let cachedVoice=null;
 let voicesHooked=false;
 let voicesReadyPromise=null;
@@ -81,15 +84,36 @@ function pickVoice(){
   }
 }
 
+function markSpeechDead(reason){
+  if(speechDead)return;
+  speechDead=true;
+  speechQueue=[];
+  speechSpeaking=false;
+  pendingTileName=null;
+  if(pendingTileTimer){
+    clearTimeout(pendingTileTimer);
+    pendingTileTimer=0;
+  }
+  try{speechSynthesis.cancel();}catch{/* ignore */}
+  console.warn("[audio] speechSynthesis disabled for this session:",reason||"");
+}
+
+export function isSpeechAvailable(){
+  return supported&&!speechDead;
+}
+
 /**
- * Android Chrome：getVoices() 常先返回 []，需等 voiceschanged 或轮询。
- * @param {number} [timeoutMs=4000]
+ * Android Chrome：getVoices() 常先返回 []，短等 voiceschanged / 轮询。
+ * 已确认空列表则立即返回，避免每次播报卡 3～4 秒拖慢发牌。
+ * @param {number} [timeoutMs=900]
  * @returns {Promise<SpeechSynthesisVoice[]>}
  */
-export function waitForVoices(timeoutMs=4000){
-  if(!supported)return Promise.resolve([]);
+export function waitForVoices(timeoutMs=900){
+  if(!supported||speechDead)return Promise.resolve([]);
+  if(voicesKnownEmpty)return Promise.resolve([]);
   const now=listVoices();
   if(now.length){
+    voicesKnownEmpty=false;
     pickVoice();
     return Promise.resolve(now);
   }
@@ -100,7 +124,11 @@ export function waitForVoices(timeoutMs=4000){
       if(settled)return;
       settled=true;
       const list=listVoices();
-      pickVoice();
+      if(!list.length)voicesKnownEmpty=true;
+      else{
+        voicesKnownEmpty=false;
+        pickVoice();
+      }
       resolve(list);
       setTimeout(()=>{voicesReadyPromise=null;},0);
     };
@@ -114,9 +142,9 @@ export function waitForVoices(timeoutMs=4000){
         finish();
         return;
       }
-      setTimeout(tick,80);
+      setTimeout(tick,60);
     };
-    setTimeout(tick,40);
+    setTimeout(tick,30);
   });
   return voicesReadyPromise;
 }
@@ -127,17 +155,32 @@ function hookVoices(){
   try{
     speechSynthesis.addEventListener?.("voiceschanged",()=>{
       cachedVoice=null;
-      pickVoice();
+      const list=listVoices();
+      if(list.length){
+        voicesKnownEmpty=false;
+        speechDead=false;
+        pickVoice();
+      }
     });
     pickVoice();
-    waitForVoices(4000);
+    /* 后台短探测，不阻塞发牌 */
+    waitForVoices(900);
   }catch{/* ignore */}
 }
 
 function resumeSpeechEngine(){
-  if(!supported)return;
+  if(!supported||speechDead)return;
   try{
     if(speechSynthesis.paused)speechSynthesis.resume();
+  }catch{/* ignore */}
+}
+
+function clearStuckSpeechEngine(){
+  if(!supported)return;
+  try{
+    if(speechSynthesis.speaking||speechSynthesis.pending||speechSynthesis.paused){
+      speechSynthesis.cancel();
+    }
   }catch{/* ignore */}
 }
 
@@ -235,10 +278,16 @@ export function isAudioUnlocked(){
 export function initAudio(){
   unlocked=true;
   if(supported){
+    /* 进页时若引擎已 speaking/pending 卡住，先清掉，否则一切 speak 无声且拖节奏 */
+    clearStuckSpeechEngine();
     hookVoices();
     resumeSpeechEngine();
-    /* 勿再 speak+立刻 cancel：部分 Android Chrome 会把引擎卡死，后续无 onstart */
-    waitForVoices(4000);
+    waitForVoices(900).then(list=>{
+      if(!list.length){
+        /* 无语音包：本会话不再走 TTS，保留骰子/发牌 Web Audio */
+        markSpeechDead("getVoices empty");
+      }
+    });
   }
   const ctx=ensureAudioCtx();
   if(ctx){
@@ -299,23 +348,35 @@ function speakUtterance(phrase,gen,finish){
     utter.voice=voice;
     if(voice.lang)utter.lang=voice.lang;
   }
+  let started=false;
+  utter.onstart=()=>{started=true;};
   utter.onend=finish;
-  utter.onerror=finish;
+  utter.onerror=()=>{
+    markSpeechDead("utterance onerror");
+    finish();
+  };
   speechSynthesis.speak(utter);
-  /* 兜底：个别环境不触发 onend；Android 有时 speaking 一直 false */
-  const expectMs=Math.min(4500,Math.max(800,phrase.length*360));
+  /* 无 onstart 且 speaking 挂起 → 本机 TTS 坏了，立刻放弃，勿等到 6s */
+  const expectMs=Math.min(2200,Math.max(500,phrase.length*280));
   setTimeout(()=>{
     if(gen!==speechGen)return;
-    try{
-      if(speechSynthesis.speaking||speechSynthesis.pending)return;
-    }catch{/* ignore */}
+    if(!started){
+      try{speechSynthesis.cancel();}catch{/* ignore */}
+      markSpeechDead("speak hung without onstart");
+    }
     finish();
   },expectMs);
 }
 
 function flushSpeechQueue(){
   if(speechSpeaking)return;
-  if(!supported||!enabled||!unlocked){
+  if(!supported||!enabled||!unlocked||speechDead){
+    speechQueue=[];
+    speechSpeaking=false;
+    return;
+  }
+  if(voicesKnownEmpty&&!listVoices().length){
+    markSpeechDead("no voices");
     speechQueue=[];
     return;
   }
@@ -328,87 +389,87 @@ function flushSpeechQueue(){
     if(finished||gen!==speechGen)return;
     finished=true;
     speechSpeaking=false;
-    /* Chrome：在 onend 同步 speak 下一段常会静音，推到下一宏任务 */
     setTimeout(()=>{
       if(gen!==speechGen)return;
       flushSpeechQueue();
-    },80);
+    },40);
   };
 
-  waitForVoices(3500).then(voices=>{
+  waitForVoices(900).then(voices=>{
     if(gen!==speechGen)return;
+    if(speechDead){
+      finish();
+      return;
+    }
+    if(!voices.length){
+      markSpeechDead("getVoices empty at speak");
+      finish();
+      return;
+    }
     try{
-      /* 无语音包时仍尝试 speak（靠 lang=zh-CN）；有包则绑定本地中文 */
-      if(!voices.length){
-        /* 再等一小拍：部分机型手势后才注入 voice */
-        setTimeout(()=>{
-          if(gen!==speechGen)return;
-          pickVoice();
-          try{speakUtterance(phrase,gen,finish);}catch{finish();}
-        },120);
-        return;
-      }
       speakUtterance(phrase,gen,finish);
     }catch{
+      markSpeechDead("speak throw");
       finish();
     }
   });
 }
 
 function enqueueInterrupt(phrase){
+  if(!supported||!enabled||!unlocked||speechDead)return;
   speechGen++;
   const gen=speechGen;
   speechQueue=[];
   speechSpeaking=false;
-  try{
-    if(speechSynthesis.speaking||speechSynthesis.pending||speechSynthesis.paused){
-      speechSynthesis.cancel();
-    }
-  }catch{/* ignore */}
+  clearStuckSpeechEngine();
   speechQueue.push(phrase);
-  /* Android Chrome：cancel 后立刻 speak 常无回调，留空窗再播 */
   setTimeout(()=>{
     if(gen!==speechGen)return;
     resumeSpeechEngine();
     flushSpeechQueue();
-  },120);
+  },80);
 }
 
 function enqueueFollow(phrase){
+  if(!supported||!enabled||!unlocked||speechDead)return;
   speechQueue.push(phrase);
   flushSpeechQueue();
 }
 
 function isSpeechActive(){
-  if(!supported)return false;
+  if(!supported||speechDead)return false;
   try{
     if(speechSpeaking||speechQueue.length>0)return true;
-    if(speechSynthesis.speaking||speechSynthesis.pending)return true;
+    /* 不把引擎 stuck 的 speaking=true 当成「还在播」——否则发牌等满超时 */
+    if(speechSpeaking)return true;
   }catch{/* ignore */}
   return false;
 }
 
 /**
- * 出牌/碰杠节奏闸：连续播报时，等队列空闲（或超时）再推进 AI
- * @param {number} [timeoutMs=6000]
+ * 出牌/碰杠节奏闸：仅在真正排队播报时等待；TTS 不可用则立刻放行
+ * @param {number} [timeoutMs=2500]
  */
-export function waitUntilSpeechIdle(timeoutMs=6000){
-  if(!enabled||!unlocked||!supported)return Promise.resolve();
+export function waitUntilSpeechIdle(timeoutMs=2500){
+  if(!enabled||!unlocked||!supported||speechDead)return Promise.resolve();
+  if(!speechSpeaking&&!speechQueue.length&&!pendingTileName)return Promise.resolve();
   return new Promise(resolve=>{
     const started=Date.now();
     const tick=()=>{
-      if(!isSpeechActive()&&!pendingTileName){
+      if(speechDead||(!isSpeechActive()&&!pendingTileName)){
         resolve();
         return;
       }
       if(Date.now()-started>=timeoutMs){
+        clearStuckSpeechEngine();
+        speechSpeaking=false;
+        speechQueue=[];
         resolve();
         return;
       }
-      setTimeout(tick,50);
+      setTimeout(tick,40);
     };
-    /* 给同栈合并「牌名，碰」留一拍 */
-    setTimeout(tick,30);
+    setTimeout(tick,20);
   });
 }
 
@@ -420,7 +481,7 @@ export function tileSpeechName(tile){
 
 export function speakTile(tile){
   const name=tileSpeechName(tile);
-  if(!name||!supported||!enabled||!unlocked)return;
+  if(!name||!supported||!enabled||!unlocked||speechDead)return;
   const startFresh=!isSpeechActive();
   if(pendingTileTimer)clearTimeout(pendingTileTimer);
   pendingTileName=name;
@@ -440,7 +501,7 @@ export function speakTile(tile){
  */
 export function speakPhrase(text){
   const phrase=String(text||"").trim();
-  if(!phrase||!supported||!enabled||!unlocked)return;
+  if(!phrase||!supported||!enabled||!unlocked||speechDead)return;
   if(pendingTileName){
     const combo=`${pendingTileName}，${phrase}`;
     pendingTileName=null;

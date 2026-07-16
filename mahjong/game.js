@@ -40,7 +40,8 @@ import {
   playDealRound,
   armAudioGestureUnlock,
   waitUntilSpeechIdle,
-  waitForVoices
+  waitForVoices,
+  isSpeechAvailable
 } from "./audio.js";
 
 function snapshotRules(source=rules){
@@ -1485,38 +1486,46 @@ async function runSpeechSynthesisDebug(){
     }
   }
 
-  speechDebugAppend("2b. 等待语音列表（最多 4s，轮询 + voiceschanged）…");
+  speechDebugAppend("2b. 短等语音列表（≤0.9s）…");
   let voices=[];
   try{
-    voices=await waitForVoices(4000);
+    voices=await waitForVoices(900);
   }catch(err){
     speechDebugAppend(`waitForVoices 异常: ${err?.message||err}`);
     voices=speechSynthesis.getVoices()||[];
   }
   speechDebugListVoices("   [等待后]");
   const zh=speechDebugPickZh(voices);
-  speechDebugAppend(`   选用: ${zh?`${zh.name} / ${zh.lang}`:"(无，仅 lang=zh-CN)"}`);
+  speechDebugAppend(`   选用: ${zh?`${zh.name} / ${zh.lang}`:"(无)"}`);
+  speechDebugAppend(`   audio.js isSpeechAvailable=${isSpeechAvailable()}`);
 
-  speechDebugAppend('3. 测试播放 "五万"（先 cancel 空窗，再 speak）');
+  if(!voices.length){
+    speechDebugAppend("结论：Chrome 拿不到任何 TTS 语音包（与系统是否安装语音无关时常见）。");
+    speechDebugAppend("正式路径将跳过牌名播报，避免卡死/拖慢发牌；骰子与发牌音效仍可用。");
+    speechDebugAppend("可试：设置 → 无障碍 → 文字转语音 → 首选引擎选「Google 语音合成」并下载中文；或换系统浏览器。");
+    return;
+  }
+
+  speechDebugAppend('3. 测试播放 "五万"');
   try{
     try{speechSynthesis.cancel();}catch{/* ignore */}
-    await new Promise(r=>setTimeout(r,150));
+    await new Promise(r=>setTimeout(r,120));
     try{if(speechSynthesis.paused)speechSynthesis.resume();}catch{/* ignore */}
     const r1=await speechDebugSpeakOnce("五万",zh,"   [第1次]");
     if(/超时|onerror/.test(r1)){
-      speechDebugAppend("3b. 第1次失败，再试一次（部分 Android 需二次触发）");
+      speechDebugAppend("3b. 再试一次");
       try{speechSynthesis.cancel();}catch{/* ignore */}
-      await new Promise(r=>setTimeout(r,200));
+      await new Promise(r=>setTimeout(r,160));
       await speechDebugSpeakOnce("五万",zh,"   [第2次]");
     }
   }catch(err){
     speechDebugAppend(`3. 流程异常: ${err?.message||err}`);
   }
 
-  speechDebugAppend("4. 通过 audio.js speakPhrase(\"五万\") 再测正式路径");
+  speechDebugAppend("4. audio.js speakPhrase(\"五万\")");
   try{
     speakPhrase("五万");
-    speechDebugAppend("   speakPhrase 已调用（听是否出声；无单独 onstart 日志）");
+    speechDebugAppend(`   speakPhrase 已调用；isSpeechAvailable=${isSpeechAvailable()}`);
   }catch(err){
     speechDebugAppend(`   speakPhrase 异常: ${err?.message||err}`);
   }
