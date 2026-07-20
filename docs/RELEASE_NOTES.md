@@ -1,5 +1,13 @@
 # RELEASE NOTES
 
+## Platform v0.14.44
+
+**Service Worker**：`nocturne-games-v49`
+
+- 新增共享 `game-toast.js`；麻将出牌提示改为轻量 Toast
+
+---
+
 ## Platform v0.14.43
 
 **Service Worker**：`nocturne-games-v48`

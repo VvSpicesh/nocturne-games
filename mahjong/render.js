@@ -1,6 +1,7 @@
 import {tileFace,tileName} from "./tiles.js?v=0.14.24";
 import {getLegalDiscardIndexes,SUIT_LABEL} from "./rules-guard.js";
 import {buildSelfHandDisplayOrder,buildMeldTilePlan} from "./meld-view.js?v=0.14.42";
+import {showGameToast} from "../shared/game-toast.js";
 
 const SEAT_LABELS=["自己","上家","对家","下家"];
 
@@ -273,37 +274,23 @@ function renderDiscards(state){
 }
 
 let lastDiscardCueKey="";
-let discardCueTimer=0;
 
 function updateDiscardCue(latest,animate){
-  const cue=document.getElementById("discardCue");
-  if(!cue)return;
-  /* 自己出牌不弹 Toast，避免与真实弃牌+高亮三重提示 */
-  if(!latest?.tile||!animate||latest.player===0){
-    if(!latest?.tile||latest.player===0){
-      cue.classList.remove("show");
-      cue.hidden=true;
-    }
-    return;
-  }
-
+  /* 自己出牌默认不弹；连续出牌直接替换（showGameToast 内单例） */
+  if(!latest?.tile||!animate||latest.player===0)return;
+  const table=document.querySelector(".table");
+  if(!table)return;
   const seat=SEAT_LABELS[latest.player]||"玩家";
   const name=tileName(latest.tile);
-  const textEl=document.getElementById("discardCueText");
-  const tileWrap=document.getElementById("discardCueTile");
-  if(textEl)textEl.textContent=`${seat}打出：${name}`;
-  if(tileWrap){
-    tileWrap.innerHTML="";
-    tileWrap.appendChild(createTileElement(latest.tile,"discard-cue-mini"));
-  }
-
-  cue.hidden=false;
-  cue.classList.add("show");
-  clearTimeout(discardCueTimer);
-  discardCueTimer=setTimeout(()=>{
-    cue.classList.remove("show");
-    cue.hidden=true;
-  },1500);
+  const media=createTileElement(latest.tile,"ng-game-toast-tile");
+  showGameToast({
+    host:table,
+    label:`${seat}打出：`,
+    value:name,
+    media,
+    durationMs:1500,
+    progress:true
+  });
 }
 
 function renderActions(state){
