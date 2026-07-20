@@ -1,5 +1,13 @@
 # RELEASE NOTES
 
+## Platform v0.14.43
+
+**Service Worker**：`nocturne-games-v48`
+
+- 麻将弃牌提示简化：小 Toast、尺寸回落、左右排列与高亮收敛
+
+---
+
 ## Platform v0.14.42
 
 **Service Worker**：`nocturne-games-v47`

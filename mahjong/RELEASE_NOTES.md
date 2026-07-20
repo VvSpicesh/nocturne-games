@@ -1,5 +1,15 @@
 # RELEASE NOTES — Nocturne Mahjong
 
+## v0.14.43
+
+**日期**：2026-07-20
+**Service Worker 缓存**：`nocturne-games-v48`
+
+### UI
+- 弃牌提示简化：小 Toast + 尺寸回落 + 左右最新靠近自己
+
+---
+
 ## v0.14.42
 
 **日期**：2026-07-20

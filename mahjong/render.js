@@ -278,34 +278,32 @@ let discardCueTimer=0;
 function updateDiscardCue(latest,animate){
   const cue=document.getElementById("discardCue");
   if(!cue)return;
-  if(!latest?.tile||!animate){
-    if(!latest?.tile){
-      cue.classList.remove("show","weak");
+  /* 自己出牌不弹 Toast，避免与真实弃牌+高亮三重提示 */
+  if(!latest?.tile||!animate||latest.player===0){
+    if(!latest?.tile||latest.player===0){
+      cue.classList.remove("show");
       cue.hidden=true;
     }
     return;
   }
 
-  const playerIndex=latest.player;
-  const isSelf=playerIndex===0;
-  const seat=SEAT_LABELS[playerIndex]||"玩家";
+  const seat=SEAT_LABELS[latest.player]||"玩家";
   const name=tileName(latest.tile);
   const textEl=document.getElementById("discardCueText");
   const tileWrap=document.getElementById("discardCueTile");
   if(textEl)textEl.textContent=`${seat}打出：${name}`;
   if(tileWrap){
     tileWrap.innerHTML="";
-    tileWrap.appendChild(createTileElement(latest.tile,"tile-discard"));
+    tileWrap.appendChild(createTileElement(latest.tile,"discard-cue-mini"));
   }
 
   cue.hidden=false;
-  cue.classList.toggle("weak",isSelf);
   cue.classList.add("show");
   clearTimeout(discardCueTimer);
   discardCueTimer=setTimeout(()=>{
-    cue.classList.remove("show","weak");
+    cue.classList.remove("show");
     cue.hidden=true;
-  },isSelf?1100:1600);
+  },1500);
 }
 
 function renderActions(state){

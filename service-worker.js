@@ -1,5 +1,5 @@
 /* Nocturne Games Service Worker — bump CACHE when precache list or SW logic changes */
-const CACHE = "nocturne-games-v47";
+const CACHE = "nocturne-games-v48";
 
 /** Absolute URLs relative to this SW script (repo root under GitHub Pages). */
 const PRECACHE = [
@@ -28,9 +28,9 @@ const PRECACHE = [
   "./chess/js/audio.js?v=stable13",
   "./chess/js/game.js?v=stable16",
   "./mahjong/index.html",
-  "./mahjong/style.css?v=0.14.42",
-  "./mahjong/game.js?v=0.14.42",
-  "./mahjong/render.js?v=0.14.42",
+  "./mahjong/style.css?v=0.14.43",
+  "./mahjong/game.js?v=0.14.43",
+  "./mahjong/render.js?v=0.14.43",
   "./mahjong/meld-view.js?v=0.14.42",
   "./mahjong/tiles.js?v=0.14.24",
   "./mahjong/rules-guard.js?v=0.14.24",
