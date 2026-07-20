@@ -86,7 +86,9 @@ export function meldDisplayInfo(meld,ownerSeat){
 }
 
 /**
- * 自家手牌展示顺序：新摸牌固定最左，不改变 hand 数组。
+ * 自家手牌展示顺序：新摸牌固定最右，不参与中间视觉排序；不改变 hand 数组。
+ * 有 drawnTileId 时：其余牌按原序展示 → 间隔 → 新摸牌。
+ * 无 drawnTileId（打出后 / 碰杠后 / 恢复无摸牌）：整手按 hand 原序（逻辑侧已排序则视觉已整理）。
  * @param {object[]} hand
  * @param {string|null|undefined} drawnTileId
  * @returns {{tile:object,tileIndex:number,isDraw:boolean}[]}
@@ -102,9 +104,10 @@ export function buildSelfHandDisplayOrder(hand,drawnTileId){
     return list.map((tile,tileIndex)=>({tile,tileIndex,isDraw:false}));
   }
 
-  const items=[{tile:list[drawIndex],tileIndex:drawIndex,isDraw:true}];
+  const items=[];
   list.forEach((tile,tileIndex)=>{
     if(tileIndex!==drawIndex)items.push({tile,tileIndex,isDraw:false});
   });
+  items.push({tile:list[drawIndex],tileIndex:drawIndex,isDraw:true});
   return items;
 }

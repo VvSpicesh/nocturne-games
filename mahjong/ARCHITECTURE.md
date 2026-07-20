@@ -19,6 +19,10 @@
 
 ### `render.js`
 DOM、定缺弹窗、非法出牌样式、胡牌/终局明细（含花猪）。
+自家手牌展示：调用 `meld-view.js` 的 `buildSelfHandDisplayOrder`，新摸牌（`drawnTileId`）固定**最右侧**并与已整理手牌留间隔；不改 `hand` 数组顺序。
+
+### `meld-view.js`
+纯函数：副露来源方向箭头、`meldDisplayInfo`、自家摸牌展示顺序。
 
 ### `tiles.js`
 牌名与 SVG 牌面（**本轮禁止修改**）。
@@ -47,12 +51,19 @@ DOM、定缺弹窗、非法出牌样式、胡牌/终局明细（含花猪）。
 ```
 state
 ├── phase            // … | 定缺 | 摸牌 | 出牌 | 等待操作 | 结束
+├── drawnTileId      // 本回合新摸牌 id；有值时 UI 将其显示在手牌最右侧
 ├── players[4]       // + missingSuit: "w"|"t"|"b"|null
 ├── activeRules      // baseStake, settlementRules, patterns, extraPatterns, gangRules…
 ├── roundSettlement  // 胡/杠/花猪/查叫占位 + playerDeltas
 ├── scores / roundDelta / scoreLog
 └── …
 ```
+
+### 自家新摸牌展示（已确认）
+- 仅改渲染顺序：有 `drawnTileId` → 其余牌按序 + 间隔 + 新摸牌在**最右侧**（抬高/高亮）。
+- 打出后 `drawnTileId=null`：整手按 `hand` 展示（逻辑侧已排序则视觉已整理）。
+- 碰/杠时清除 `drawnTileId`，避免残留间隔；存档恢复按 `drawnTileId` 还原右侧新摸牌。
+- AI 手牌逻辑不变。
 
 ### 花猪付款模型（已确认）
 每位花猪向**其余三位玩家**各付 `baseStake × 2^(flowerPigFan-1)`；与查叫不叠加（优先花猪）。本轮不做查叫处罚。

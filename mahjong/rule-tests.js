@@ -584,11 +584,51 @@ export function runRuleTests(){
     assert(normalizeMeldFrom({type:"peng",from:1})===1);
   });
 
-  record("MV5","新摸牌展示顺序","draw 固定最左",()=>{
-    const hand=[T("w",1,1),T("w",2,2),T("w",9,9)];
+  record("MV5","摸牌后新牌在最右侧","draw 固定最右",()=>{
+    const hand=[T("w",1,"a"),T("w",2,"b"),T("w",9,"d9")];
     const order=buildSelfHandDisplayOrder(hand,"d9");
-    assert(order[0].tile.n===9&&order[0].isDraw===true);
-    assert(order[1].tile.n===1&&order[2].tile.n===2);
+    assert(order.length===3);
+    assert(order[0].tile.n===1&&order[0].isDraw===false);
+    assert(order[1].tile.n===2&&order[1].isDraw===false);
+    assert(order[2].tile.n===9&&order[2].isDraw===true&&order[2].tileIndex===2);
+  });
+
+  record("MV6","新摸牌与原手牌有间隔标记","仅最右 isDraw",()=>{
+    const hand=[T("t",3,"x"),T("b",5,"draw"),T("t",4,"y")];
+    const order=buildSelfHandDisplayOrder(hand,"draw");
+    const draws=order.filter(item=>item.isDraw);
+    assert(draws.length===1&&draws[0].tile.id==="draw");
+    assert(order[order.length-1].isDraw===true);
+    assert(order.slice(0,-1).every(item=>!item.isDraw));
+  });
+
+  record("MV7","打出新摸牌后无间隔","清除 drawnTileId",()=>{
+    const remaining=[T("w",1,"a"),T("w",2,"b")];
+    const order=buildSelfHandDisplayOrder(remaining,null);
+    assert(order.every(item=>!item.isDraw));
+    assert(order.map(item=>item.tile.n).join(",")==="1,2");
+  });
+
+  record("MV8","打出旧牌后新摸牌并入排序展示","无 drawn 则整手原序",()=>{
+    /* 逻辑 hand 已含原摸牌并排好序；清除 drawnTileId 后视觉并入 */
+    const hand=[T("w",1,"a"),T("w",5,"wasDraw"),T("w",9,"c")];
+    const order=buildSelfHandDisplayOrder(hand,null);
+    assert(order.every(item=>!item.isDraw));
+    assert(order.map(item=>item.tile.n).join(",")==="1,5,9");
+  });
+
+  record("MV9","碰杠或无摸牌状态不残留间隔","缺 drawn / 无效 id",()=>{
+    const hand=[T("w",1,"a"),T("w",2,"b")];
+    assert(buildSelfHandDisplayOrder(hand,null).every(item=>!item.isDraw));
+    assert(buildSelfHandDisplayOrder(hand,"gone").every(item=>!item.isDraw));
+    assert(buildSelfHandDisplayOrder(hand,undefined).every(item=>!item.isDraw));
+  });
+
+  record("MV10","刷新恢复：有 drawnTileId 则最右","存档恢复",()=>{
+    const hand=[T("b",2,"p"),T("w",8,"d"),T("b",3,"q")];
+    const order=buildSelfHandDisplayOrder(hand,"d");
+    assert(order[order.length-1].tile.id==="d"&&order[order.length-1].isDraw);
+    assert(order[0].tile.id==="p"&&order[1].tile.id==="q");
   });
 
   block("UI1","换三张/定缺弹层/大按钮/飘字/二次点击出牌","交互与动画正常","需人工点选；套件未驱动完整 UI");

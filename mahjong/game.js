@@ -647,6 +647,8 @@ function claimPeng(playerIndex,tile,fromPlayer){
   player2.melds.push({type:"peng",from:fromPlayer,tiles:Array.from({length:3},()=>cloneTile(tile))});
   state.turn=playerIndex;
   state.phase="出牌";
+  state.drawnTileId=null;
+  state.selectedTileIndex=null;
   state.lastAction={type:"peng",player:playerIndex};
   state.logs.push(`${playerCall(playerIndex)}碰 ${tileName(tile)}。`);
   commit();
@@ -667,6 +669,8 @@ function claimMingGang(playerIndex,tile,fromPlayer){
   removeLastDiscard();
   player.melds.push({type:"mingGang",from:fromPlayer,tiles:Array.from({length:4},()=>cloneTile(tile))});
   state.turn=playerIndex;
+  state.drawnTileId=null;
+  state.selectedTileIndex=null;
   state.lastAction={type:"gang",player:playerIndex,kind:"mingGang"};
   const settled=settleMingGang(state,playerIndex,fromPlayer);
   state.logs.push(settled?`${playerCall(playerIndex)}杠 ${tileName(tile)} · ${settled.logText}`:`${playerCall(playerIndex)}杠 ${tileName(tile)}。`);
@@ -681,6 +685,8 @@ function doConcealedGang(playerIndex,entry){
   removeMatching(player,entry.tile,4);
   player.melds.push({type:"anGang",from:playerIndex,tiles:Array.from({length:4},()=>cloneTile(entry.tile))});
   state.turn=playerIndex;
+  state.drawnTileId=null;
+  state.selectedTileIndex=null;
   state.lastAction={type:"gang",player:playerIndex,kind:"anGang"};
   const settled=settleAnOrBuGang(state,playerIndex,"暗杠");
   state.logs.push(
@@ -729,6 +735,8 @@ function completeAddedGang(playerIndex,entry){
   entry.meld.type="buGang";
   entry.meld.tiles.push(cloneTile(entry.tile));
   state.turn=playerIndex;
+  state.drawnTileId=null;
+  state.selectedTileIndex=null;
   state.lastAction={type:"gang",player:playerIndex,kind:"buGang"};
   const settled=settleAnOrBuGang(state,playerIndex,"补杠");
   state.logs.push(

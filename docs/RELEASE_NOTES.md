@@ -1,10 +1,18 @@
 # RELEASE NOTES
 
+## Platform v0.14.39
+
+**Service Worker**：`nocturne-games-v44`
+
+- 麻将新摸牌改为手牌**最右侧**显示（修正此前误写最左）
+
+---
+
 ## Platform v0.14.38
 
 **Service Worker**：`nocturne-games-v43`
 
-- 麻将摸牌 / 副露渲染修复：新摸牌左置、来源箭头、补杠标注、碰后立即显示
+- 麻将摸牌 / 副露渲染修复：新摸牌右置、来源箭头、补杠标注、碰后立即显示
 
 ---
 

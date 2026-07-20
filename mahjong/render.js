@@ -1,6 +1,6 @@
 import {tileFace,tileName} from "./tiles.js?v=0.14.24";
 import {getLegalDiscardIndexes,SUIT_LABEL} from "./rules-guard.js";
-import {buildSelfHandDisplayOrder,meldDisplayInfo} from "./meld-view.js?v=0.14.38";
+import {buildSelfHandDisplayOrder,meldDisplayInfo} from "./meld-view.js?v=0.14.39";
 
 const SEAT_LABELS=["自己","上家","对家","下家"];
 
@@ -169,14 +169,15 @@ function renderSeat(state,player,index,handlers){
       }
     }
 
-    hand.appendChild(el);
-
+    /* 新摸牌在最右侧：间隔插在已整理手牌与新摸牌之间 */
     if(index===0&&isDraw){
       const gap=document.createElement("div");
       gap.className="hand-draw-gap";
       gap.setAttribute("aria-hidden","true");
       hand.appendChild(gap);
     }
+
+    hand.appendChild(el);
   });
 
   seat.appendChild(hand);
