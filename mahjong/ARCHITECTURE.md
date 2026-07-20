@@ -19,7 +19,8 @@
 
 ### `render.js`
 DOM、定缺弹窗、非法出牌样式、胡牌/终局明细（含花猪）。
-牌桌布局：`table-grid` + 四 `seat-zone`（concealed / discard / meld / hand），弃牌与副露各自 grid 行，`overflow:hidden` 互不重叠。
+自家手牌展示：调用 `meld-view.js` 的 `buildSelfHandDisplayOrder`，新摸牌（`drawnTileId`）固定**最右侧**并与已整理手牌留间隔；不改 `hand` 数组顺序。
+弃牌区：统一 `--discard-tile-*` 尺寸；最新弃牌高亮；左右牌面正向；桌心短提示。
 
 ### `meld-view.js`
 纯函数：副露分层计划（`buildMeldTilePlan`：碰单层 / 明杠·补杠三+一 / 暗杠四+二）、来源位（`getRelativeSourcePosition`）、自家摸牌展示顺序。
