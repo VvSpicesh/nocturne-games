@@ -130,27 +130,17 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 .table{
   position:relative;width:100%;min-width:0;min-height:0;overflow:hidden;
   flex:0 0 auto;
-  /* 默认 4:3 + 最低 720；宽屏桌面布局再覆盖 */
   aspect-ratio:4/3;
   min-height:720px;
   max-height:none;
   max-width:100%;
   margin-inline:auto;
   border-radius:24px;
-  /* 固定分区：座位带 / 副露轨 / 弃牌区互不互侵 */
-  --band-side:clamp(48px,6.8vw,62px);
-  --meld-rail:max(44px,calc(var(--tile-h) * .46 + 10px));
+  --seat-zone-gap:14px;
+  --side-rail:clamp(52px,7.2vw,76px);
+  --self-hand-row:calc(var(--tile-h) + 54px);
   --meld-tw:calc(var(--tile-w) * .46 * 1.1);
   --meld-th:calc(var(--tile-h) * .46 * 1.1);
-  --band-top:calc(var(--tile-h) * .62 + 44px);
-  /* 底部分层：手牌带（尺寸不压） + 副露安全带（固定高度，可换行） */
-  --self-hand-band:calc(var(--tile-h) + 58px);
-  --self-meld-band:max(56px,calc(var(--meld-th) * 2 + 22px));
-  --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 8px);
-  --meld-gap:4px;
-  --discard-meld-gap:14px;
-  --discard-inset:calc(var(--band-side) + var(--meld-rail) + 8px);
-  /* 弃牌：相对原版 0.5× 约放大 15% */
   --discard-tile-width:calc(var(--tile-w) * .575);
   --discard-tile-height:calc(var(--discard-tile-width) * 1.42);
   --discard-tile-gap:3px;
@@ -163,54 +153,106 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 .table::before{
   content:"";position:absolute;inset:12%;border-radius:35%;
   border:1px solid rgba(255,255,255,.07);
-  box-shadow:inset 0 0 70px rgba(0,0,0,.2)
+  box-shadow:inset 0 0 70px rgba(0,0,0,.2);
+  pointer-events:none
 }
-.seat{
-  position:absolute;z-index:6;padding:6px 8px;border-radius:15px;
-  background:rgba(4,24,17,.78);border:1px solid rgba(255,255,255,.1);
-  overflow:hidden;box-sizing:border-box
+
+/* —— Seat Layout：Grid 四区 + 中央 —— */
+.table-grid{
+  position:relative;z-index:1;
+  display:grid;
+  width:100%;height:100%;min-height:0;min-width:0;
+  box-sizing:border-box;
+  padding:6px;
+  gap:6px;
+  grid-template-columns:var(--side-rail) 1fr var(--side-rail);
+  grid-template-rows:auto 1fr auto;
+  grid-template-areas:
+    ". top ."
+    "left center right"
+    ". bottom ."
 }
-/* 上家：固定顶部，夹在左右安全带之间 */
-.seat-top{
-  top:4px;left:calc(var(--band-side) + 4px);right:calc(var(--band-side) + 4px);
-  width:auto;transform:none;
-  max-height:none;
-  min-height:calc(var(--tile-h) * .62 + 34px);
-  padding:4px 8px;
-  overflow:visible;
-  z-index:7
+.seat-zone-top{grid-area:top}
+.seat-zone-left{grid-area:left}
+.seat-zone-right{grid-area:right}
+.seat-zone-bottom{grid-area:bottom}
+.table-center{grid-area:center;align-self:center;justify-self:center}
+
+.seat-zone{
+  display:grid;
+  min-width:0;min-height:0;
+  overflow:hidden;
+  gap:var(--seat-zone-gap);
+  padding:4px 6px;
+  border-radius:14px;
+  background:rgba(4,24,17,.62);
+  border:1px solid rgba(255,255,255,.1);
+  box-sizing:border-box;
+  position:relative
 }
-/* 自己：固定底部手牌带；高度限制在手牌安全带内，不侵占副露区 */
-.seat-bottom{
-  bottom:max(4px,env(safe-area-inset-bottom,0px));
-  left:calc(var(--band-side) + 4px);right:calc(var(--band-side) + 4px);
-  height:var(--self-hand-band);
-  max-height:var(--self-hand-band);
-  padding:6px 6px max(6px,env(safe-area-inset-bottom,0px));
-  overflow:visible;
-  z-index:10;
+
+/* 对家：concealed → discard → meld（外→内） */
+.seat-zone-top{
+  grid-template-rows:auto minmax(0,1fr) auto;
+  grid-template-areas:"concealed" "discard" "meld"
+}
+.seat-zone-top .concealed-zone{grid-area:concealed}
+.seat-zone-top .discard-zone{grid-area:discard}
+.seat-zone-top .meld-zone{grid-area:meld}
+
+/* 左/右：concealed → discard → meld（外→内） */
+.seat-zone-left,
+.seat-zone-right{
+  grid-template-rows:minmax(0,1.15fr) minmax(0,1fr) auto;
+  grid-template-areas:"concealed" "discard" "meld"
+}
+.seat-zone-left .concealed-zone,
+.seat-zone-right .concealed-zone{grid-area:concealed}
+.seat-zone-left .discard-zone,
+.seat-zone-right .discard-zone{grid-area:discard}
+.seat-zone-left .meld-zone,
+.seat-zone-right .meld-zone{grid-area:meld}
+
+/* 自己：discard → meld → action → hand（内→外） */
+.seat-zone-bottom{
+  grid-template-rows:minmax(0,1fr) auto auto auto;
+  grid-template-areas:"discard" "meld" "action" "hand"
+}
+.seat-zone-bottom .discard-zone{grid-area:discard}
+.seat-zone-bottom .meld-zone{grid-area:meld}
+.seat-zone-bottom .action-dock{grid-area:action}
+.seat-zone-bottom .hand-zone{grid-area:hand}
+
+.seat-zone > .concealed-zone,
+.seat-zone > .discard-zone,
+.seat-zone > .meld-zone,
+.seat-zone > .hand-zone,
+.seat-zone > .action-dock{
+  grid-column:1;
+  min-width:0;
+  min-height:0;
+  max-height:100%;
+  overflow:hidden;
+  align-self:stretch
+}
+.concealed-zone,
+.hand-zone{
   display:flex;
   flex-direction:column;
-  justify-content:flex-end;
-  min-width:0;
-  box-sizing:border-box
+  gap:4px
 }
-/* 左/右家：夹在对家安全带与自己座位上线之间；下间隔 = 上间隔（对称对家 +6px） */
-.seat-left{
-  left:2px;
-  top:calc(var(--band-top) + 6px);
-  bottom:calc(var(--self-hand-band) + max(4px,env(safe-area-inset-bottom,0px)) + 6px);
-  width:var(--band-side);transform:none;
-  display:flex;flex-direction:column;padding:3px;
-  overflow:visible;z-index:6
+
+.hand-zone{
+  flex:0 0 auto;
+  max-height:var(--self-hand-row)
 }
-.seat-right{
-  right:2px;
-  top:calc(var(--band-top) + 6px);
-  bottom:calc(var(--self-hand-band) + max(4px,env(safe-area-inset-bottom,0px)) + 6px);
-  width:var(--band-side);transform:none;
-  display:flex;flex-direction:column;padding:3px;
-  overflow:visible;z-index:6
+
+.seat-info{
+  flex:0 0 auto;
+  padding:2px 4px;
+  border-radius:10px;
+  background:rgba(4,24,17,.78);
+  border:1px solid rgba(255,255,255,.08)
 }
 .seat-header{display:flex;justify-content:space-between;gap:6px;margin-bottom:5px;flex:0 0 auto}
 .seat-id{display:flex;align-items:center;gap:6px;min-width:0}
@@ -226,15 +268,21 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 .seat-left .seat-header,
 .seat-right .seat-header,
+.seat-zone-left .seat-header,
+.seat-zone-right .seat-header,
 .seat-header-side{
   flex-direction:column;align-items:center;gap:0;margin-bottom:2px
 }
 .seat-left .seat-id,
-.seat-right .seat-id{
+.seat-right .seat-id,
+.seat-zone-left .seat-id,
+.seat-zone-right .seat-id{
   flex-direction:column;align-items:center;gap:2px;width:100%
 }
 .seat-left .seat-text,
-.seat-right .seat-text{
+.seat-right .seat-text,
+.seat-zone-left .seat-text,
+.seat-zone-right .seat-text{
   width:100%;text-align:center;
   display:flex;flex-direction:column;align-items:center;gap:1px
 }
@@ -242,16 +290,24 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 .seat-left .seat-name,
 .seat-right .seat-name,
 .seat-left .seat-label,
-.seat-right .seat-label{
+.seat-right .seat-label,
+.seat-zone-left .seat-name,
+.seat-zone-right .seat-name,
+.seat-zone-left .seat-label,
+.seat-zone-right .seat-label{
   font-size:12px;max-width:100%;
   white-space:normal;overflow:visible;text-overflow:unset;
   line-height:1.25;word-break:break-all
 }
 .seat-meta{font-size:9px;color:var(--muted);white-space:nowrap}
 .seat-left .seat-meta,
-.seat-right .seat-meta{font-size:9px;opacity:.95;white-space:normal}
+.seat-right .seat-meta,
+.seat-zone-left .seat-meta,
+.seat-zone-right .seat-meta{font-size:9px;opacity:.95;white-space:normal}
 .seat-left .seat-status,
-.seat-right .seat-status{
+.seat-right .seat-status,
+.seat-zone-left .seat-status,
+.seat-zone-right .seat-status{
   display:inline-block;margin-top:2px;
   font-size:9px;padding:1px 5px;border-radius:999px
 }
@@ -259,13 +315,18 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   display:flex;justify-content:center;align-items:flex-end;gap:2px;
   min-height:calc(var(--tile-h) + 14px);min-width:0
 }
-.seat-top .hand{
+.seat-top .hand,
+.hand-top{
   min-height:calc(var(--tile-h) * .62 + 4px);
   align-items:center;
   padding-bottom:2px;
-  gap:1px
+  gap:1px;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden
 }
-.seat-top .hand .tile{
+.seat-top .hand .tile,
+.hand-top .tile{
   width:calc(var(--tile-w) * .58);
   height:calc(var(--tile-h) * .58)
 }
@@ -281,7 +342,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 .hand-left .tile{transform:rotate(90deg)}
 .hand-right .tile{transform:rotate(-90deg)}
 .seat-left .hand .tile,
-.seat-right .hand .tile{
+.seat-right .hand .tile,
+.seat-zone-left .hand .tile,
+.seat-zone-right .hand .tile{
   --side-w:min(calc(var(--tile-w)*.58),calc(100cqh / 13.15));
   width:var(--side-w);
   height:calc(var(--side-w) * 1.42);
@@ -289,7 +352,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   flex:0 0 auto
 }
 .seat-left .hand .tile:last-child,
-.seat-right .hand .tile:last-child{margin-bottom:0}
+.seat-right .hand .tile:last-child,
+.seat-zone-left .hand .tile:last-child,
+.seat-zone-right .hand .tile:last-child{margin-bottom:0}
 
 .tile{
   width:var(--tile-w);height:var(--tile-h);flex:0 0 auto;
@@ -423,153 +488,22 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 
 .discard-zone{
-  position:absolute;z-index:12;display:flex;flex-wrap:wrap;
+  display:flex;flex-wrap:wrap;
   gap:var(--discard-tile-gap);align-content:flex-start;
   pointer-events:none;
   box-sizing:border-box;
-  overflow:hidden
-}
-
-/* 四家弃牌+副露分区：band 定界，子区 relative + flex，禁止 absolute 互叠 */
-.player-band{
-  position:absolute;
-  z-index:8;
-  display:flex;
-  pointer-events:none;
-  box-sizing:border-box;
-  min-width:0;
-  min-height:0;
-  gap:var(--discard-meld-gap)
-}
-.player-band .discard-zone,
-.player-band .meld-zone{
-  position:relative;
-  left:auto!important;
-  right:auto!important;
-  top:auto!important;
-  bottom:auto!important;
-  z-index:auto;
-  min-width:0;
-  min-height:0;
   overflow:hidden;
-  max-height:none!important
+  min-width:0;min-height:0
 }
-.player-band .meld-zone{
-  flex:0 1 auto
-}
-.player-band .discard-zone{
-  flex:1 1 auto
-}
-
-.player-band-top{
-  left:var(--discard-inset);
-  right:var(--discard-inset);
-  top:calc(var(--band-top) + var(--meld-gap));
-  bottom:auto;
-  height:calc(var(--meld-th) * 2 + 28px);
-  max-height:calc(var(--self-meld-band));
-  flex-direction:column;
-  align-items:stretch
-}
-.player-band-top .meld-top{
-  flex:1 1 auto;
-  max-height:100%;
-  justify-content:center;
-  flex-wrap:wrap;
-  align-content:center
-}
-
-/* 对家弃牌：独立区，位于对家副露下方、朝桌心（不在 band 内便于紧凑横屏居中） */
-.discard-top{
-  position:absolute;
-  z-index:12;
-  left:var(--discard-inset);
-  right:var(--discard-inset);
-  top:calc(var(--band-top) + var(--meld-th) + var(--discard-meld-gap) + 24px);
-  bottom:52%;
-  overflow:hidden;
-  justify-content:center;
-  flex-direction:row-reverse;
-  flex-wrap:wrap;
-  align-content:flex-start
-}
-
-.player-band-bottom{
-  left:var(--discard-inset);
-  right:var(--discard-inset);
-  top:calc(var(--band-top) + 10%);
-  bottom:calc(var(--self-hand-band) + max(4px,env(safe-area-inset-bottom,0px)));
-  flex-direction:column-reverse;
-  align-items:stretch
-}
-.player-band-bottom .meld-bottom{
-  flex:0 1 auto;
-  max-height:var(--self-meld-band);
-  justify-content:center;
-  align-content:flex-end;
-  flex-wrap:wrap
-}
-.player-band-bottom .discard-bottom{
-  flex:1 1 auto;
-  min-height:0;
-  justify-content:center;
-  flex-direction:row;
-  align-content:flex-end;
-  flex-wrap:wrap
-}
-
-.player-band-left{
-  left:calc(var(--band-side) + 4px);
-  top:calc(var(--band-top) + 10px);
-  bottom:calc(var(--self-hand-band) + max(4px,env(safe-area-inset-bottom,0px)) + 10px);
-  flex-direction:row;
-  align-items:flex-start;
-  width:min(calc(var(--discard-tile-height) * 2 + var(--meld-rail) + var(--discard-meld-gap) + 28px),28%)
-}
-.player-band-left .meld-left{
-  flex:0 0 auto;
-  width:max(var(--meld-rail),calc(var(--meld-th) + 28px));
-  flex-direction:column;
-  flex-wrap:nowrap;
-  justify-content:flex-start
-}
-.player-band-left .discard-left{
-  flex:1 1 auto;
-  flex-direction:column;
-  justify-content:flex-start;
-  align-content:flex-start;
-  flex-wrap:wrap
-}
-
-.player-band-right{
-  right:calc(var(--band-side) + 4px);
-  top:calc(var(--band-top) + 10px);
-  bottom:calc(var(--self-hand-band) + max(4px,env(safe-area-inset-bottom,0px)) + 10px);
-  flex-direction:row;
-  align-items:flex-start;
-  width:min(calc(var(--discard-tile-height) * 2 + var(--meld-rail) + var(--discard-meld-gap) + 28px),28%)
-}
-.player-band-right .meld-right{
-  flex:0 0 auto;
-  width:max(var(--meld-rail),calc(var(--meld-th) + 28px));
-  flex-direction:column;
-  flex-wrap:nowrap;
-  justify-content:flex-start
-}
-.player-band-right .discard-right{
-  flex:1 1 auto;
-  flex-direction:column-reverse;
-  justify-content:flex-start;
-  align-content:flex-end;
-  flex-wrap:wrap
-}
-
-/* 自己：左→右；对家：右→左；左右：最新靠近自己 */
 .discard-bottom{
   justify-content:center;
   flex-direction:row;
-  flex-wrap:wrap;
   align-content:flex-end
+}
+.discard-top{
+  justify-content:center;
+  flex-direction:row-reverse;
+  align-content:flex-start
 }
 .discard-left,
 .discard-right{
@@ -627,7 +561,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 /* 中央出牌 Toast 已改为座位锚定 .player-event-toast */
 
 .table-center{
-  position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);
+  position:relative;z-index:5;
   width:150px;text-align:center;padding:12px;border-radius:20px;
   background:rgba(4,22,16,.9);border:1px solid var(--line)
 }
@@ -774,12 +708,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   .quick-rules{flex:1;min-width:0;justify-content:space-between}
   .quick-rules-title{display:none}
   .table{
-    --band-side:clamp(44px,11.5vw,56px);
-    --meld-rail:max(40px,calc(var(--tile-h) * .46 * 1.1 + 8px));
-    --band-top:calc(var(--tile-h) * .62 + 38px);
-    --self-hand-band:calc(var(--tile-h) + 54px);
-    --self-meld-band:max(52px,calc(var(--meld-th) * 2 + 18px));
-    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 6px);
+    --side-rail:clamp(44px,11.5vw,56px);
     --discard-tile-width:calc(var(--tile-w) * .6);
     --discard-tile-gap:3px
   }
@@ -805,22 +734,14 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     min-height:720px;
     max-height:none;
     max-width:100%;
-    --band-side:clamp(88px,9.5vw,120px);
-    --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 10px));
-    --band-top:calc(var(--tile-h) * .62 + 46px);
-    --self-hand-band:calc(var(--tile-h) + 60px);
-    --self-meld-band:max(64px,calc(var(--meld-th) * 2 + 26px));
-    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 10px);
-    --discard-inset:calc(var(--band-side) + var(--meld-rail) + 10px);
+    --side-rail:clamp(88px,9.5vw,120px);
     --discard-tile-width:calc(var(--tile-w) * .58);
     --discard-tile-gap:3px
   }
-  .seat-left,
-  .seat-right{
-    width:var(--band-side);
+  .seat-zone-left,
+  .seat-zone-right{
     min-width:88px;
-    overflow:visible;
-    padding:6px 5px
+    overflow:hidden
   }
   .seat-left .seat-name,
   .seat-right .seat-name,
@@ -872,19 +793,14 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     max-height:calc(100dvh - 7.5rem);
     max-width:min(100%,calc((100vh - 7.5rem) * 16 / 10));
     max-width:min(100%,calc((100dvh - 7.5rem) * 16 / 10));
-    --band-side:clamp(72px,7.5%,96px);
-    --meld-rail:max(48px,calc(var(--tile-h) * .46 * 1.1 + 12px));
-    --band-top:calc(var(--tile-h) * .62 + 44px);
-    --self-hand-band:calc(var(--tile-h) + 56px);
-    --self-meld-band:max(60px,calc(var(--meld-th) * 2 + 24px));
-    --band-bottom:calc(var(--self-hand-band) + var(--self-meld-band) + 8px);
+    --side-rail:clamp(72px,7.5%,96px);
     --discard-tile-width:calc(var(--tile-w) * .575);
     --discard-tile-gap:3px
   }
-  .seat-left,
-  .seat-right{
+  .seat-zone-left,
+  .seat-zone-right{
     min-width:72px;
-    overflow:visible
+    overflow:hidden
   }
   .seat-left .seat-name,
   .seat-right .seat-name,
@@ -988,23 +904,23 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 
 
-/* v0.8 large action dock */
+/* v0.8 large action dock — 位于自己 seat-zone 的 action 行 */
 .action-dock{
-  position:absolute;
-  right:clamp(12px,2vw,28px);
-  bottom:calc(var(--tile-h) + 72px);
-  z-index:20;
-  min-width:250px;
-  max-width:min(62%,620px);
   display:none;
-  padding:12px;
+  z-index:50;
+  justify-self:end;
+  align-self:center;
+  min-width:min(250px,100%);
+  max-width:min(100%,620px);
+  padding:10px 12px;
   border-radius:18px;
   background:rgba(4,22,16,.96);
   border:2px solid rgba(239,199,104,.58);
   box-shadow:0 18px 38px rgba(0,0,0,.4);
+  pointer-events:auto
 }
 .action-dock.show{
-  display:block;
+  display:block
 }
 .action-dock-text{
   margin-bottom:10px;
@@ -1053,10 +969,8 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 
 @media(max-width:600px) and (orientation:portrait){
   .action-dock{
-    right:7px;
-    bottom:calc(var(--tile-h) + 76px);
-    min-width:220px;
-    max-width:88%;
+    min-width:min(220px,100%);
+    max-width:100%;
     padding:9px;
   }
   .action-dock-text{
@@ -1097,6 +1011,9 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   pointer-events:none;
   overflow:hidden;
   box-sizing:border-box;
+  min-width:0;
+  min-height:0;
+  flex-wrap:wrap
 }
 
 .meld-zone:empty{
@@ -1297,40 +1214,27 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   height:var(--meld-tw)
 }
 
-/* 旧的 seat 内副露隐藏，防止重复和遮挡。 */
-.seat > .melds{
-  display:none!important;
-}
-
-/* 操作按钮落在底部带之上、副露轨之内。 */
-.action-dock{
-  position:absolute!important;
-  z-index:50!important;
-  right:var(--discard-inset)!important;
-  bottom:calc(var(--band-bottom) + calc(var(--tile-h) * .58 + 24px))!important;
-  max-width:min(60%,620px)!important;
-  overflow:visible!important;
-}
-
-.seat-bottom .hand{
+/* 操作按钮：自己 seat-zone 内 grid 行 */
+.hand-self,
+.seat-zone-bottom .hand{
   width:100%;
   min-width:0;
   container-type:inline-size;
   container-name:self-hand;
-  padding-top:14px;
+  padding-top:8px;
   min-height:0;
   gap:clamp(0px,.2cqi,3px);
   justify-content:center;
   align-items:flex-end;
-  overflow:visible
+  overflow:hidden;
+  flex:1 1 auto
 }
-/* 按座位宽度自适应，保证约 14 张一手牌完整露出、不横滚 */
-.seat-bottom .hand .tile{
+.hand-self .tile{
   --fit-w:calc((100cqi - 6px) / 14.35);
   width:min(var(--tile-w),var(--fit-w));
   height:calc(min(var(--tile-w),var(--fit-w)) * 1.42)
 }
-.seat-bottom .seat-header{
+.seat-zone-bottom .seat-header{
   margin-bottom:2px;
   flex-shrink:0
 }
@@ -1453,31 +1357,30 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
 }
 .player-event-hu .player-event-action{color:#ffe29a}
 
-/* 四座位：牌桌内侧，朝中央；出现时轻移 6px */
-.player-event-bottom{
-  left:50%;
-  bottom:calc(var(--band-bottom) + 58px);
+/* 座位事件提示：锚定在各自 seat-zone 内侧（定位见下方 seat-zone 规则） */
+.seat-zone-bottom .player-event-toast{
+  bottom:calc(100% + 6px);
   transform:translate(-50%,6px)
 }
-.player-event-bottom.is-show{transform:translate(-50%,0)}
-.player-event-top{
-  left:50%;
-  top:calc(var(--band-top) + 48px);
+.seat-zone-bottom .player-event-toast.is-show{transform:translate(-50%,0)}
+.seat-zone-top .player-event-toast{
+  top:calc(100% + 6px);
   transform:translate(-50%,-6px)
 }
-.player-event-top.is-show{transform:translate(-50%,0)}
-.player-event-left{
-  left:max(10%,calc(var(--band-side) + var(--meld-rail,48px) + 8px));
-  top:46%;
+.seat-zone-top .player-event-toast.is-show{transform:translate(-50%,0)}
+.seat-zone-left .player-event-toast{
+  left:calc(100% + 6px);
+  top:50%;
   transform:translate(6px,-50%)
 }
-.player-event-left.is-show{transform:translate(0,-50%)}
-.player-event-right{
-  right:max(10%,calc(var(--band-side) + var(--meld-rail,48px) + 8px));
-  top:46%;
+.seat-zone-left .player-event-toast.is-show{transform:translate(0,-50%)}
+.seat-zone-right .player-event-toast{
+  left:auto;
+  right:calc(100% + 6px);
+  top:50%;
   transform:translate(-6px,-50%)
 }
-.player-event-right.is-show{transform:translate(0,-50%)}
+.seat-zone-right .player-event-toast.is-show{transform:translate(0,-50%)}
 
 /* 旧 class 保留，避免残留引用报错 */
 .player-action-effect{display:none!important}
@@ -1502,9 +1405,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   }
 
   .action-dock{
-    right:calc(var(--band-side) + 4px)!important;
-    bottom:calc(var(--band-bottom) + calc(var(--tile-h) * .72 + 22px))!important;
-    max-width:92%!important;
+    max-width:100%!important;
   }
 
   .action-dock-button .tile-reaction,
@@ -1513,10 +1414,6 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     height:calc(clamp(40px,11vw,50px) * 1.42);
   }
 
-  .player-event-left{left:calc(var(--band-side) + 10%)}
-  .player-event-right{right:calc(var(--band-side) + 10%)}
-  .player-event-bottom{bottom:calc(var(--band-bottom) + 48px)}
-  .player-event-top{top:calc(var(--band-top) + 36px)}
 }
 
 /* 平板 / 折叠（<1300）副露轨 */
@@ -1524,16 +1421,6 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
   .meld-left,
   .meld-right{
     width:clamp(44px,5.5vw,64px);
-  }
-
-  .seat-bottom{
-    height:var(--self-hand-band);
-    max-height:var(--self-hand-band)
-  }
-
-  .action-dock{
-    right:calc(var(--band-side) + 10px)!important;
-    bottom:calc(var(--band-bottom) + calc(var(--tile-h) * .72 + 20px))!important;
   }
 }
 
@@ -1689,12 +1576,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
  * 触发：orientation:landscape + max-height:600px
  * 与竖屏 / 折叠 / 平板 / PC 互斥，勿再叠补丁
  *
- * 垂直分区（相对 .table）：
- *   上家信息+暗牌  0%–22%
- *   上家副露        22%–34%
- *   中央弃牌+计数   34%–64%
- *   自己副露        64%–76%
- *   自己手牌        76%–100%
+ * Compact Landscape — 与 seat-zone Grid 共用同一模型，仅调行列比例
  * ============================================================ */
 @media (orientation: landscape) and (max-height: 600px) {
   :root {
@@ -1792,94 +1674,53 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     overflow: hidden;
     container-type: size;
 
-    --band-side: clamp(38px, 6.8vh, 50px);
-    --meld-rail: max(20px, calc(var(--tile-h) * .34 + 3px));
-    --discard-inset: calc(var(--band-side) + var(--meld-rail) + 6px);
-    /* 与分区一致的兼容变量（避免旧规则残留引用） */
-    --band-top: 22%;
-    --self-hand-band: 24%;
-    --self-meld-band: 12%;
-    --band-bottom: 36%;
-    --meld-gap: 0px;
+    --side-rail: clamp(38px, 6.8vh, 50px);
+    --seat-zone-gap: 10px;
+    --self-hand-row: calc(var(--tile-h) + 36px);
     --meld-tw: calc(var(--tile-w) * .38);
     --meld-th: calc(var(--tile-h) * .38);
     --discard-tile-width: calc(var(--tile-w) * .6);
     --discard-tile-gap: 3px;
   }
 
-  .seat {
+  .table-grid {
+    grid-template-rows: minmax(48px, 20%) 1fr minmax(26%, 30%);
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .seat-zone {
     padding: 2px 4px;
     border-radius: 8px;
   }
 
-  /* —— 1) 上家信息 + 暗牌：0%–22% —— */
-  .seat-top {
-    top: 0;
-    left: var(--band-side);
-    right: var(--band-side);
-    height: 22%;
-    max-height: 22%;
-    min-height: 0;
-    bottom: auto;
-    padding: 2px 4px 0;
-    overflow: hidden;
-    z-index: 8;
-  }
-  .seat-top .seat-meta {
+  .seat-zone-top .seat-meta,
+  .seat-zone-bottom .seat-meta,
+  .seat-zone-left .seat-meta,
+  .seat-zone-right .seat-meta {
     display: none;
   }
-  .seat-top .seat-header {
-    margin-bottom: 1px;
+
+  .seat-zone-top .seat-name,
+  .seat-zone-top .seat-label,
+  .seat-zone-bottom .seat-name,
+  .seat-zone-bottom .seat-label,
+  .seat-zone-left .seat-label,
+  .seat-zone-left .seat-name,
+  .seat-zone-right .seat-label,
+  .seat-zone-right .seat-name {
+    font-size: 10px;
   }
-  .seat-top .hand {
-    max-height: none;
-    min-height: 0;
-    overflow: hidden;
-    justify-content: center;
-    padding-bottom: 0;
-  }
-  .seat-top .hand .tile {
+
+  .hand-top .tile {
     width: calc(var(--tile-w) * .52);
     height: calc(var(--tile-h) * .52);
   }
-  .seat-top .seat-name,
-  .seat-top .seat-label {
-    font-size: 10px;
-  }
-  .seat-top .seat-status {
-    font-size: 8px;
-    padding: 1px 4px;
-  }
 
-  /* —— 2) 上家副露：22%–34% —— */
-  .player-band-top{
-    top:22%;
-    left:var(--discard-inset);
-    right:var(--discard-inset);
-    height:12%;
-    max-height:12%;
-    bottom:auto;
-    gap:0
-  }
-  .player-band-top .meld-top{
-    max-height:100%;
-    overflow:hidden;
-    flex-wrap:wrap;
-    align-content:center;
-    justify-content:center;
-    gap:3px
-  }
-
-  /* —— 3) 中央弃牌 + 计数：34%–64% —— */
   .table-center {
-    top: 49%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     width: clamp(110px, 14vw, 130px);
     padding: 6px 8px;
     border-radius: 14px;
-    z-index: 15;
-    box-sizing: border-box;
   }
   .table-center .remaining {
     font-size: clamp(16px, 3.4vh, 22px);
@@ -1891,177 +1732,27 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     margin-top: 2px;
   }
 
-  .discard-zone {
-    z-index: 4;
-  }
-
-  .player-band-left{
-    top:34%;
-    bottom:36%;
-    left:calc(2px + var(--band-side));
-    width:min(calc(var(--discard-tile-height) * 2 + var(--meld-rail) + var(--discard-meld-gap) + 16px),28%);
-    gap:var(--discard-meld-gap)
-  }
-  .player-band-right{
-    top:34%;
-    bottom:36%;
-    right:calc(2px + var(--band-side));
-    width:min(calc(var(--discard-tile-height) * 2 + var(--meld-rail) + var(--discard-meld-gap) + 16px),28%);
-    gap:var(--discard-meld-gap)
-  }
-  .player-band-left .meld-left,
-  .player-band-right .meld-right{
-    max-height:100%;
-    overflow:hidden;
-    flex-wrap:wrap;
-    gap:2px;
-    padding-top:2px
-  }
-  .player-band-left .discard-left,
-  .player-band-right .discard-right{
-    overflow:hidden;
-    flex-wrap:wrap
-  }
-
-  /* 自己：副露 64%–76%，弃牌在其上 34%–(64%-gap) */
-  .player-band-bottom{
-    top:34%;
-    bottom:24%;
-    left:var(--discard-inset);
-    right:var(--discard-inset);
-    gap:var(--discard-meld-gap)
-  }
-  .player-band-bottom .meld-bottom{
-    flex:0 1 auto;
-    max-height:38%;
-    overflow:hidden;
-    flex-wrap:wrap;
-    align-content:center;
-    gap:3px
-  }
-  .player-band-bottom .discard-bottom{
-    flex:1 1 auto;
-    min-height:0;
-    overflow:hidden;
-    flex-wrap:wrap;
-    justify-content:center;
-    align-content:flex-end
-  }
-
-  .discard-top{
-    top:32%;
-    left:max(30%,calc(50% - 11rem));
-    right:max(30%,calc(50% - 11rem));
-    bottom:66%;
-    overflow:hidden;
-    flex-wrap:wrap;
-    flex-direction:row-reverse;
-    justify-content:center;
-    align-content:flex-end
-  }
-  .ng-game-toast {
-    top: calc(50% + 40px);
-    width: min(280px, 58%);
-    min-width: 200px;
-    min-height: 60px;
-    max-height: 78px;
-    padding: 8px 10px 6px;
-  }
-  .ng-game-toast-text {
-    font-size: 12px;
-  }
-
-  /* —— 4) 自己副露 + 弃牌：player-band-bottom 已分区 —— */
-
-  /* —— 5) 自己手牌：76%–100% —— */
-  .seat-bottom {
-    top: 76%;
-    left: var(--band-side);
-    right: var(--band-side);
-    bottom: 0;
-    height: auto;
-    max-height: 24%;
-    min-height: 0;
-    padding: 0 4px 2px;
-    overflow: hidden;
-    z-index: 10;
-  }
-  .seat-bottom .seat-meta {
-    display: none;
-  }
-  .seat-bottom .seat-header {
-    margin-bottom: 1px;
-  }
-  .seat-bottom .seat-name,
-  .seat-bottom .seat-label {
-    font-size: 10px;
-  }
-  .seat-bottom .hand {
+  .hand-self,
+  .seat-zone-bottom .hand {
     gap: 1px;
     padding-top: 0;
-    overflow: hidden;
-    max-width: 100%;
-    min-height: 0;
-    justify-content: center;
   }
-  .seat-bottom .hand .tile {
+  .hand-self .tile,
+  .seat-zone-bottom .hand .tile {
     --fit-w: calc((100cqi - 4px) / 14.2);
     width: min(calc(var(--tile-w) * .9), var(--fit-w));
     height: calc(min(calc(var(--tile-w) * .9), var(--fit-w)) * 1.42);
   }
-  .seat-bottom .hand .tile-drawn {
+  .hand-self .tile-drawn,
+  .seat-zone-bottom .hand .tile-drawn {
     transform: translateY(-4px);
   }
-  .seat-bottom .hand .hand-draw-gap {
+  .hand-self .hand-draw-gap,
+  .seat-zone-bottom .hand .hand-draw-gap {
     flex-basis: 8px;
     width: 8px;
     min-width: 8px;
   }
-  .seat-bottom .hand .tile.tile-selected {
-    transform: translateY(-6px) !important;
-  }
-
-  /* —— 左右座位：两侧中部，不进上下玩家区 —— */
-  .seat-left,
-  .seat-right {
-    top: 22%;
-    bottom: 24%;
-    max-height: none;
-    overflow: hidden;
-    padding: 2px;
-    z-index: 8;
-  }
-  .seat-left {
-    left: 2px;
-    width: var(--band-side);
-  }
-  .seat-right {
-    right: 2px;
-    width: var(--band-side);
-  }
-  .seat-left .seat-meta,
-  .seat-right .seat-meta {
-    display: none;
-  }
-  .seat-left .seat-label,
-  .seat-right .seat-label,
-  .seat-left .seat-name,
-  .seat-right .seat-name {
-    font-size: 10px;
-    line-height: 1.15;
-  }
-  .seat-left .seat-status,
-  .seat-right .seat-status {
-    display: inline-block;
-    font-size: 8px;
-    padding: 1px 4px;
-  }
-  .seat-left .hand,
-  .seat-right .hand {
-    overflow: hidden;
-  }
-
-  /* —— 左右副露 + 弃牌：player-band-left/right 已分区 —— */
 
   .meld-group {
     padding: 3px;
@@ -2077,11 +1768,7 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     height: var(--meld-tw);
   }
 
-  /* 操作栏：高于中央计数器，落在自己手牌带之上 */
   .action-dock {
-    z-index: 50 !important;
-    right: 8px !important;
-    bottom: calc(24% + 6px) !important;
     max-width: min(240px, 42vw) !important;
     padding: 6px !important;
   }
@@ -2097,19 +1784,16 @@ h1{margin:0;font-size:clamp(22px,3.8vw,36px);letter-spacing:-.04em;white-space:n
     height: calc(clamp(28px, 4vh, 40px) * 1.42);
   }
 
-  .player-event-top {
-    top: 24%;
+  .ng-game-toast {
+    top: calc(50% + 40px);
+    width: min(280px, 58%);
+    min-width: 200px;
+    min-height: 60px;
+    max-height: 78px;
+    padding: 8px 10px 6px;
   }
-  .player-event-bottom {
-    bottom: calc(24% + 8px);
-  }
-  .player-event-left {
-    left: calc(var(--band-side) + var(--meld-rail) + 6px);
-    top: 49%;
-  }
-  .player-event-right {
-    right: calc(var(--band-side) + var(--meld-rail) + 6px);
-    top: 49%;
+  .ng-game-toast-text {
+    font-size: 12px;
   }
 }
 

@@ -1,3 +1,14 @@
+# v0.14.54
+
+## Seat Zone 布局重构
+
+- `table-grid` + 四 `seat-zone`：concealed / discard / meld / hand 独立 grid 行
+- 移除 player-band 与 absolute 叠层坐标；弃牌/副露 `overflow:hidden` 分区增长
+- 事件提示锚定各自 `seat-zone`
+
+- Service Worker：`nocturne-games-v59`
+
+---
 # v0.14.53
 
 ## 主流副露展示

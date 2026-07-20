@@ -99,8 +99,11 @@ function renderScores(state){
 }
 
 function renderSeat(state,player,index,handlers){
-  const seat=document.getElementById(`seat-${index}`);
-  seat.innerHTML="";
+  const infoEl=document.getElementById(`seat-${index}`);
+  const handEl=document.getElementById(`hand-${index}`);
+  if(!infoEl||!handEl)return;
+  infoEl.innerHTML="";
+  handEl.innerHTML="";
 
   const isDealer=Number.isInteger(state.dealer)&&state.dealer===index;
   const isSide=index===1||index===3;
@@ -138,12 +141,13 @@ function renderSeat(state,player,index,handlers){
       <div class="${statusClass}">${statusText}</div>
     `;
   }
-  seat.appendChild(header);
+  infoEl.appendChild(header);
 
-  const hand=document.createElement("div");
+  const hand=handEl;
   hand.className="hand";
-
+  if(index===0)hand.classList.add("hand-self");
   if(index===1)hand.classList.add("hand-vertical","hand-left");
+  if(index===2)hand.classList.add("hand-top");
   if(index===3)hand.classList.add("hand-vertical","hand-right");
 
   const dealing=state.phase==="开局"&&state.dealing===true;
@@ -198,8 +202,6 @@ function renderSeat(state,player,index,handlers){
 
     hand.appendChild(el);
   });
-
-  seat.appendChild(hand);
 
 }
 
@@ -406,6 +408,8 @@ export function showPlayerEvent(options={}){
   const table=document.querySelector(".table");
   if(!table)return;
 
+  const anchor=document.getElementById(`seat-zone-${playerIndex}`)||table;
+
   const players=options.players||[];
   const viewerIndex=Number.isInteger(options.viewerIndex)?options.viewerIndex:0;
   const defaultDuration=
@@ -484,7 +488,7 @@ export function showPlayerEvent(options={}){
     el.appendChild(score);
   }
 
-  table.appendChild(el);
+  anchor.appendChild(el);
   activePlayerEvent=el;
   activePlayerEventPriority=priority;
 
