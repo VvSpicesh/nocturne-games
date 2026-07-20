@@ -1,37 +1,30 @@
 /**
- * 副露来源方向与自家手牌展示顺序（纯函数，不写 DOM）
+ * 副露展示与自家手牌展示顺序（纯函数，不写 DOM）
  */
-
-/** 固定牌桌屏幕方位：0 下 1 左 2 上 3 右 */
-const SEAT_BEARING=[
-  {x:0,y:1},
-  {x:-1,y:0},
-  {x:0,y:-1},
-  {x:1,y:0}
-];
 
 /**
- * 相对当前视角的来源方向箭头（屏幕几何，不硬写 playerIndex）
- * @param {number} viewerSeat 当前展示副露的玩家座位 0–3
- * @param {number|null|undefined} sourceSeat 供牌 / 放炮者座位
- * @returns {"↑"|"↓"|"←"|"→"|null}
+ * 相对副露拥有者的来源位：上家左 / 对家中 / 下家右
+ * @param {number} ownerIndex
+ * @param {number} fromPlayerIndex
+ * @returns {"left"|"middle"|"right"|null}
  */
+export function getRelativeSourcePosition(ownerIndex,fromPlayerIndex){
+  if(!Number.isInteger(ownerIndex)||ownerIndex<0||ownerIndex>3)return null;
+  if(!Number.isInteger(fromPlayerIndex)||fromPlayerIndex<0||fromPlayerIndex>3)return null;
+  if(fromPlayerIndex===ownerIndex)return null;
+  const diff=(fromPlayerIndex-ownerIndex+4)%4;
+  if(diff===1)return "left";
+  if(diff===2)return "middle";
+  if(diff===3)return "right";
+  return null;
+}
+
+/** @deprecated 保留供旧测试；副露 UI 已改用来源横牌 */
 export function relativeSeatDirection(viewerSeat,sourceSeat){
-  if(!Number.isInteger(viewerSeat)||viewerSeat<0||viewerSeat>3)return null;
-  if(!Number.isInteger(sourceSeat)||sourceSeat<0||sourceSeat>3)return null;
-  if(sourceSeat===viewerSeat)return null;
-
-  const v=SEAT_BEARING[viewerSeat];
-  const s=SEAT_BEARING[sourceSeat];
-  const dx=s.x-v.x;
-  const dy=s.y-v.y;
-
-  if(Math.abs(dy)>Math.abs(dx)){
-    if(dy<0)return "↑";
-    if(dy>0)return "↓";
-  }
-  if(dx<0)return "←";
-  if(dx>0)return "→";
+  const pos=getRelativeSourcePosition(viewerSeat,sourceSeat);
+  if(pos==="left")return "←";
+  if(pos==="middle")return "↑";
+  if(pos==="right")return "→";
   return null;
 }
 
@@ -54,41 +47,101 @@ function relativeSeatName(viewerSeat,sourceSeat){
   return RELATIVE_SEAT[diff]||"";
 }
 
+function sourceSlotIndex(position,count){
+  if(position==="left")return 0;
+  if(position==="right")return Math.max(0,count-1);
+  return Math.floor((count-1)/2);
+}
+
 /**
+ * 副露牌展示计划：哪一张横放、是否显示补杠标记
  * @param {object|null|undefined} meld
- * @param {number} ownerSeat 副露所属玩家
+ * @param {number} ownerSeat
+ * @returns {{
+ *   items:{tile:object|null,isSource:boolean,face:"show"|"back"}[],
+ *   sourcePosition:"left"|"middle"|"right"|null,
+ *   badge:string|null,
+ *   title:string,
+ *   sourceLabel:string
+ * }}
  */
-export function meldDisplayInfo(meld,ownerSeat){
+export function buildMeldTilePlan(meld,ownerSeat){
   const type=String(meld?.type||"");
+  const tiles=Array.isArray(meld?.tiles)?meld.tiles:[];
   const from=normalizeMeldFrom(meld);
   const sourceLabel=from!=null?relativeSeatName(ownerSeat,from):"";
+  const title={
+    peng:"碰",
+    mingGang:"杠",
+    anGang:"暗杠",
+    buGang:"补杠"
+  }[type]||type||"副露";
 
   if(type==="anGang"){
-    return {arrow:null,badge:null,title:"暗杠",sourceLabel:""};
-  }
-  if(type==="buGang"){
     return {
-      arrow:from!=null?relativeSeatDirection(ownerSeat,from):null,
-      badge:"自摸补杠",
-      title:"补杠",
-      sourceLabel
-    };
-  }
-  if(type==="peng"||type==="mingGang"){
-    return {
-      arrow:from!=null?relativeSeatDirection(ownerSeat,from):null,
+      items:tiles.map((tile,tileIndex)=>({
+        tile,
+        isSource:false,
+        face:ownerSeat===0&&tileIndex===tiles.length-1?"show":"back"
+      })),
+      sourcePosition:null,
       badge:null,
-      title:type==="peng"?"碰":"杠",
-      sourceLabel
+      title,
+      sourceLabel:""
     };
   }
-  return {arrow:null,badge:null,title:type||"副露",sourceLabel:""};
+
+  const position=
+    (type==="peng"||type==="mingGang"||type==="buGang")&&from!=null
+      ?getRelativeSourcePosition(ownerSeat,from)
+      :null;
+
+  if(!position||tiles.length<2){
+    return {
+      items:tiles.map(tile=>({tile,isSource:false,face:"show"})),
+      sourcePosition:null,
+      badge:type==="buGang"?"补":null,
+      title,
+      sourceLabel:position?sourceLabel:""
+    };
+  }
+
+  const n=tiles.length;
+  const sourceIndex=sourceSlotIndex(position,n);
+  const pool=tiles.slice();
+  const sourceTile=pool.shift();
+  const items=[];
+  for(let i=0;i<n;i++){
+    if(i===sourceIndex)items.push({tile:sourceTile,isSource:true,face:"show"});
+    else items.push({tile:pool.shift(),isSource:false,face:"show"});
+  }
+
+  return {
+    items,
+    sourcePosition:position,
+    badge:type==="buGang"?"补":null,
+    title,
+    sourceLabel
+  };
+}
+
+/**
+ * @param {object|null|undefined} meld
+ * @param {number} ownerSeat
+ */
+export function meldDisplayInfo(meld,ownerSeat){
+  const plan=buildMeldTilePlan(meld,ownerSeat);
+  return {
+    arrow:null,
+    badge:plan.badge,
+    title:plan.title,
+    sourceLabel:plan.sourceLabel,
+    sourcePosition:plan.sourcePosition
+  };
 }
 
 /**
  * 自家手牌展示顺序：新摸牌固定最右，不参与中间视觉排序；不改变 hand 数组。
- * 有 drawnTileId 时：其余牌按原序展示 → 间隔 → 新摸牌。
- * 无 drawnTileId（打出后 / 碰杠后 / 恢复无摸牌）：整手按 hand 原序（逻辑侧已排序则视觉已整理）。
  * @param {object[]} hand
  * @param {string|null|undefined} drawnTileId
  * @returns {{tile:object,tileIndex:number,isDraw:boolean}[]}

@@ -26,8 +26,10 @@ import {defaultRules,mergeDeep,normalizeSettlementRules} from "./config.js";
 import {tileSpeechName} from "./audio.js";
 import {
   relativeSeatDirection,
+  getRelativeSourcePosition,
   normalizeMeldFrom,
   meldDisplayInfo,
+  buildMeldTilePlan,
   buildSelfHandDisplayOrder
 } from "./meld-view.js";
 
@@ -561,27 +563,52 @@ export function runRuleTests(){
     assert(pickAiMissingSuit(tiles([["w",1,5],["t",2,2],["b",3,1]]))==="b");
   });
 
-  record("MV1","副露方向箭头","相对屏幕几何",()=>{
+  record("MV1","副露来源位","上家左/对家中/下家右",()=>{
+    assert(getRelativeSourcePosition(0,1)==="left");
+    assert(getRelativeSourcePosition(0,2)==="middle");
+    assert(getRelativeSourcePosition(0,3)==="right");
+    assert(getRelativeSourcePosition(0,0)===null);
+    assert(getRelativeSourcePosition(1,2)==="left");
     assert(relativeSeatDirection(0,1)==="←");
-    assert(relativeSeatDirection(0,2)==="↑");
-    assert(relativeSeatDirection(0,3)==="→");
-    assert(relativeSeatDirection(0,0)===null);
   });
 
-  record("MV2","补杠保留来源并标注","自摸补杠 + 箭头",()=>{
-    const info=meldDisplayInfo({type:"buGang",from:2,tiles:[]},0);
-    assert(info.badge==="自摸补杠");
-    assert(info.arrow==="↑");
+  record("MV2","补杠保留来源横牌并标注","自摸补杠→补",()=>{
+    const tiles=[T("w",1,1),T("w",1,2),T("w",1,3),T("w",1,4)];
+    const plan=buildMeldTilePlan({type:"buGang",from:2,tiles},0);
+    assert(plan.badge==="补");
+    assert(plan.sourcePosition==="middle");
+    assert(plan.items.filter(i=>i.isSource).length===1);
+    assert(plan.items[1].isSource===true);
   });
 
-  record("MV3","暗杠无来源箭头","anGang",()=>{
-    const info=meldDisplayInfo({type:"anGang",from:0,tiles:[]},0);
-    assert(info.arrow===null&&info.badge===null);
+  record("MV3","暗杠无横牌","anGang",()=>{
+    const tiles=[T("t",5,1),T("t",5,2),T("t",5,3),T("t",5,4)];
+    const plan=buildMeldTilePlan({type:"anGang",from:0,tiles},0);
+    assert(plan.sourcePosition===null);
+    assert(plan.items.every(i=>!i.isSource));
+    assert(plan.badge===null);
   });
 
-  record("MV4","旧存档缺 from","normalizeMeldFrom",()=>{
+  record("MV4","旧存档缺 from","无横牌",()=>{
     assert(normalizeMeldFrom({type:"peng"})===null);
-    assert(normalizeMeldFrom({type:"peng",from:1})===1);
+    const plan=buildMeldTilePlan({type:"peng",tiles:[T("w",2,1),T("w",2,2),T("w",2,3)]},0);
+    assert(plan.sourcePosition===null);
+    assert(plan.items.every(i=>!i.isSource));
+  });
+
+  record("MV4b","碰三向来源位","left/middle/right 槽位",()=>{
+    const tiles=[T("b",3,1),T("b",3,2),T("b",3,3)];
+    assert(buildMeldTilePlan({type:"peng",from:1,tiles},0).items[0].isSource);
+    assert(buildMeldTilePlan({type:"peng",from:2,tiles},0).items[1].isSource);
+    assert(buildMeldTilePlan({type:"peng",from:3,tiles},0).items[2].isSource);
+  });
+
+  record("MV4c","直杠来源横牌","四张中一横",()=>{
+    const tiles=[T("t",9,1),T("t",9,2),T("t",9,3),T("t",9,4)];
+    const plan=buildMeldTilePlan({type:"mingGang",from:3,tiles},0);
+    assert(plan.sourcePosition==="right");
+    assert(plan.items[3].isSource);
+    assert(plan.items.filter(i=>i.isSource).length===1);
   });
 
   record("MV5","摸牌后新牌在最右侧","draw 固定最右",()=>{

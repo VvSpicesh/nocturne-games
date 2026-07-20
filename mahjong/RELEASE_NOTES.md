@@ -1,5 +1,15 @@
 # RELEASE NOTES — Nocturne Mahjong
 
+## v0.14.40
+
+**日期**：2026-07-20
+**Service Worker 缓存**：`nocturne-games-v45`
+
+### UI
+- 副露来源：横放来源牌（左/中/右），不再使用方向箭头
+
+---
+
 ## v0.14.39
 
 **日期**：2026-07-20

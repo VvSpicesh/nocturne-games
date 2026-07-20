@@ -22,7 +22,7 @@ DOM、定缺弹窗、非法出牌样式、胡牌/终局明细（含花猪）。
 自家手牌展示：调用 `meld-view.js` 的 `buildSelfHandDisplayOrder`，新摸牌（`drawnTileId`）固定**最右侧**并与已整理手牌留间隔；不改 `hand` 数组顺序。
 
 ### `meld-view.js`
-纯函数：副露来源方向箭头、`meldDisplayInfo`、自家摸牌展示顺序。
+纯函数：副露来源横牌位（`getRelativeSourcePosition` / `buildMeldTilePlan`）、自家摸牌展示顺序。
 
 ### `tiles.js`
 牌名与 SVG 牌面（**本轮禁止修改**）。

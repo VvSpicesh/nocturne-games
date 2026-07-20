@@ -1,6 +1,6 @@
 import {tileFace,tileName} from "./tiles.js?v=0.14.24";
 import {getLegalDiscardIndexes,SUIT_LABEL} from "./rules-guard.js";
-import {buildSelfHandDisplayOrder,meldDisplayInfo} from "./meld-view.js?v=0.14.39";
+import {buildSelfHandDisplayOrder,buildMeldTilePlan} from "./meld-view.js?v=0.14.40";
 
 const SEAT_LABELS=["自己","上家","对家","下家"];
 
@@ -194,40 +194,33 @@ export function renderMelds(state){
     if(!player)continue;
 
     (player.melds||[]).forEach(meld=>{
-      const meta=meldDisplayInfo(meld,index);
+      const plan=buildMeldTilePlan(meld,index);
       const group=document.createElement("div");
       group.className="meld-group"+(meld.type==="anGang"?" meld-group-angang":"");
-      group.title=meta.badge?`${meta.title} · ${meta.badge}`:meta.title;
-      if(meta.sourceLabel)group.title+=` · ${meta.sourceLabel}`;
-
-      if(meta.arrow){
-        const arrow=document.createElement("span");
-        arrow.className="meld-source-arrow";
-        arrow.textContent=meta.arrow;
-        arrow.setAttribute("aria-hidden","true");
-        if(meta.sourceLabel)arrow.title=meta.sourceLabel;
-        group.appendChild(arrow);
+      if(plan.sourcePosition){
+        group.classList.add(`meld-source-${plan.sourcePosition}`);
       }
-      if(meta.badge){
+      group.title=plan.badge?`${plan.title} · ${plan.badge}`:plan.title;
+      if(plan.sourceLabel)group.title+=` · ${plan.sourceLabel}`;
+
+      if(plan.badge){
         const badge=document.createElement("span");
         badge.className="meld-badge";
-        badge.textContent=meta.badge;
+        badge.textContent=plan.badge;
         group.appendChild(badge);
       }
 
-      const tiles=meld.tiles||[];
-      tiles.forEach((tile,tileIndex)=>{
-        /* 暗杠：他家全牌背；自家露一张让自己认得 */
-        if(meld.type==="anGang"){
-          const showFace=index===0&&tileIndex===tiles.length-1;
-          group.appendChild(
-            showFace
-              ?createTileElement(tile,"tile-small")
-              :createTileElement(null,"tile-small")
-          );
-        }else{
-          group.appendChild(createTileElement(tile,"tile-small"));
-        }
+      plan.items.forEach(item=>{
+        const slot=document.createElement("div");
+        slot.className="meld-tile";
+        if(item.isSource)slot.classList.add("meld-tile-source");
+
+        const tileEl=
+          item.face==="back"
+            ?createTileElement(null,"tile-small")
+            :createTileElement(item.tile,"tile-small");
+        slot.appendChild(tileEl);
+        group.appendChild(slot);
       });
 
       zone.appendChild(group);

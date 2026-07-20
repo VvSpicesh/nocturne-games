@@ -1,5 +1,13 @@
 # RELEASE NOTES
 
+## Platform v0.14.40
+
+**Service Worker**：`nocturne-games-v45`
+
+- 麻将副露来源改为横放来源牌（取消箭头）
+
+---
+
 ## Platform v0.14.39
 
 **Service Worker**：`nocturne-games-v44`
