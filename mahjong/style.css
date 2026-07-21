@@ -721,6 +721,44 @@ body.layout-debug .seat-local .event-anchor:empty::after{
 .stats span{display:block;font-size:9px;color:var(--muted)}
 .stats strong{display:block;margin-top:3px;font-size:14px}
 .actions{font-size:12px;color:var(--muted);line-height:1.6}
+.card-waiting-tiles{grid-column:1/-1}
+.waiting-tiles-panel{min-height:42px}
+.waiting-tiles-grid{
+  display:flex;flex-wrap:wrap;gap:5px;align-items:center
+}
+.waiting-tiles-hint{
+  margin:0;font-size:12px;color:var(--muted);line-height:1.5
+}
+.waiting-tile-wrap{flex:0 0 auto;line-height:0}
+.tile-waiting,
+.waiting-tile-wrap .tile{
+  width:calc(var(--tile-w)*.58);
+  height:calc(var(--tile-h)*.58);
+  cursor:default;margin:0
+}
+.seat-name-row{
+  display:flex;flex-wrap:wrap;align-items:center;gap:5px 8px;min-width:0
+}
+.seat-missing-suit{
+  display:flex;justify-content:center;width:100%;margin-top:2px
+}
+.missing-suit-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;max-width:100%;
+  padding:3px 10px;border-radius:999px;
+  font-size:clamp(14px,2.6vw,18px);font-weight:850;line-height:1.25;
+  color:#f6e6b4;
+  background:rgba(8,42,30,.94);
+  border:1px solid rgba(212,175,55,.58);
+  box-shadow:0 2px 8px rgba(0,0,0,.22);
+  white-space:nowrap
+}
+.missing-suit-badge-pending{
+  color:#d8eadf;
+  border-color:rgba(255,255,255,.22);
+  background:rgba(255,255,255,.08);
+  font-weight:800
+}
 .card-log,.note,.card-score{grid-column:1/-1}
 .log{height:160px;overflow:auto;font-size:11px;line-height:1.6;color:#d5e8dc}
 .log p{margin:0;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)}
@@ -1949,6 +1987,17 @@ body.layout-debug .seat-local .event-anchor:empty::after{
   }
   .seat-top .seat-meta {
     display: none;
+  }
+  .seat-top .seat-missing-suit,
+  .seat-bottom .seat-missing-suit{
+    margin-top:1px
+  }
+  .seat-top .missing-suit-badge,
+  .seat-bottom .missing-suit-badge,
+  .seat-left .missing-suit-badge,
+  .seat-right .missing-suit-badge{
+    font-size:clamp(14px,2.2vw,16px);
+    padding:2px 8px
   }
   .seat-top .seat-header {
     margin-bottom: 1px;

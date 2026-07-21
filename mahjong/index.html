@@ -6,16 +6,16 @@
   <meta name="theme-color" content="#0b251b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Nocturne Mahjong v0.14.70</title>
+  <title>Nocturne Mahjong v0.15.0</title>
   <link rel="manifest" href="../manifest.webmanifest">
   <link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
   <link rel="stylesheet" href="../shared/base.css?v=0.15.2">
-  <link rel="stylesheet" href="./style.css?v=0.14.70">
+  <link rel="stylesheet" href="./style.css?v=0.15.0">
   <script type="importmap">
   {
     "imports": {
-      "./render.js": "./render.js?v=0.14.83",
+      "./render.js": "./render.js?v=0.15.0",
       "./tiles.js": "./tiles.js?v=0.14.49",
       "./storage.js": "./storage.js?v=0.14.24",
       "./config.js": "./config.js?v=0.14.34",
@@ -144,6 +144,14 @@
             <span>玩家</span><span>总分</span><span>本局</span>
           </div>
           <div id="scoreBoard" class="score-board"></div>
+        </section>
+
+        <section class="card card-waiting-tiles">
+          <h2>叫牌提示</h2>
+          <div id="waitingTilesPanel" class="waiting-tiles-panel">
+            <div id="waitingTiles" class="waiting-tiles-grid" aria-live="polite"></div>
+            <p id="waitingTilesHint" class="waiting-tiles-hint">暂无</p>
+          </div>
         </section>
 
         <section class="card">
@@ -296,7 +304,7 @@
 
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="./game.js?v=0.14.70"></script>
+  <script type="module" src="./game.js?v=0.15.0"></script>
   <script type="module" src="../shared/pwa.js"></script>
 </body>
 </html>

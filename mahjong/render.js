@@ -1,5 +1,7 @@
 import {tileFace,tileName,tileDisplayName} from "./tiles.js?v=0.14.49";
-import {getLegalDiscardIndexes,SUIT_LABEL} from "./rules-guard.js";
+import {getLegalDiscardIndexes,SUIT_LABEL,hasMissingSuit} from "./rules-guard.js";
+import {getReadyHandInfo} from "./hu.js";
+import {collectVisibleTilesForReady} from "./score.js";
 import {buildSelfHandDisplayOrder,buildMeldTilePlan} from "./meld-view.js?v=0.14.64";
 import {
   RELATIVE_SEAT_LABELS,
@@ -22,6 +24,84 @@ const EVENT_PRIORITY={
 function seatDisplayName(index,name,players){
   if(players)return getPlayerDisplayName(index,0,players);
   return isValidPlayerName(name)?name.trim():SEAT_LABELS[index];
+}
+
+const WAITING_TILE_PHASES=new Set(["摸牌","出牌","等待操作"]);
+const SUIT_SORT={w:0,t:1,b:2};
+
+function missingSuitBadgeHtml(player){
+  if(!player?.missingSuit){
+    return '<span class="missing-suit-badge missing-suit-badge-pending">未定缺</span>';
+  }
+  const label=SUIT_LABEL[player.missingSuit];
+  return `<span class="missing-suit-badge" aria-label="定缺${label}">缺${label}</span>`;
+}
+
+function seatMetaHtml(player,showMelds){
+  const parts=[`${player.hand.length}张`];
+  if(showMelds&&player.melds.length)parts.push(`碰/杠×${player.melds.length}`);
+  return parts.join(" · ");
+}
+
+function sortWaitingTiles(tiles){
+  return [...tiles].sort((a,b)=>
+    (SUIT_SORT[a.s]-SUIT_SORT[b.s])||(a.n-b.n)
+  );
+}
+
+/** 听牌计算用手牌：有摸牌标记时排除新摸牌；否则 3n+2 张时去掉一张 */
+function handForWaitingTiles(player,drawnTileId){
+  let hand=player?.hand||[];
+  if(drawnTileId){
+    const filtered=hand.filter(tile=>tile?.id!==drawnTileId);
+    if(filtered.length<hand.length)hand=filtered;
+  }else if(hand.length%3===2){
+    hand=hand.slice(0,-1);
+  }
+  return hand;
+}
+
+function renderWaitingTiles(state){
+  const grid=document.getElementById("waitingTiles");
+  const hint=document.getElementById("waitingTilesHint");
+  if(!grid||!hint)return;
+
+  grid.innerHTML="";
+  const player=state.players?.[0];
+  if(!player||player.won||!WAITING_TILE_PHASES.has(state.phase)){
+    hint.hidden=false;
+    hint.textContent="暂无";
+    return;
+  }
+
+  if(hasMissingSuit(player)){
+    hint.hidden=false;
+    hint.textContent="未下叫（缺门）";
+    return;
+  }
+
+  const trialPlayer={
+    ...player,
+    hand:handForWaitingTiles(player,state.drawnTileId)
+  };
+  const visible=collectVisibleTilesForReady(state,0);
+  const ready=getReadyHandInfo(trialPlayer,visible,state.activeRules);
+  const waiting=sortWaitingTiles(ready.waitingTiles||[]);
+
+  if(!waiting.length){
+    hint.hidden=false;
+    hint.textContent="暂无";
+    return;
+  }
+
+  hint.hidden=true;
+  waiting.forEach(tile=>{
+    const wrap=document.createElement("div");
+    wrap.className="waiting-tile-wrap";
+    wrap.title=tileName(tile);
+    wrap.appendChild(createTileElement(tile,"tile-waiting"));
+    grid.appendChild(wrap);
+  });
 }
 
 function wait(ms){
@@ -83,6 +163,7 @@ export function renderGame(state,handlers){
   // 容量/边界依赖副露真实矩形，必须在 meld + seat-layout 之后再算
   applyAllDiscardLayouts();
   renderActions(state);
+  renderWaitingTiles(state);
   renderScores(state);
 }
 
@@ -135,7 +216,8 @@ function renderSeat(state,player,index,handlers){
         <div class="seat-text">
           <div class="seat-label">${SEAT_LABELS[index]}</div>
           ${nameLine}
-          <div class="seat-meta">${player.hand.length}张${player.missingSuit?` · 缺${SUIT_LABEL[player.missingSuit]}`:""}</div>
+          <div class="seat-missing-suit">${missingSuitBadgeHtml(player)}</div>
+          <div class="seat-meta">${seatMetaHtml(player,false)}</div>
           <div class="${statusClass}">${statusText}</div>
         </div>
       </div>
@@ -146,8 +228,11 @@ function renderSeat(state,player,index,handlers){
       <div class="seat-id">
         <span class="seat-avatar" aria-hidden="true">${avatar}</span>
         <div class="seat-text">
-          <div class="seat-name">${SEAT_LABELS[index]}${namePart}${dealerBadge}</div>
-          <div class="seat-meta">${player.hand.length}张${player.missingSuit?` · 缺${SUIT_LABEL[player.missingSuit]}`:""}${player.melds.length?` · 碰/杠×${player.melds.length}`:""}</div>
+          <div class="seat-name-row">
+            <div class="seat-name">${SEAT_LABELS[index]}${namePart}${dealerBadge}</div>
+            ${missingSuitBadgeHtml(player)}
+          </div>
+          <div class="seat-meta">${seatMetaHtml(player,true)}</div>
         </div>
       </div>
       <div class="${statusClass}">${statusText}</div>

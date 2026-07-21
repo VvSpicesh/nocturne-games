@@ -1,3 +1,18 @@
+# v0.15.0
+
+## 叫牌提示
+
+- 右侧栏「叫牌提示」：复用 `getReadyHandInfo` / `canPlayerWin`，摸牌后自动排除 `drawnTileId`
+- 有缺门显示「未下叫（缺门）」；无叫显示「暂无」；有叫显示牌面小图
+
+## 定缺标签放大
+
+- 四家统一 `missing-suit-badge`：缺万 / 缺条 / 缺筒 / 未定缺
+- 与「13张」等 meta 分离；手机至少 14px，桌面 16～18px
+
+- Service Worker：`nocturne-games-v91`
+
+---
 # v0.14.70
 
 ## 两层杠 z-index
