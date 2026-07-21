@@ -62,23 +62,16 @@ function handForWaitingTiles(player,drawnTileId){
 }
 
 function renderWaitingTiles(state){
-  const grid=document.getElementById("waitingTiles");
-  const hint=document.getElementById("waitingTilesHint");
-  if(!grid||!hint)return;
+  const root=document.getElementById("readyHintInline");
+  const grid=document.getElementById("readyHintTiles");
+  if(!root||!grid)return;
 
   grid.innerHTML="";
-  const player=state.players?.[0];
-  if(!player||player.won||!WAITING_TILE_PHASES.has(state.phase)){
-    hint.hidden=false;
-    hint.textContent="暂无";
-    return;
-  }
+  root.hidden=true;
 
-  if(hasMissingSuit(player)){
-    hint.hidden=false;
-    hint.textContent="未下叫（缺门）";
-    return;
-  }
+  const player=state.players?.[0];
+  if(!player||player.won||!WAITING_TILE_PHASES.has(state.phase))return;
+  if(hasMissingSuit(player))return;
 
   const trialPlayer={
     ...player,
@@ -87,19 +80,14 @@ function renderWaitingTiles(state){
   const visible=collectVisibleTilesForReady(state,0);
   const ready=getReadyHandInfo(trialPlayer,visible,state.activeRules);
   const waiting=sortWaitingTiles(ready.waitingTiles||[]);
+  if(!waiting.length)return;
 
-  if(!waiting.length){
-    hint.hidden=false;
-    hint.textContent="暂无";
-    return;
-  }
-
-  hint.hidden=true;
+  root.hidden=false;
   waiting.forEach(tile=>{
     const wrap=document.createElement("div");
-    wrap.className="waiting-tile-wrap";
+    wrap.className="ready-hint-tile-wrap";
     wrap.title=tileName(tile);
-    wrap.appendChild(createTileElement(tile,"tile-waiting"));
+    wrap.appendChild(createTileElement(tile,"tile-small"));
     grid.appendChild(wrap);
   });
 }
@@ -206,7 +194,22 @@ function renderSeat(state,player,index,handlers){
   const statusClass=player.won?"seat-status seat-status-won":"seat-status seat-status-play";
   const statusText=player.won?"已胡":"进行中";
   const dealerBadge=isDealer?'<span class="dealer-badge">庄</span>':"";
-  if(isSide){
+  if(index===2){
+    const namePart=player.name?` ${player.name}`:"";
+    header.className="seat-header seat-header-top";
+    header.innerHTML=`
+      <div class="seat-id">
+        <span class="seat-avatar" aria-hidden="true">${avatar}</span>
+        <div class="seat-text">
+          <div class="seat-name-row seat-name-row-top">
+            <div class="seat-name">${SEAT_LABELS[index]}${namePart}${dealerBadge}</div>
+            ${missingSuitBadgeHtml(player)}
+          </div>
+          <div class="seat-meta-top">${seatMetaHtml(player,true)} · ${statusText}</div>
+        </div>
+      </div>
+    `;
+  }else if(isSide){
     const nameLine=player.name
       ?`<div class="seat-name">${player.name}${dealerBadge}</div>`
       :(dealerBadge?`<div class="seat-name">${dealerBadge}</div>`:"");
