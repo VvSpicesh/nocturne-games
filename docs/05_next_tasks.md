@@ -1,9 +1,10 @@
 # 下一步任务（Next Tasks）
 
-更新日期：2026-07-23
+更新日期：2026-08-03
 
 ## 1. 当前最高优先级
 
+- [ ] **换机落地**：新电脑 `git pull` / clone → `python scripts/verify.py` → `VERIFY OK`
 - [ ] 真机验收普通手机横屏（667×375 / 740×360 / 780×360 / 844×390）：副露同尺寸、暗杠四张、无左右侵入手牌区、选中上浮不裁切
 - [ ] 确认 GitHub Pages 已更新到麻将 v0.15.24 / SW `nocturne-games-v115`
 - [ ] 新会话开发前先跑通 `python scripts/verify.py`

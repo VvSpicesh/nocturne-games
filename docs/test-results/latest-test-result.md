@@ -2,29 +2,21 @@
 
 ## 1. 日期
 
-2026-07-23
+2026-08-03
 
 ## 2. 本次任务
 
-建立跨电脑 / 跨会话交接与自动测试工作流（文档 + Cursor 规则 + verify 脚本），不改业务玩法。
+换电脑前更新交接文档（handoff / next_tasks），确认 `main` 可交接，并运行 verify。
 
 ## 3. 修改文件
 
-- `.cursor/rules/development-workflow.mdc`（新增）
-- `.cursor/rules/nocturne-games-guide.mdc`（补充收工/记忆要点）
-- `docs/00_project_handoff.md`（新增）
-- `docs/04_decisions.md`（新增）
-- `docs/05_next_tasks.md`（新增）
+- `docs/00_project_handoff.md`（换机基线 Snapshot + 首次 clone 流程）
+- `docs/05_next_tasks.md`（换机落地优先级）
 - `docs/test-results/latest-test-result.md`（本文件）
-- `scripts/verify.py` / `verify.mjs` / `verify.ps1` / `verify.sh`
-- `scripts/run-mahjong-rule-tests.mjs` / `strip-query-loader.mjs` / `node-dom-shim.mjs`
-- `README.md` / `AGENTS.md`
 
 ## 4. 新增/修改测试
 
-- 新增 headless 运行器：将既有 `mahjong/rule-tests.js` 纳入 `python scripts/verify.py`
-- 新增 smoke：关键文件存在性 + `service-worker.js` PRECACHE 落盘检查
-- 未新增 E2E（Guide 禁 npm；记入 next_tasks）
+- 无业务测试变更；复跑既有 `python scripts/verify.py`
 
 ## 5. 执行命令
 
@@ -32,15 +24,13 @@
 python scripts/verify.py
 ```
 
-（本机 Node：Cursor helper `node.exe` v22.22.1）
-
 ## 6. 执行结果
 
 **VERIFY OK**
 
-- smoke：PASS（含 handoff / workflow 规则文件）
-- SW precache：PASS（98 entries，`nocturne-games-v115`）
-- mahjong rule-tests：`passed=86 failed=0 blocked=3 ok=true`
+- smoke：PASS
+- SW precache：PASS（`nocturne-games-v115`，98 entries）
+- mahjong rule-tests：PASS（既有套件；blocked UI 项仍属人工）
 
 ## 7. 失败项
 
@@ -48,11 +38,10 @@ python scripts/verify.py
 
 ## 8. 修复内容
 
-- 为 Node 加载浏览器模块增加 `strip-query-loader.mjs`（去掉 `?v=`）与 `node-dom-shim.mjs`（`window` / `localStorage`）
-- verify 入口以 Python 为主，避免强依赖 PATH 中的 `node` 命令名
+无代码修复；仅文档与交接基线更新。
 
 ## 9. 剩余风险
 
-- UI1 / UI2 / UI3 仍为 blocked（人工）
-- lint / typecheck / e2e / bundler build 按设计 SKIP
-- 其他电脑若无 Python 或无 Node，需按 `docs/00_project_handoff.md` 补齐环境
+- 新电脑若 PATH 无 Python / Node，需先补环境
+- UI / 横屏 / PWA 仍需真机人工验收
+- 换机后勿依赖旧电脑 Cursor 聊天记录

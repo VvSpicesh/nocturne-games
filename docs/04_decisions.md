@@ -57,3 +57,10 @@
 - [ ] compact-landscape 分区百分比是否需按更多机型微调（`--top-zone-height` 等）
 - [ ] 是否引入无依赖的轻量 E2E（仍避免 npm 的话可选 Playwright 系统安装版，或维持人工）
 - [ ] `game.js` 拆分 `ai.js` 的时机与边界
+
+---
+
+### 2026-08-03 — 换机以 Git docs + verify 为准
+- **决策**：换电脑不依赖聊天记录；先读 `docs/00_project_handoff.md` 再 `python scripts/verify.py`。
+- **原因**：跨设备 / 跨会话连续性。
+- **影响**：新会话启动流程、README「换电脑继续开发」。

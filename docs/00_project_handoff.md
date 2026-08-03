@@ -2,7 +2,23 @@
 
 > **Cursor 聊天记录不是项目记忆。** 换电脑 / 新会话时以本文件与 `docs/`、`.cursor/rules/` 为准。
 
-更新日期：2026-07-23
+更新日期：2026-08-03
+
+## 0. 换机基线（Snapshot）
+
+| 项 | 值 |
+|---|---|
+| 远程仓库 | https://github.com/VvSpicesh/nocturne-games.git |
+| 分支 | `main` |
+| 基线提交 | `db8d3bb`（handoff + verify 已入库）及其后本文件更新提交 |
+| 麻将版本 | **v0.15.24** |
+| SW CACHE | `nocturne-games-v115` |
+| 正式站点 | https://vvspicesh.github.io/nocturne-games/ |
+| 麻将页 | https://vvspicesh.github.io/nocturne-games/mahjong/ |
+| 统一校验 | `python scripts/verify.py` → 应 `VERIFY OK` |
+| 无需 | `npm install`（禁止业务 npm） |
+
+换机后第一句话优先让 Cursor 读：`docs/00_project_handoff.md`、`docs/04_decisions.md`、`docs/05_next_tasks.md`、`.cursor/rules/*.mdc`，然后跑 verify。
 
 ## 1. 项目定位
 
@@ -15,6 +31,7 @@ Nocturne Games：长期维护的**纯前端**游戏平台（大厅 + 国际象�
 - 平台：PWA 可用（`nocturne-games-v115`）
 - 象棋：Stable 可玩
 - 麻将：血战到底家庭大字版，版本 **v0.15.24**（横屏布局 / 事件提示 / 暗杠显示持续打磨）
+- 工程：跨会话交接文档 + `scripts/verify.py` 已就绪
 
 ## 3. 已完成内容（摘要）
 
@@ -92,13 +109,31 @@ python scripts/verify.py
 
 ## 11. 换电脑继续开发流程
 
-1. `git clone` 或 `git pull --rebase origin main`
-2. 无需 `npm install`（无 package.json 业务依赖）
-3. 安装 **Python 3**（本地 server + verify）
-4. 安装 **Node.js LTS**（推荐；用于规则单测）。若使用 Cursor，也可自动找到 Cursor 自带 `node.exe`
-5. `python scripts/verify.py` 应输出 `VERIFY OK`
-6. 打开 Cursor，确认已加载 `.cursor/rules/`（alwaysApply）
-7. 先读文档再改代码；重要结论写回 docs
+### A. 新电脑首次
+
+```bash
+git clone https://github.com/VvSpicesh/nocturne-games.git
+cd nocturne-games
+git checkout main
+git pull --rebase origin main
+```
+
+1. 安装 **Python 3**（`python -m http.server` + `scripts/verify.py`）
+2. 建议安装 **Node.js LTS**（规则单测）。仅装 Cursor 时，verify 也可尝试使用 Cursor 自带 `node.exe`
+3. **不要** `npm install`
+4. `python scripts/verify.py` → `VERIFY OK`
+5. 用 Cursor 打开本仓库根目录；确认 `.cursor/rules/` alwaysApply 已生效
+6. 先读文档（handoff / decisions / next_tasks / Guide），再改代码
+7. 重要结论写入 `docs/`，不要依赖聊天记录
+
+### B. 本地试玩
+
+```bash
+python -m http.server 8080
+```
+
+- 大厅：http://localhost:8080/
+- 麻将：http://localhost:8080/mahjong/
 
 ## 12. 当前已知风险
 
