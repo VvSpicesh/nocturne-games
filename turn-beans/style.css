@@ -1,0 +1,114 @@
+:root {color-scheme:light;--bg:#f7f2e9;--card:#fffcf7;--ink:#34332f;--muted:#817d73;--border:#e3d9c9;--accent:#405f67;--cell:30px;font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+* {box-sizing:border-box}
+[hidden] {display:none!important}
+body {background:var(--bg);color:var(--ink);margin:0;min-height:100dvh}
+button,a {font:inherit} button {cursor:pointer;touch-action:manipulation}
+button:focus-visible,a:focus-visible {outline:3px solid #648f9a;outline-offset:2px}
+button:disabled {opacity:.4;cursor:default}
+.game {max-width:690px;margin:0 auto;padding:12px 16px calc(18px + env(safe-area-inset-bottom))}
+.topbar {display:flex;align-items:center;justify-content:space-between;height:40px;gap:12px}
+.topbar h1 {font-size:19px;letter-spacing:.12em;margin:0}
+.back {text-decoration:none;color:var(--ink);font-size:20px;white-space:nowrap}.back span {font-size:12px}
+.text-button {border:1px solid var(--border);border-radius:20px;background:var(--card);padding:7px 13px;font-size:13px}
+.home-intro {padding:24px 2px 12px}.home-intro h2 {font-size:23px;margin:0 0 5px}.home-intro p {margin:0;color:var(--muted);font-size:13px}
+.level-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
+.level-card {min-width:0;padding:12px;display:flex;flex-direction:column;text-align:left;gap:5px;background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:0 4px 18px #6554410a;transition:transform .15s,border-color .15s}
+.level-card:active {transform:scale(.98)}.level-card:focus-visible {border-color:var(--accent)}
+.level-card strong {font-size:14px}.level-card small {font-size:11px;color:var(--muted)}
+.level-thumb {--thumb-cols:10;display:grid;grid-template-columns:repeat(var(--thumb-cols),1fr);gap:1px;width:100%;aspect-ratio:1;background:#eae1d1;border-radius:11px;padding:9px;margin-bottom:4px;overflow:hidden;align-content:center}
+.thumbnail-dot {border-radius:50%;aspect-ratio:1;background:var(--dot);min-width:0;box-shadow:inset -1px -1px 2px #0001}
+.heading {display:flex;align-items:center;justify-content:space-between;margin:13px 0 12px}
+.eyebrow {font-size:12px;color:var(--muted);margin:0 0 2px}h2 {font-size:20px;margin:0}
+.step {display:flex;align-items:baseline;gap:9px;background:var(--card);border:1px solid var(--border);padding:9px 14px;border-radius:12px}.step span {font-size:12px;color:var(--muted)}.step strong {font-size:20px;font-variant-numeric:tabular-nums}
+.work-area,.trays {background:var(--card);border:1px solid var(--border);border-radius:20px;padding:12px;margin-bottom:12px}
+.board-heading,.tray-heading {display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px}
+.board-heading span:last-child,.tray-heading small {color:var(--muted);font-size:11px}
+.board-viewport {background:#e9e1d3;border-radius:15px;min-height:260px;max-height:min(55vh,540px);overflow:auto;position:relative;display:flex;align-items:flex-start;justify-content:safe center;padding:16px;touch-action:pan-x pan-y;overscroll-behavior:contain}
+.board {display:grid;grid-template-columns:repeat(var(--columns),var(--cell));gap:2px;width:max-content;flex:none;margin:auto;box-shadow:0 5px 20px #8e82701e;border-radius:6px}
+.cell {border:0;padding:0;width:var(--cell);height:var(--cell);border-radius:3px;background:var(--base);display:flex;align-items:center;justify-content:center;position:relative;touch-action:manipulation}
+.cell:not(:disabled):active {filter:brightness(.91)}
+.cell.inactive {visibility:hidden}.interaction-locked {pointer-events:none}
+.bean,.flying-bean {display:block;border-radius:50%;background:var(--bean);border:1px solid #00000021;box-shadow:inset -3px -3px 3px #00000019,inset 2px 2px 3px #ffffff88,0 1px 2px #00000020}
+.bean {width:79%;height:79%}.cell.empty::after {content:"";width:55%;height:55%;border:1px dashed #00000040;border-radius:50%;background:#00000008}
+.cell:focus-visible {z-index:1}
+.preview-cover {position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding-top:7px;font-size:12px;letter-spacing:.08em;color:#34332f;background:#f2e6d087;pointer-events:none;font-weight:bold}
+.preview-cover.hidden {display:none}
+.zoom-bar {display:flex;gap:6px;align-items:center;margin-top:10px}.zoom-bar .hint {flex:1;font-size:11px;color:var(--muted)}
+.zoom-bar button {border:1px solid var(--border);background:var(--bg);width:31px;height:29px;border-radius:9px}.zoom-bar span:not(.hint) {font-size:11px;min-width:42px;text-align:center}
+.tray-list {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.tray {min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:7px 2px 9px;border-radius:16px;background:var(--bg);border:1px solid var(--border)}
+.tray-label {font-size:11px;font-weight:600}
+.tray-circle {--orbit:43%;width:min(100%,175px);aspect-ratio:1;border-radius:50%;position:relative;background:radial-gradient(circle at 34% 26%,#fffbf4,#e5dace);border:2px solid #ccbba5;box-shadow:inset 0 2px 6px #00000017,0 2px 4px #0000000a}
+.tray-bean {position:absolute;left:50%;top:50%;width:11%;aspect-ratio:1;border-radius:50%;background:#c6b8a4;border:1px solid #998f7b55;transform:translate(-50%,-50%)}
+.tray-bean.filled {background:var(--bean);box-shadow:inset -2px -2px 2px #00000022,inset 1px 1px 2px #ffffff99}
+.tray-center {position:absolute;inset:32%;border-radius:50%;background:#fffaf0a8;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.tray-center strong {font-variant-numeric:tabular-nums;font-size:12px}.tray-center small {font-size:9px;color:var(--muted);white-space:nowrap}
+.actions,.complete-actions {display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.actions button,.complete-actions button {border-radius:13px;min-height:43px;border:1px solid var(--border);background:var(--card);font-weight:600;font-size:14px}
+.actions .primary,.complete-actions .primary {background:var(--accent);color:#fff;border-color:var(--accent)}
+.message {min-height:19px;color:#665f56;font-size:12px;text-align:center;margin:11px 0 0}
+.complete-panel {padding:22px 4px 9px;text-align:center}
+.complete-panel h2 {font-size:22px}.complete-panel p {font-size:13px;color:var(--muted);margin:7px 0 19px}
+.bean-flight-layer {position:fixed;inset:0;z-index:999;pointer-events:none;overflow:hidden}
+.flying-bean {position:absolute;width:18px;height:18px;will-change:transform;pointer-events:none}
+@media(max-width:400px){.game{padding-inline:10px}.work-area,.trays{padding:10px}.board-viewport{padding:8px;min-height:220px}.tray-list{gap:5px}.tray{padding:5px 2px}.tray-center strong{font-size:10px}.tray-center small{font-size:8px}}
+@media(min-width:650px){.level-cards{grid-template-columns:repeat(3,minmax(0,1fr))}.tray-circle{max-width:165px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+/* Phase 6: gesture zoom and compact desktop fit. */
+.board-viewport { touch-action:none; min-height:0; min-width:0; }
+.board .cell { touch-action:none; }
+.zoom-bar {justify-content:space-between}
+.zoom-bar .hint {flex:1;min-width:0}
+.zoom-bar #zoomLabel {white-space:nowrap;min-width:40px;text-align:right}
+.complete-actions {grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(min-width:700px) and (min-height:620px){
+  html,body {height:100%;overflow:hidden}
+  .game {height:100dvh;max-width:980px;padding:8px 14px;display:flex;flex-direction:column;min-height:0}
+  .topbar {height:34px;flex:none}
+  #playScreen:not([hidden]) {display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .heading {margin:6px 0;flex:none}
+  .heading h2 {font-size:16px}
+  .step {padding:5px 10px}
+  .work-area {min-height:0;flex:1;display:flex;flex-direction:column;padding:7px 10px;margin-bottom:7px}
+  .board-heading {margin-bottom:5px;flex:none}
+  .board-viewport {flex:1;max-height:none;min-height:0;padding:10px}
+  .zoom-bar {margin-top:5px;flex:none}
+  .trays {flex:none;padding:5px 10px;margin-bottom:7px}
+  .tray-heading {margin-bottom:4px}
+  .tray-list {gap:10px}
+  .tray {flex-direction:row;justify-content:center;gap:10px;padding:4px 8px}
+  .tray-label {font-size:11px;max-width:45px}
+  .tray-circle {width:min(11vh,104px);min-width:65px}
+  .tray-center strong {font-size:11px}
+  .actions {flex:none}
+  .actions button {min-height:34px}
+  .message {flex:none;min-height:16px;margin:4px 0 0}
+  .complete-panel {padding:8px 4px;flex:none}
+  .complete-panel h2 {font-size:17px}
+  .complete-panel p {margin:2px 0 6px}
+  .complete-panel button {min-height:36px}
+  .level-home {overflow:auto;min-height:0}
+}
+@media(max-width:410px){.complete-actions button {font-size:12px;padding:5px 2px}}
+
+/* Phase 7: the artwork consists of round beads only, without square tiles. */
+.topbar-actions {display:flex;align-items:center;gap:6px}
+.topbar-actions .text-button {padding:6px 9px;font-size:12px;white-space:nowrap}
+.board {box-shadow:none;background:transparent;border-radius:0}
+.board .cell {background:transparent!important;border-radius:0}
+.board .cell:not(.inactive)::before {content:'';position:absolute;width:89%;height:89%;border-radius:50%;background:var(--base);opacity:.8}
+.board .cell .bean {position:relative;z-index:1}
+.board .cell.empty::after {border:1px dashed var(--base);background:transparent;opacity:.65}
+.board .cell.inactive {visibility:hidden;pointer-events:none}
+.level-thumb {background:transparent;border-radius:0;padding:5px}
+.level-thumb .thumbnail-dot.inactive {background:transparent!important;box-shadow:none}
+.board-viewport {background:transparent}
+.preview-cover {display:none!important}
+@media(max-width:410px){.topbar-actions .text-button{padding:5px 6px;font-size:11px}}
+
+/* Hall navigation and zoomed board mouse panning */
+.hall-home-link {display:inline-block;margin-top:11px;padding:6px 10px;border:1px solid var(--border);border-radius:12px;color:var(--accent);font-size:12px;text-decoration:none;background:var(--card)}
+.hall-home-link:focus-visible {outline:3px solid #648f9a;outline-offset:2px}
+.board-viewport.can-drag {cursor:grab}
+.board-viewport.is-dragging {cursor:grabbing;user-select:none;-webkit-user-select:none}
+.board-viewport.is-dragging .cell {cursor:grabbing}

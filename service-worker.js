@@ -1,5 +1,5 @@
 /* Nocturne Games Service Worker — bump CACHE when precache list or SW logic changes */
-const CACHE = "nocturne-games-v115";
+const CACHE = "nocturne-games-v116";
 
 /** Absolute URLs relative to this SW script (repo root under GitHub Pages). */
 const PRECACHE = [
@@ -8,6 +8,7 @@ const PRECACHE = [
   "./manifest.webmanifest",
   "./shared/base.css",
   "./shared/base.css?v=0.15.2",
+  "./shared/base.css?v=0.15.3",
   "./shared/app.js",
   "./shared/app.js?v=0.15.1",
   "./shared/header.js",
@@ -18,6 +19,11 @@ const PRECACHE = [
   "./assets/icons/icon.svg",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
+  "./turn-beans/index.html",
+  "./turn-beans/style.css",
+  "./turn-beans/engine.js",
+  "./turn-beans/levels.js",
+  "./turn-beans/game.js",
   "./chess/index.html",
   "./chess/css/board.css?v=stable11",
   "./chess/css/themes.css?v=stable11",
