@@ -4,7 +4,8 @@ const { TurnBeansEngine, countColors } = require('./engine.js');
 const cell = (baseColor, beanColor = null) => ({ baseColor, beanColor });
 const hole = () => ({ active: false, beanColor: null });
 let passed = 0;
-function test(name, fn) { fn(); passed++; console.log('PASS', name); }
+let failures = [];
+function test(name, fn) { try { fn(); passed++; console.log('PASS', name); } catch(err){ failures.push({name,error:err.message}); console.error('FAIL',name,err.message); } }
 function snapshot(engine) { return JSON.stringify(engine.getState()); }
 function totals(engine) { return countColors(engine.board, engine.trays); }
 
@@ -25,7 +26,7 @@ test('BFS up-right-down-left order from center', () => {
   ]);
 });
 
-test('BFS requires both base and bean match, not diagonal', () => {
+test('BFS requires both matching base and bean colors, not diagonal', () => {
   const e = new TurnBeansEngine([
     [cell('R','G'),cell('B','G'),cell('R','G')],
     [cell('R','B'),cell('R','G'),cell('R',null)],
@@ -45,14 +46,12 @@ test('take stops at ten, preserves colors, empties positions', () => {
   assert.equal(e.history.length,1);
 });
 
-test('take uses only matching component and appends FIFO', () => {
+test('take never mixes bean colors, even inside a continuous wrong-color region', () => {
   const e = new TurnBeansEngine([[cell('R','G'),cell('R','G'),cell('R','B'),cell('R','B')]]);
   assert.equal(e.take(0,0).count,2);
   assert.deepEqual(e.getTray(0),['G','G']);
-  // Remaining two go to tray 2 because it has more free space.
-  assert.equal(e.take(0,2).count,2);
-  assert.deepEqual(e.getTray(1),['B','B']);
-  assert.deepEqual(e.getTray(0),['G','G']);
+  assert.deepEqual(e.getTray(1),[]);
+  assert.deepEqual(e.getTray(2),[]);
 });
 
 test('cannot take already correct, empty, inactive or out-of-range cell', () => {
@@ -97,13 +96,13 @@ function transferToTray(engine, row, col, trayIndex) {
 }
 
 test('exchange replaces wrong bean, appends displaced color to FIFO tail', () => {
-  const e = new TurnBeansEngine([[cell('R','G'),cell('G','B')]]);
+  const e = new TurnBeansEngine([[cell('R','G'),hole(),cell('G','B')]]);
   assert.equal(e.take(0,0).ok,true);
   assert.deepEqual(e.getTray(0), ['G']);
   const before = totals(e);
-  const r=e.exchange(0,1);
+  const r=e.exchange(0,2);
   assert.deepEqual([r.ok,r.count,r.trayIndex], [true,1,0]);
-  assert.equal(e.board[0][1].beanColor,'G');
+  assert.equal(e.board[0][2].beanColor,'G');
   assert.deepEqual(e.getTray(0),['B']);
   assert.deepEqual(totals(e),before);
   assert.equal(e.steps,2);
@@ -126,7 +125,7 @@ test('exchange uses only same base and original bean component; not diagonals', 
     [cell('R','G'),cell('G','B'),cell('G','B'),cell('B','B')],
     [cell('R','G'),cell('G','R'),cell('G','B'),cell('G','B')]
   ]);
-  e.take(0,0);
+  transferToTray(e,0,0,0); transferToTray(e,1,0,0);
   assert.deepEqual(e.getTray(0),['G','G']);
   const r=e.exchange(0,1);
   assert.equal(r.count,2);
@@ -137,44 +136,47 @@ test('exchange uses only same base and original bean component; not diagonals', 
   assert.deepEqual(e.getTray(0),['B','B']);
 });
 
-test('FIFO forbids skipping a different-color queue head', () => {
+test('matching color can be taken from inside a tray', () => {
   const e=new TurnBeansEngine([[cell('R','B'),cell('R','G'),cell('G','R')]]);
   transferToTray(e,0,0,0);
   transferToTray(e,0,1,0);
-  const before=snapshot(e);
-  assert.equal(e.exchange(0,2).ok,false);
-  assert.equal(snapshot(e),before);
+  const before=totals(e);
+  const r=e.exchange(0,2);
+  assert.equal(r.ok,true);
+  assert.deepEqual(r.transfers.map(t=>[t.trayIndex,t.sourceIndex]),[[0,1]]);
+  assert.deepEqual(e.trays[0],['B','R']);
+  assert.equal(e.board[0][2].beanColor,'G');
+  assert.deepEqual(totals(e),before);
 });
 
-test('FIFO prefix limits exchange even if a matching color appears later', () => {
-  const e=new TurnBeansEngine([[cell('R','G'),cell('R','B'),cell('R','G'),cell('G','R'),cell('G','R'),cell('G','R')]]);
-  transferToTray(e,0,0,0);
-  transferToTray(e,0,1,0);
-  transferToTray(e,0,2,0);
-  const result=e.exchange(0,3);
-  assert.equal(result.count,1);
-  assert.deepEqual(e.getTray(0),['B','G','R']);
-  assert.equal(e.board[0][4].beanColor,'R');
-});
-
-test('choose tray with the largest valid exchange; tie goes to lower index', () => {
+test('matching colors from multiple trays may satisfy one connected region', () => {
   const e=new TurnBeansEngine([[cell('R','G'),cell('R','G'),cell('R','G'),cell('R','G'),cell('G','B'),cell('G','B'),cell('G','B'),cell('G','B')]]);
   transferToTray(e,0,0,0); transferToTray(e,0,1,0);
-  transferToTray(e,0,2,1); transferToTray(e,0,3,1);
-  assert.equal(e.getBestSwap(0,4).trayIndex,0); // equal (2 and 2)
-  // Move one color from a fresh matching source to tray 1.
-  const f=new TurnBeansEngine([[cell('R','G'),cell('R','G'),cell('R','G'),cell('G','B'),cell('G','B'),cell('G','B')]]);
-  transferToTray(f,0,0,0);
-  transferToTray(f,0,1,1);transferToTray(f,0,2,1);
-  assert.equal(f.getBestSwap(0,3).trayIndex,1);
-  assert.equal(f.click(0,3).count,2);
-  assert.deepEqual(f.getTray(1),['B','B']);
+  transferToTray(e,0,2,1); transferToTray(e,0,3,2);
+  const before=totals(e), snapshotBefore=snapshot(e);
+  const r=e.exchange(0,4);
+  assert.equal(r.count,4);
+  assert.deepEqual(r.transfers.map(t=>t.trayIndex),[0,0,1,2]);
+  assert.deepEqual(e.trays,[['B','B'],['B'],['B']]);
+  assert.deepEqual(totals(e),before);
+  e.undo();
+  assert.equal(snapshot(e),snapshotBefore);
 });
 
-test('full 20-bean tray exchanges by removing before appending', () => {
+test('matching is capped at actual shared inventory', () => {
+  const e=new TurnBeansEngine([[cell('R','G'),cell('R','G'),cell('R','G'),cell('G','B'),cell('G','B'),cell('G','B')]]);
+  transferToTray(e,0,0,0);
+  transferToTray(e,0,1,1);transferToTray(e,0,2,1);
+  assert.equal(e.getBestSwap(0,3).count,3);
+  assert.equal(e.click(0,3).count,3);
+  assert.deepEqual(e.getTray(0),['B']);
+  assert.deepEqual(e.getTray(1),['B','B']);
+});
+
+test('full single tray may exchange if other trays have room', () => {
   const e=new TurnBeansEngine([[...Array.from({length:20},()=>cell('R','G')),cell('G','B'),cell('G','B')]]);
   for(let i=0;i<20;i++) transferToTray(e,0,i,0);
-  assert.equal(e.getTray(0).length,20);
+  assert.equal(e.isLost(),false);
   const before=totals(e);
   const r=e.exchange(0,20);
   assert.equal(r.ok,true);
@@ -184,7 +186,7 @@ test('full 20-bean tray exchanges by removing before appending', () => {
   assert.deepEqual(totals(e),before);
 });
 
-test('exchange maximum is 10 even for larger connected area and FIFO prefix', () => {
+test('exchange maximum is 10 even for larger connected area', () => {
   const e=new TurnBeansEngine([[...Array.from({length:12},()=>cell('R','G')),...Array.from({length:12},()=>cell('G','B'))]]);
   for(let i=0;i<12;i++) transferToTray(e,0,i,0);
   const r=e.exchange(0,12);
@@ -194,15 +196,15 @@ test('exchange maximum is 10 even for larger connected area and FIFO prefix', ()
 });
 
 test('click prefers exchange, falls back to take, rejects correct and invalid cells', () => {
-  const e=new TurnBeansEngine([[cell('R','G'),cell('G','B'),cell('B','B'),hole()]]);
-  assert.equal(e.click(0,1).type,'take');
+  const e=new TurnBeansEngine([[cell('R','G'),hole(),cell('G','B'),cell('B','B'),hole()]]);
+  assert.equal(e.click(0,2).type,'take');
   assert.equal(e.click(0,0).type,'take');
   const before=snapshot(e);
-  assert.equal(e.click(0,2).ok,false);
   assert.equal(e.click(0,3).ok,false);
+  assert.equal(e.click(0,4).ok,false);
   assert.equal(e.click(1,0).ok,false);
   assert.equal(snapshot(e),before);
-  assert.equal(e.click(0,1).type,'exchange'); // B now at tray head 0
+  assert.equal(e.click(0,2).type,'exchange');
 });
 
 test('invalid exchange has no effect on steps or history', () => {
@@ -256,7 +258,7 @@ test('deterministic mixed-color click sequence keeps every color total and bound
 
 // Phase 3: full-state undo, exact restart, win/deadlock, portable save.
 test('undo reverses taking and restores all cells and trays', () => {
-  const e = new TurnBeansEngine([[cell('R','G'),cell('R','G'),cell('G','R')]]);
+  const e = new TurnBeansEngine([[cell('R','G'),cell('R','G'),hole(),cell('G','R')]]);
   const start = snapshot(e);
   assert.equal(e.take(0,0).count,2);
   assert.equal(e.history.length,1);
@@ -268,10 +270,10 @@ test('undo reverses taking and restores all cells and trays', () => {
 });
 
 test('undo reverses exchange including displaced FIFO order', () => {
-  const e = new TurnBeansEngine([[cell('R','G'),cell('G','B'),cell('G','B')]]);
+  const e = new TurnBeansEngine([[cell('R','G'),hole(),cell('G','B'),cell('G','B')]]);
   e.take(0,0);
   const beforeExchange = snapshot(e);
-  assert.equal(e.exchange(0,1).ok,true);
+  assert.equal(e.exchange(0,2).ok,true);
   assert.deepEqual(e.getTray(0),['B','B'].slice(0,1));
   assert.equal(e.undo().ok,true);
   assert.equal(snapshot(e), beforeExchange);
@@ -330,7 +332,7 @@ test('win rejects empty active slots and nonempty trays even if occupied cells c
   assert.equal(noBeans.isStuck(),true);
 });
 
-test('full trays are not automatically stuck when a FIFO swap is possible', () => {
+test('one full tray does not trigger failure when others have space', () => {
   const e=new TurnBeansEngine([[...Array.from({length:20},()=>cell('R','G')),cell('G','B')]]);
   for(let i=0;i<20;i++) transferToTray(e,0,i,0);
   assert.equal(e.getTray(0).length,20);
@@ -409,4 +411,74 @@ test('long click sequence round-trips save and undoes back to exact start', () =
   assert.equal(restored.history.length,0);
 });
 
-console.log(`\n${passed} tests passed`);
+test('take must not join adjacent incorrect cells with different base or bean colors',()=>{
+  const e=new TurnBeansEngine([[cell('A','B'),cell('B','A'),cell('C','C'),cell('D','B')],
+    [cell('E','F'),cell('F','G'),hole(),cell('H','I')]]);
+  const before=totals(e);
+  const result=e.take(1,1);
+  assert.equal(result.count,1);
+  assert.deepEqual(e.trays[0],['G']);
+  assert.deepEqual(totals(e),before);
+  assert.equal(e.board[0][2].beanColor,'C');
+});
+
+test('take fills remaining three slots then spills six to second tray atomically',()=>{
+  const row0=[...Array.from({length:17},()=>cell('R','G')),...Array.from({length:3},hole)];
+  const row1=[...Array.from({length:9},()=>cell('B','R')),...Array.from({length:11},hole)];
+  const e=new TurnBeansEngine([row0,row1]);
+  for(let i=0;i<17;i++) transferToTray(e,0,i,0);
+  const before=totals(e);
+  const r=e.take(1,0);
+  assert.equal(r.count,9);
+  assert.deepEqual(e.trays.map(q=>q.length),[20,6,0]);
+  assert.deepEqual(r.transfers.map(t=>t.trayIndex),[0,0,0,1,1,1,1,1,1]);
+  assert.deepEqual(totals(e),before);
+  e.undo();
+  assert.deepEqual(e.trays.map(q=>q.length),[17,0,0]);
+  assert.deepEqual(totals(e),before);
+});
+
+// Phase 15 - loss semantics and cross-tray atomicity.
+test('three full trays cause immediate loss and only undo or restart can resume', () => {
+  const e = new TurnBeansEngine([Array.from({length:61},(_,i)=>cell(i<60?'R':'G',i<60?'G':'B'))]);
+  for(let i=0;i<6;i++) assert.equal(e.take(0,i*10).ok,true);
+  assert.equal(e.isLost(),true);
+  assert.equal(e.hasLegalMove(),false);
+  const before=snapshot(e);
+  assert.equal(e.click(0,60).reason,'trays_full');
+  assert.equal(snapshot(e),before);
+  assert.equal(e.undo().ok,true);
+  assert.equal(e.isLost(),false);
+  assert.equal(e.restart().ok,true);
+  assert.equal(e.isLost(),false);
+});
+// Phase 17: detail contours may touch at corners, and all returned beans must be wrong.
+test('large-grid diagonal-only contour does not violate four-way connected selection', () => {
+  const rows=Array.from({length:30},()=>Array.from({length:30},()=>({active:false,baseColor:null,beanColor:null})));
+  for(let i=0;i<10;i++)rows[5+i][5+i]={active:true,baseColor:'K',beanColor:'Y'};
+  const e=new TurnBeansEngine(rows);
+  const positions=e.getConnectedCells(5,5);
+  assert.equal(positions.length,1);
+  const taken=e.take(5,5);assert.equal(taken.count,1);
+  assert.deepEqual(e.trays.map(t=>t.length),[1,0,0]);
+  assert.equal(e.checkInvariants(),true);
+});
+
+test('broken outline may not jump disconnected gaps',()=>{
+  const rows=Array.from({length:30},()=>Array.from({length:30},()=>({active:false,baseColor:null,beanColor:null})));
+  for(const col of [5,7,8,9,10,11,12,13,14,15])rows[5][col]={active:true,baseColor:'K',beanColor:'Y'};
+  const e=new TurnBeansEngine(rows);const r=e.take(5,5);
+  assert.equal(r.count,1);
+  assert.deepEqual(e.trays.map(t=>t.length),[1,0,0]);
+  assert.equal(e.checkInvariants(),true);
+});
+test('exact color-pair components select up to ten without crossing adjacent colors',()=>{
+  const e=new TurnBeansEngine([[cell('R','B'),cell('R','B'),cell('R','G'),cell('Y','B'),cell('R','B')]]);
+  assert.deepEqual(e.getConnectedCells(0,0),[{row:0,col:0},{row:0,col:1}]);
+  assert.equal(e.take(0,0).count,2);
+  assert.deepEqual(e.getTray(0),['B','B']);
+  assert.equal(e.board[0][2].beanColor,'G');
+  assert.equal(e.checkInvariants(),true);
+});
+console.log(`\n${passed} engine tests passed, ${failures.length} failed`); if(failures.length) {console.error(failures); process.exitCode=1;}
+

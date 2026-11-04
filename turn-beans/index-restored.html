@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7f2e9">
+  <title>转豆豆 · Nocturne Games</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./engine.js"></script>
+  <script defer src="./levels.js"></script>
+  <script defer src="./save-codec.js"></script>
+  <script defer src="./game.js"></script>
+</head>
+<body>
+  <main class="game" id="app">
+    <header class="topbar">
+      <a class="back" href="../index.html" aria-label="返回游戏大厅">‹ <span>游戏大厅</span></a>
+      <h1>转豆豆</h1>
+      <div class="topbar-actions"><button class="text-button" type="button" id="soundToggle" aria-pressed="true">音效：开</button><button class="text-button" type="button" id="homeBtn" hidden>关卡主页</button></div>
+    </header>
+
+    <section id="levelHome" class="level-home" aria-label="全部关卡">
+      <div class="home-intro"><h2>全部关卡 <span id="homeHearts" class="home-hearts">❤ 0</span></h2><p>选一张拼豆图，开始还原颜色</p><a class="hall-home-link" href="../index.html">← 返回游戏大厅</a></div>
+      <div id="levelCards" class="level-cards"></div>
+    </section>
+
+    <div id="playScreen" hidden>
+      <section class="heading" aria-live="polite">
+        <div><p class="eyebrow" id="levelNo">第 01 关</p><h2 id="levelName">拼豆图案</h2></div>
+        <div class="hud-metrics"><div class="step"><span>步数</span><strong id="steps">0</strong></div><div class="step"><span>用时</span><strong id="elapsed">00:00</strong></div><div class="step"><span>最佳</span><strong id="bestTime">--:--</strong></div><div class="step"><span>❤</span><strong id="heartCount">0</strong></div></div>
+      </section>
+      <section class="work-area">
+        <div class="board-heading"><span>拼豆盘面</span><span id="boardStatus">开局预览</span></div>
+        <div class="win-banner" id="winBanner" hidden>闯关成功</div>
+        <div class="board-viewport" id="viewport" aria-label="双指或滚轮缩放，放大后可按住鼠标左键或用手指拖动盘面">
+          <div class="board" id="board" role="group" aria-label="拼豆盘面"></div>
+          <div class="preview-cover hidden" id="previewCover" aria-live="polite"></div>
+        </div>
+        <div class="zoom-bar">
+          <span class="hint">浅色底盘 = 正确颜色 · 双指 / 滚轮缩放，放大后拖动</span>
+          <span id="zoomLabel" aria-live="off">100%</span>
+        </div>
+<div class="failure-panel" id="failurePanel" hidden><strong>挑战失败 · 三盘已满</strong><span>可以撤销上一步或重新开始</span></div>
+        <div class="complete-panel" id="completePanel" hidden>
+          <p id="completeText"></p>
+          <div class="complete-actions">
+            <button type="button" id="replayBtn" class="secondary">再玩一次</button>
+            <button type="button" id="completeHome" class="secondary">返回主页</button>
+            <button type="button" id="nextBtn" class="primary">下一关</button>
+          </div>
+        </div>
+      </section>
+      <section class="trays" id="traysSection" aria-label="备用盘">
+        
+        <div class="tray-list" id="trays"></div>
+      </section>
+      <div class="actions" id="actions">
+        <button id="undoBtn" type="button" class="primary">↶ 撤销</button>
+        <button id="restartBtn" type="button" class="secondary">重新开始</button>
+      </div>
+      <p class="message" id="message" role="status" aria-live="polite"></p>
+    </div>
+  </main>
+</body>
+</html>

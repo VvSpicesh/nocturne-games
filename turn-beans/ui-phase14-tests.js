@@ -1,0 +1,22 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const game = fs.readFileSync(path.join(__dirname,'game.js'),'utf8');
+const sw = fs.readFileSync(path.join(__dirname,'..','service-worker.js'),'utf8');
+const { TurnBeansEngine } = require('./engine.js');
+const { getLevel } = require('./levels.js');
+assert.match(game, /const before = result\.ok \? engine\.history\[engine\.history\.length - 1\]/);
+assert.match(game, /function schedulePersist\(\)/);
+assert.match(game, /schedulePersist\(\)/);
+assert.match(game, /const duration=prefersReducedMotion\.matches\?100:260/);
+assert.match(game, /canvas\.getContext\('2d',\{alpha:true\}\)/);
+assert.match(game, /result\.transfers/);
+assert.match(game, /document\.addEventListener\('visibilitychange'/);
+assert.match(sw, /nocturne-games-v127/);
+// Verify buried matching colors now work across trays.
+const e = new TurnBeansEngine([[{baseColor:'R',beanColor:'G'},{baseColor:'G',beanColor:'R'}]]);
+assert.equal(e.take(0,0).ok,true);
+e.trays[0].unshift('B');
+assert.equal(e.getBestSwap(0,1).count,1);
+console.log('PASS Phase 15: render scheduling, cross-tray matching, cache bump');

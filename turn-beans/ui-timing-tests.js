@@ -1,0 +1,23 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const code = fs.readFileSync(path.join(__dirname,'game.js'),'utf8');
+const readDur = name => {
+  const buf = fs.readFileSync(path.join(__dirname,'sounds',name));
+  assert.equal(buf.toString('ascii',0,4),'RIFF');
+  assert.equal(buf.toString('ascii',8,12),'WAVE');
+  const byteRate = buf.readUInt32LE(28);
+  const data = buf.indexOf(Buffer.from('data'));
+  assert.ok(data >= 0);
+  return buf.readUInt32LE(data+4)/byteRate;
+};
+assert.match(code,/const duration = 205;/);
+assert.match(code,/Math\.min\(i, 9\) \* 5/);
+assert.match(code,/delay: 16/);
+assert.match(code,/}, 1190\);/);
+assert.match(code,/}, 1740\);/);
+assert.match(code,/sound\.playbackRate = isExchange \? 1\.06 : 1\.0/);
+assert.ok(readDur('bead-move.wav') < .4);
+assert.ok(readDur('ready-go.wav') > 1.5);
+console.log('8 audio and animation timing assertions passed');

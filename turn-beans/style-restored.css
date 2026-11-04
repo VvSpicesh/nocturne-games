@@ -1,0 +1,180 @@
+:root {color-scheme:light;--bg:#fbf1f5;--card:#fffdfb;--ink:#40333a;--muted:#8c7781;--border:#ead6df;--accent:#ff6f91;--accent-2:#52c8ff;--accent-3:#70df3a;--cell:30px;font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+* {box-sizing:border-box}
+[hidden] {display:none!important}
+body {background:var(--bg);color:var(--ink);margin:0;min-height:100dvh}
+button,a {font:inherit} button {cursor:pointer;touch-action:manipulation}
+button:focus-visible,a:focus-visible {outline:3px solid #648f9a;outline-offset:2px}
+button:disabled {opacity:.4;cursor:default}
+.game {max-width:690px;margin:0 auto;padding:12px 16px calc(18px + env(safe-area-inset-bottom))}
+.topbar {display:flex;align-items:center;justify-content:space-between;height:40px;gap:12px}
+.topbar h1 {font-size:19px;letter-spacing:.12em;margin:0}
+.back {text-decoration:none;color:var(--ink);font-size:20px;white-space:nowrap}.back span {font-size:12px}
+.text-button {border:1px solid #ffd0dc;border-radius:20px;background:linear-gradient(180deg,#fffefe,#ffeef4);padding:7px 13px;font-size:13px;color:#a84c67;box-shadow:0 2px 6px #0000000a}
+.home-intro {padding:24px 2px 12px}.home-intro h2 {font-size:23px;margin:0 0 5px}.home-intro p {margin:0;color:var(--muted);font-size:13px}
+.level-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
+.level-card {min-width:0;padding:12px;display:flex;flex-direction:column;text-align:left;gap:5px;background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:0 4px 18px #6554410a;transition:transform .15s,border-color .15s}
+.level-card:active {transform:scale(.98)}.level-card:focus-visible {border-color:var(--accent)}
+.level-card strong {font-size:14px}.level-card small {font-size:11px;color:var(--muted)}
+.level-thumb {--thumb-cols:10;display:grid;grid-template-columns:repeat(var(--thumb-cols),1fr);gap:1px;width:100%;aspect-ratio:1;background:#eae1d1;border-radius:11px;padding:9px;margin-bottom:4px;overflow:hidden;align-content:center}
+.thumbnail-dot {border-radius:50%;aspect-ratio:1;background:var(--dot);min-width:0;box-shadow:inset -1px -1px 2px #0001}
+.heading {display:flex;align-items:center;justify-content:space-between;margin:13px 0 12px}
+.eyebrow {font-size:12px;color:var(--muted);margin:0 0 2px}h2 {font-size:20px;margin:0}
+.step {display:flex;align-items:baseline;gap:9px;background:var(--card);border:1px solid var(--border);padding:9px 14px;border-radius:12px}.step span {font-size:12px;color:var(--muted)}.step strong {font-size:20px;font-variant-numeric:tabular-nums}
+.work-area,.trays {background:var(--card);border:1px solid var(--border);border-radius:22px;padding:12px;margin-bottom:12px;box-shadow:0 10px 24px #d88ba512}
+.board-heading,.tray-heading {display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px}
+.board-heading span:last-child,.tray-heading small {color:var(--muted);font-size:11px}
+.board-viewport {background:linear-gradient(180deg,#fff6fa,#f8edf1);border-radius:18px;min-height:260px;max-height:min(55vh,540px);overflow:auto;position:relative;display:flex;align-items:flex-start;justify-content:safe center;padding:16px;touch-action:pan-x pan-y;overscroll-behavior:contain;border:1px solid #f1d6df}
+.board {display:grid;grid-template-columns:repeat(var(--columns),var(--cell));gap:2px;width:max-content;flex:none;margin:auto;box-shadow:0 8px 24px #c28ba014;border-radius:10px}
+.cell {border:2px solid var(--base-border,#d7c6b7);padding:0;width:var(--cell);height:var(--cell);border-radius:7px;background:linear-gradient(180deg,var(--base-highlight,#fff7ef),var(--base,#f0e4d7));display:flex;align-items:center;justify-content:center;position:relative;touch-action:manipulation;box-shadow:inset 0 1px 0 #ffffffb0,inset 0 -2px 0 #00000012,0 1px 2px #00000010}
+.cell::before {content:"";position:absolute;inset:3px;border-radius:5px;background:radial-gradient(circle at 30% 28%,#ffffff66,transparent 38%),linear-gradient(180deg,transparent,#00000008);pointer-events:none}
+.cell:not(:disabled):active {filter:brightness(.95) saturate(1.03)}
+.cell.inactive {visibility:hidden}.interaction-locked {pointer-events:none}
+.bean,.flying-bean {display:block;border-radius:50%;background:radial-gradient(circle at 30% 28%,var(--bean-highlight,#ffffff99),transparent 30%),linear-gradient(180deg,var(--bean),var(--bean-dark,var(--bean)));border:1px solid var(--bean-dark,#00000024);box-shadow:inset 0 2px 2px #ffffff7a,inset 0 -3px 3px #00000020,0 1px 2px #00000024}
+.bean {width:90%;height:90%}.cell.empty::after {content:"";width:48%;height:48%;border:2px dashed #b792a240;border-radius:50%;background:#ffffff55}
+.cell:focus-visible {z-index:1}
+.preview-cover {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(26px,8vw,52px);letter-spacing:.04em;color:#fff;pointer-events:none;font-weight:900;text-shadow:0 3px 0 #00000018,0 6px 18px #00000024;z-index:2}
+.preview-cover::before {content:"";position:absolute;inset:0;background:radial-gradient(circle at center,#ffffff05,transparent 55%);opacity:.85}
+.preview-cover.hidden {display:none}
+.preview-cover.ready .preview-word {animation:ready-pop .55s ease both}.preview-cover.go .preview-word {animation:go-pop .42s ease both}
+.preview-word {position:relative;display:inline-flex;align-items:center;justify-content:center;padding:.22em .58em;border-radius:999px;background:linear-gradient(180deg,#ff95a6,#ff5e8b);border:3px solid #fff4f8;box-shadow:0 10px 24px #ff6f9159}
+.preview-cover.go .preview-word {background:linear-gradient(180deg,#6fe276,#32c84d)}
+@keyframes ready-pop {0%{transform:scale(.45) rotate(-8deg);opacity:0}70%{transform:scale(1.06) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+@keyframes go-pop {0%{transform:scale(.35);opacity:0}70%{transform:scale(1.18);opacity:1}100%{transform:scale(1)}}
+.zoom-bar {display:flex;gap:6px;align-items:center;margin-top:10px}.zoom-bar .hint {flex:1;font-size:11px;color:var(--muted);font-weight:600}
+.zoom-bar button {border:1px solid var(--border);background:var(--bg);width:31px;height:29px;border-radius:9px}.zoom-bar span:not(.hint) {font-size:11px;min-width:42px;text-align:center}
+.tray-list {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.tray {min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:7px 2px 9px;border-radius:16px;background:var(--bg);border:1px solid var(--border)}
+.tray-label {font-size:11px;font-weight:600}
+.tray-circle {--orbit:43%;width:min(100%,175px);aspect-ratio:1;border-radius:50%;position:relative;background:radial-gradient(circle at 34% 26%,#fff9fb,#ecdbe4);border:2px solid #d7b8c4;box-shadow:inset 0 2px 6px #00000014,0 2px 4px #0000000a}
+.tray-bean {position:absolute;left:50%;top:50%;width:11%;aspect-ratio:1;border-radius:50%;background:#c6b8a4;border:1px solid #998f7b55;transform:translate(-50%,-50%)}
+.tray-bean.filled {background:var(--bean);box-shadow:inset -2px -2px 2px #00000022,inset 1px 1px 2px #ffffff99}
+.tray-center {position:absolute;inset:32%;border-radius:50%;background:#fffaf0a8;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.tray-center strong {font-variant-numeric:tabular-nums;font-size:12px}.tray-center small {font-size:9px;color:var(--muted);white-space:nowrap}
+.actions,.complete-actions {display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.actions button,.complete-actions button {border-radius:16px;min-height:46px;border:0;background:var(--card);font-weight:800;font-size:15px;box-shadow:0 4px 10px #00000010;color:#644553}
+.actions .primary,.complete-actions .primary {background:linear-gradient(180deg,#82f547,#43cf19);color:#fff;text-shadow:0 1px 0 #00000024}
+.actions .secondary,.complete-actions .secondary {background:linear-gradient(180deg,#6ed1ff,#3ab7ff);color:#fff;text-shadow:0 1px 0 #00000018}
+.message {min-height:19px;color:#665f56;font-size:12px;text-align:center;margin:11px 0 0}
+.complete-panel {padding:18px 4px 9px;text-align:center}.success-tag {display:inline-flex;align-items:center;justify-content:center;padding:7px 18px;border-radius:999px;background:linear-gradient(180deg,#ffd66b,#ffb534);color:#8b4a00;font-weight:900;box-shadow:0 4px 10px #ffb53440;margin-bottom:10px}.complete-panel h2 {font-size:24px;color:#e65d82;margin:0}.complete-panel p {font-size:13px;color:var(--muted);margin:7px 0 19px}
+.bean-flight-layer {position:fixed;inset:0;z-index:999;pointer-events:none;overflow:hidden}
+.flying-bean {position:absolute;width:18px;height:18px;will-change:transform;pointer-events:none}
+@media(max-width:400px){.game{padding-inline:10px}.work-area,.trays{padding:10px}.board-viewport{padding:8px;min-height:220px}.tray-list{gap:5px}.tray{padding:5px 2px}.tray-center strong{font-size:10px}.tray-center small{font-size:8px}}
+@media(min-width:650px){.level-cards{grid-template-columns:repeat(3,minmax(0,1fr))}.tray-circle{max-width:165px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+/* Phase 6: gesture zoom and compact desktop fit. */
+.board-viewport { touch-action:none; min-height:0; min-width:0; }
+.board .cell { touch-action:none; }
+.zoom-bar {justify-content:space-between}
+.zoom-bar .hint {flex:1;min-width:0}
+.zoom-bar #zoomLabel {white-space:nowrap;min-width:40px;text-align:right}
+.complete-actions {grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(min-width:700px) and (min-height:620px){
+  html,body {height:100%;overflow:hidden}
+  .game {height:100dvh;max-width:980px;padding:8px 14px;display:flex;flex-direction:column;min-height:0}
+  .topbar {height:34px;flex:none}
+  #playScreen:not([hidden]) {display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+  .heading {margin:6px 0;flex:none}
+  .heading h2 {font-size:16px}
+  .step {padding:5px 10px}
+  .work-area {min-height:0;flex:1;display:flex;flex-direction:column;padding:7px 10px;margin-bottom:7px}
+  .board-heading {margin-bottom:5px;flex:none}
+  .board-viewport {flex:1;max-height:none;min-height:0;padding:10px}
+  .zoom-bar {margin-top:5px;flex:none}
+  .trays {flex:none;padding:5px 10px;margin-bottom:7px}
+  .tray-heading {margin-bottom:4px}
+  .tray-list {gap:10px}
+  .tray {flex-direction:row;justify-content:center;gap:10px;padding:4px 8px}
+  .tray-label {font-size:11px;max-width:45px}
+  .tray-circle {width:min(11vh,104px);min-width:65px}
+  .tray-center strong {font-size:11px}
+  .actions {flex:none}
+  .actions button {min-height:34px}
+  .message {flex:none;min-height:16px;margin:4px 0 0}
+  .complete-panel {padding:8px 4px;flex:none}
+  .complete-panel h2 {font-size:17px}
+  .complete-panel p {margin:2px 0 6px}
+  .complete-panel button {min-height:36px}
+  .level-home {overflow:auto;min-height:0}
+}
+@media(max-width:410px){.complete-actions button {font-size:12px;padding:5px 2px}}
+
+/* Phase 7: the artwork consists of round beads only, without square tiles. */
+.topbar-actions {display:flex;align-items:center;gap:6px}
+.topbar-actions .text-button {padding:6px 9px;font-size:12px;white-space:nowrap}
+.board {box-shadow:none;background:transparent;border-radius:0}
+.board .cell {border-radius:5px}
+.board .cell:not(.inactive)::before {border-radius:3px;opacity:.35}
+.board .cell .bean {position:relative;z-index:1}
+.board .cell.empty::after {border:1px dashed var(--base);background:transparent;opacity:.65}
+.board .cell.inactive {visibility:hidden;pointer-events:none}
+.level-thumb {background:transparent;border-radius:0;padding:5px}
+.level-thumb .thumbnail-dot.inactive {background:transparent!important;box-shadow:none}
+.board-viewport {background:transparent}
+.preview-cover:not(.hidden) {display:flex!important}
+@media(max-width:410px){.topbar-actions .text-button{padding:5px 6px;font-size:11px}}
+
+/* Hall navigation and zoomed board mouse panning */
+.hall-home-link {display:inline-block;margin-top:11px;padding:6px 10px;border:1px solid var(--border);border-radius:12px;color:var(--accent);font-size:12px;text-decoration:none;background:var(--card)}
+.hall-home-link:focus-visible {outline:3px solid #648f9a;outline-offset:2px}
+.board-viewport.can-drag {cursor:grab}
+.board-viewport.is-dragging {cursor:grabbing;user-select:none;-webkit-user-select:none}
+.board-viewport.is-dragging .cell {cursor:grabbing}
+
+/* Phase 9: bold win ribbon above the completed artwork, square base with large round beads. */
+.win-banner {align-self:center;position:relative;z-index:2;margin:2px auto 12px;padding:11px 34px;
+  border-radius:13px 13px 17px 17px;border:3px solid #fff1c7;
+  background:linear-gradient(115deg,#ffbf50,#ffdc8e 42%,#ff9d3d);
+  color:#fffaf0;font-size:clamp(26px,5.5vw,39px);font-weight:950;letter-spacing:.07em;
+  text-shadow:0 2px 1px #b36b30,0 4px 7px #c7744155;
+  box-shadow:0 7px 0 #df8b38,0 12px 18px #e9ab5d55;
+  animation:win-ribbon-pop .48s cubic-bezier(.18,1.4,.35,1) both}
+@keyframes win-ribbon-pop {from{opacity:0;transform:translateY(-18px) scale(.83)}to{opacity:1;transform:translateY(0) scale(1)}}
+.board .cell {border:1px solid var(--base-border,#d7c6b7);background:var(--base)!important}
+.board .cell .bean {width:90%;height:90%;border-width:1px}
+.board .cell:not(.inactive)::before {background:transparent;box-shadow:inset 0 1px 2px #ffffff60;inset:0;opacity:.45}
+.complete-panel {padding-top:5px}
+@media(min-width:700px) and (min-height:620px){.win-banner{margin:0 auto 6px;padding:4px 26px;font-size:27px}}
+@media(prefers-reduced-motion:reduce){.win-banner{animation:none}}
+
+/* Phase 12: target artwork is shown as a true bead silhouette, without pastel
+   backing squares. In-game bases remain visible for color matching. */
+.board.target-art .cell:not(.inactive) {
+  border-color:transparent!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.board.target-art .cell:not(.inactive)::before {display:none}
+.board.target-art .cell .bean {width:98%;height:98%;border-color:var(--bean-dark,#00000035)}
+.board .cell .bean {
+  background:var(--bean)!important;
+  border-color:var(--bean-dark,#00000035)!important;
+  box-shadow:inset 0 1px 1px #ffffff80,inset 0 -1px 2px #00000020,0 1px 1px #00000020;
+}
+.board:not(.target-art) .cell:not(.inactive) {
+  background:var(--base)!important;
+  border-color:var(--base-border)!important;
+  border-width:clamp(.5px,calc(var(--cell) * .06),1.7px);
+}
+/* Small grids use reduced gaps and radii so beads do not disappear. */
+.board .cell {border-radius:clamp(1px,calc(var(--cell) * .12),5px)}
+.level-thumb {background:#fff8fa}
+.level-thumb .thumbnail-dot {box-shadow:none}
+
+/* Phase 14: clearer low-zoom bean flights without layout effects on the board. */
+.bean-flight-layer { isolation:isolate; contain:layout style paint; }
+.flying-bean { box-shadow:0 2px 7px #3338,0 0 0 2px #fff9,inset 0 2px 2px #fff7,inset 0 -2px 2px #0003; }
+.tray-bean.filled:first-of-type {outline:2px solid #ffcf5e;outline-offset:1px}
+
+/* Phase 15 - shared color trays, no tray text, timing and hearts. */
+.hud-metrics {display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.hud-metrics .step {gap:5px;padding:5px 9px}
+.hud-metrics .step strong {font-size:15px}
+.tray-heading,.tray-label,.tray-center small {display:none!important}
+.tray {justify-content:center;align-items:center}
+.tray-center {inset:30%}
+.tray-center strong {font-size:clamp(12px,1.8vw,18px)}
+.failure-panel {text-align:center;background:#fff0ef;border:2px solid #ed8995;border-radius:16px;padding:12px;margin:8px 0;color:#bd314d}
+.failure-panel strong {display:block;font-size:18px}.failure-panel span {font-size:12px}
+@media(max-width:500px){.hud-metrics {gap:3px}.hud-metrics .step {padding:3px 5px}.hud-metrics .step span{font-size:10px}.hud-metrics .step strong {font-size:12px}}
+
+.home-hearts {font-size:16px;color:#e95076;background:#fff0f4;border-radius:999px;padding:5px 10px;margin-left:7px;vertical-align:middle;white-space:nowrap}

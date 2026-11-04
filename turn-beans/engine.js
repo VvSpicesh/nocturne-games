@@ -56,23 +56,26 @@
 
     inBounds(row, col) { return Number.isInteger(row) && Number.isInteger(col) && row >= 0 && row < this.height && col >= 0 && col < this.width; }
 
+    // Select only a connected group with exactly the same target base AND
+    // current bean color as the clicked cell. Correct/empty holes cannot join.
     getConnectedCells(row, col, limit = MAX_TRANSFER) {
       if (!this.inBounds(row, col)) return [];
-      const start = this.board[row][col];
-      if (!start.active || start.beanColor === null) return [];
       assert(Number.isInteger(limit) && limit >= 0, 'Invalid limit');
+      const start = this.board[row][col];
+      if (!start.active || start.beanColor === null || start.beanColor === start.baseColor) return [];
       const seen = new Set([row * this.width + col]);
       const queue = [[row, col]];
       const result = [];
       for (let head = 0; head < queue.length && result.length < limit; head++) {
         const [r, c] = queue[head];
-        result.push({ row: r, col: c });
+        result.push({row:r, col:c});
         for (const [dr, dc] of DIRECTIONS) {
           const nr = r + dr, nc = c + dc, key = nr * this.width + nc;
           if (!this.inBounds(nr, nc) || seen.has(key)) continue;
           seen.add(key);
-          const neighbor = this.board[nr][nc];
-          if (neighbor.active && neighbor.baseColor === start.baseColor && neighbor.beanColor === start.beanColor) queue.push([nr, nc]);
+          const next = this.board[nr][nc];
+          if (next.active && next.baseColor === start.baseColor &&
+              next.beanColor === start.beanColor) queue.push([nr, nc]);
         }
       }
       return result;
@@ -85,6 +88,12 @@
 
     getState() {
       return { board: clone(this.board), trays: clone(this.trays), steps: this.steps };
+    }
+
+    // History uses structural sharing of untouched, immutable cell objects.
+    // A 56x40 puzzle no longer allocates 2,240 new cell objects per move.
+    getHistorySnapshot() {
+      return {board:this.board.map(row=>row.slice()),trays:this.trays.map(tray=>tray.slice()),steps:this.steps};
     }
 
     checkInvariants() {
@@ -103,24 +112,30 @@
     }
 
     take(row, col) {
-      if (!this.inBounds(row, col)) return { ok: false, reason: 'out_of_bounds' };
+      if (this.isLost()) return {ok:false, reason:'trays_full'};
+      if (!this.inBounds(row, col)) return { ok:false, reason:'out_of_bounds' };
       const cell = this.board[row][col];
-      if (!cell.active || cell.beanColor === null) return { ok: false, reason: 'empty_or_inactive' };
-      if (cell.beanColor === cell.baseColor) return { ok: false, reason: 'already_correct' };
-      let chosen = -1, maxSpace = 0;
-      for (let i = 0; i < TRAY_COUNT; i++) {
-        const free = TRAY_CAPACITY - this.trays[i].length;
-        if (free > maxSpace) { maxSpace = free; chosen = i; }
-      }
-      if (chosen < 0) return { ok: false, reason: 'trays_full' };
-      const locations = this.getConnectedCells(row, col, Math.min(MAX_TRANSFER, maxSpace));
-      if (!locations.length) return { ok: false, reason: 'no_cells' };
-      const previous = this.getState();
+      if (!cell.active || cell.beanColor === null) return { ok:false, reason:'empty_or_inactive' };
+      if (cell.beanColor === cell.baseColor) return { ok:false, reason:'already_correct' };
+      const free = this.trays.reduce((sum, tray) => sum + TRAY_CAPACITY - tray.length, 0);
+      if (!free) return { ok:false, reason:'trays_full' };
+      const positions = this.getConnectedCells(row, col, Math.min(MAX_TRANSFER, free));
+      if (!positions.length) return {ok:false, reason:'no_cells'};
+      const previous = this.getHistorySnapshot();
+      const transfers = [];
       try {
-        for (const position of locations) {
+        for (const position of positions) {
+          // Fill tray 1 before tray 2, then tray 3; never leave free slots
+          // in an earlier tray while adding to a later tray.
+          const trayIndex = this.trays.findIndex(tray => tray.length < TRAY_CAPACITY);
+          assert(trayIndex !== -1, 'No remaining tray capacity');
+          const tray = this.trays[trayIndex];
           const slot = this.board[position.row][position.col];
-          this.trays[chosen].push(slot.beanColor);
-          slot.beanColor = null;
+          const destSlot = tray.length;
+          const color = slot.beanColor;
+          tray.push(color);
+          this.board[position.row][position.col] = {...slot,beanColor:null};
+          transfers.push({ ...position, trayIndex, destSlot, color });
         }
         this.steps++;
         this.checkInvariants();
@@ -131,7 +146,9 @@
         this.steps = previous.steps;
         throw error;
       }
-      return { ok: true, type: 'take', trayIndex: chosen, count: locations.length, positions: locations };
+      return {ok:true, type:'take', trayIndex: transfers[0].trayIndex,
+        trayIndices:[...new Set(transfers.map(x=>x.trayIndex))],
+        count:positions.length, positions, transfers};
     }
 
     // A swap only touches the connected component of the clicked cell. Empty
@@ -158,56 +175,96 @@
       return result;
     }
 
-    // Read-only candidate calculation. Only the consecutive equal-color
-    // prefix of each FIFO queue is usable. The removed beans free capacity
-    // before displaced beans are appended to the same queue.
+    // Any matching color may leave any tray. The three trays form a shared
+    // inventory for matching, but their individual 20-slot limits remain.
+    // Deterministic order: tray 0..2, then oldest matching position first.
     getBestSwap(row, col) {
-      if (!this.inBounds(row, col)) return null;
+      if (!this.inBounds(row, col) || this.isLost()) return null;
       const start = this.board[row][col];
       if (!start.active || start.beanColor === start.baseColor) return null;
       const positions = this.getSwapCells(row, col);
       if (!positions.length) return null;
-      let best = null;
+      const sources = [];
       for (let trayIndex = 0; trayIndex < TRAY_COUNT; trayIndex++) {
-        const tray = this.trays[trayIndex];
-        let run = 0;
-        while (run < tray.length && run < MAX_TRANSFER && tray[run] === start.baseColor) run++;
-        const count = Math.min(run, positions.length);
-        if (!count) continue;
-        // The same count of displaced beans is appended for occupied cells;
-        // empty cells append none. Thus final size cannot exceed old size.
-        const candidate = { trayIndex, count, positions: positions.slice(0, count) };
-        if (!best || candidate.count > best.count) best = candidate;
+        for (let sourceIndex = 0; sourceIndex < this.trays[trayIndex].length; sourceIndex++) {
+          if (this.trays[trayIndex][sourceIndex] === start.baseColor) {
+            sources.push({ trayIndex, sourceIndex });
+            if (sources.length >= positions.length || sources.length === MAX_TRANSFER) break;
+          }
+        }
+        if (sources.length >= positions.length || sources.length === MAX_TRANSFER) break;
       }
-      return best;
+      if (!sources.length) return null;
+      const count = Math.min(positions.length, sources.length, MAX_TRANSFER);
+      return { trayIndex: sources[0].trayIndex, count,
+        positions: positions.slice(0, count), sources: sources.slice(0, count) };
     }
 
     exchange(row, col) {
+      if (this.isLost()) return { ok:false, reason:'trays_full' };
       const best = this.getBestSwap(row, col);
       if (!best) return { ok: false, reason: 'no_matching_tray' };
-      const previous = this.getState();
+      const previous = this.getHistorySnapshot();
       try {
-        const queue = this.trays[best.trayIndex];
-        const outgoing = queue.splice(0, best.count);
+        const sourceCounts = Array(TRAY_COUNT).fill(0);
+        for (const {trayIndex} of best.sources) sourceCounts[trayIndex]++;
+        // Remove only chosen beans; preserve order of all other colors.
+        for (let t = 0; t < TRAY_COUNT; t++) {
+          const indices = best.sources.filter(source => source.trayIndex === t)
+            .map(source => source.sourceIndex).sort((a,b) => b-a);
+          for (const index of indices) this.trays[t].splice(index, 1);
+        }
+        const transfers = [];
         const displaced = [];
         for (let i = 0; i < best.count; i++) {
-          const { row: r, col: c } = best.positions[i];
-          const slot = this.board[r][c];
-          if (slot.beanColor !== null) displaced.push(slot.beanColor);
-          slot.beanColor = outgoing[i];
+          const source = best.sources[i];
+          const pos = best.positions[i];
+          const slot = this.board[pos.row][pos.col];
+          const old = slot.beanColor;
+          let destSlot = null;
+          if (old !== null) {
+            displaced.push(old);
+            destSlot = this.trays[source.trayIndex].length;
+            this.trays[source.trayIndex].push(old);
+          }
+          this.board[pos.row][pos.col] = {...slot,beanColor:slot.baseColor};
+          transfers.push({ ...source, destSlot, position: pos, displacedColor: old });
         }
-        queue.push(...displaced);
         this.steps++;
         this.checkInvariants();
         this.history.push(previous);
-        return { ok: true, type: 'exchange', trayIndex: best.trayIndex,
-          count: best.count, positions: best.positions, displaced };
+        return { ok: true, type: 'exchange', trayIndex: best.trayIndex, count: best.count,
+          positions: best.positions, displaced, transfers, trayIndices: [...new Set(best.sources.map(x => x.trayIndex))] };
       } catch (error) {
         this.board = previous.board;
         this.trays = previous.trays;
         this.steps = previous.steps;
         throw error;
       }
+    }
+
+    // After an explicit click, automatically fill empty holes whose target
+    // color is already present in a tray. Never touch occupied cells here.
+    // Fold these automatic placements into the preceding click's undo entry.
+    autoFillMatchingEmpty() {
+      if (!this.history.length || this.isWon() || this.isLost()) return null;
+      const available = new Set(this.trays.flat());
+      if (!available.size) return null;
+      for (let r = 0; r < this.height; r++) for (let c = 0; c < this.width; c++) {
+        const cell = this.board[r][c];
+        if (!cell.active || cell.beanColor !== null || !available.has(cell.baseColor)) continue;
+        const best = this.getBestSwap(r, c);
+        if (!best) continue;
+        const result = this.exchange(r, c);
+        if (!result.ok) continue;
+        // The initiating user's click is the only undoable step. Keep its
+        // original snapshot so undo also restores every automatic placement.
+        const automaticSnapshot = this.history.pop();
+        this.steps = automaticSnapshot.steps;
+        this.checkInvariants();
+        return {...result, automatic: true, before: automaticSnapshot};
+      }
+      return null;
     }
 
     // Reverse one complete successful action, including its FIFO queues.
@@ -239,7 +296,10 @@
         this.board.every(row => row.every(cell => !cell.active || cell.beanColor === cell.baseColor));
     }
 
+    isLost() { return this.trays.every(queue => queue.length === TRAY_CAPACITY) && !this.isWon(); }
+
     hasLegalMove() {
+      if (this.isLost()) return false;
       for (let row = 0; row < this.height; row++) {
         for (let col = 0; col < this.width; col++) {
           if (this.getBestSwap(row, col)) return true;
@@ -251,7 +311,7 @@
       return false;
     }
 
-    isStuck() { return !this.isWon() && !this.hasLegalMove(); }
+    isStuck() { return this.isLost() || (!this.isWon() && !this.hasLegalMove()); }
 
     validateSnapshot(snapshot) {
       assert(snapshot && typeof snapshot === 'object', 'Invalid snapshot');
@@ -304,6 +364,7 @@
 
     // A click either exchanges, takes, or makes no change: never both.
     click(row, col) {
+      if (this.isLost()) return {ok:false, reason:'trays_full'};
       const best = this.getBestSwap(row, col);
       if (best) return this.exchange(row, col);
       return this.take(row, col);
