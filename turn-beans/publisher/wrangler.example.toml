@@ -1,0 +1,18 @@
+# Example only. No route, credentials, or automatic deployment.
+name = "turn-beans-publisher"
+main = "worker.mjs"
+compatibility_date = "2026-11-06"
+workers_dev = false
+
+[vars]
+ENABLED = "false"
+PUBLIC_ORIGIN = "https://vvspicesh.github.io"
+
+# Configure these only after the real authenticated gateways exist.
+# [[services]]
+# binding = "AUTH"
+# service = "your-private-github-oauth-gateway"
+#
+# [[services]]
+# binding = "GITHUB"
+# service = "your-private-github-app-gateway"

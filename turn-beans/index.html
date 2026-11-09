@@ -9,6 +9,16 @@
   <script defer src="./engine.js"></script>
   <script defer src="./levels.js"></script>
   <script defer src="./save-codec.js"></script>
+  <script defer src="./subject-extraction.js"></script>
+  <script defer src="./color-processing.js"></script>
+  <script defer src="./bead-grid.js"></script>
+  <script defer src="./image-processing.js"></script>
+  <script defer src="./region-processing.js"></script>
+  <script defer src="./level-generator.js"></script>
+  <script defer src="./level-document.js"></script>
+  <script defer src="./level-library.js"></script>
+  <script defer src="./level-library-ui.js"></script>
+  <link rel="stylesheet" href="./level-library.css">
   <script defer src="./game.js"></script>
 </head>
 <body>
@@ -20,7 +30,10 @@
     </header>
 
     <section id="levelHome" class="level-home" aria-label="全部关卡">
-      <div class="home-intro"><h2>全部关卡 <span id="homeHearts" class="home-hearts">❤ 0</span></h2><p>选一张拼豆图，开始还原颜色</p><a class="hall-home-link" href="../index.html">← 返回游戏大厅</a></div>
+      <div class="home-intro">
+        <div class="home-intro-copy"><h2>全部关卡 <span id="homeHearts" class="home-hearts">❤ 0</span></h2><p>选一张拼豆图，开始还原颜色</p></div>
+        <nav class="home-actions" aria-label="关卡页面入口"><a class="hall-home-link" href="../index.html">← 返回游戏大厅</a><a class="hall-home-link" href="./generator.html">图片关卡工坊 →</a></nav>
+      </div>
       <div id="levelCards" class="level-cards"></div>
     </section>
 

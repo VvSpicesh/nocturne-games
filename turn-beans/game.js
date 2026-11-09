@@ -17,6 +17,7 @@
     completeHome: $('completeHome'), next: $('nextBtn')
   };
   const levels = listLevels();
+  const cloudLevels = new Map();
   let progress = { currentLevel: '01', completed: [], saves: {}, bestTimes:{}, elapsed:{}, hearts:0 };
   let elapsedBefore = 0, timerEpoch = null, timerInterval = null;
   let level = null, engine = null, previewing = false, animating = false;
@@ -321,7 +322,7 @@
     if (!level || !engine) return;
     const won = engine.isWon() && !previewing;
     const lost = engine.isLost() && !previewing;
-    dom.levelNo.textContent = `第 ${level.id} 关 · ${level.difficulty}`;
+    dom.levelNo.textContent = level.cloud ? `云端关卡 · ${level.difficulty}` : `第 ${level.id} 关 · ${level.difficulty}`;
     dom.levelName.textContent = level.name;
     dom.steps.textContent = String(engine.steps);
     dom.status.textContent = previewing ? '开始' : won ? '已完成' : lost ? '挑战失败' : '点击取豆 / 交换';
@@ -346,7 +347,7 @@
     if (won) {
       dom.completeText.textContent = `${level.name} · ${engine.steps} 步 · ${formatted(elapsedMs())} · ❤ +1`;
       const index = levels.findIndex(item => item.id === level.id);
-      dom.next.textContent = index < levels.length - 1 ? '下一关' : '返回主页';
+      dom.next.textContent = index >= 0 && index < levels.length - 1 ? '下一关' : '返回主页';
     }
     dom.undo.disabled = previewing || animating || engine.history.length === 0;
     dom.restart.disabled = previewing || animating;
@@ -400,7 +401,7 @@
   function startLevel(id, options = {}) {
     pauseTimer();
     cancelPreview(); clearVisualEffects();
-    level = getLevel(id) || getLevel('01');
+    level = cloudLevels.get(id) || getLevel(id) || getLevel('01');
     const restored = !options.fresh && validSavedEngine(progress.saves[level.id], level);
     engine = restored || new TurnBeansEngine(level.initialBoard);
     previewing = !restored || options.fresh;
@@ -761,4 +762,7 @@
   });
   readProgress();
   showHome();
+  if (window.TurnBeansLibraryUI) window.TurnBeansLibraryUI.mount({
+    openLevel(data) { cloudLevels.set(data.id, data); startLevel(data.id, {fresh: progress.completed.includes(data.id)}); }
+  });
 })();

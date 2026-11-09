@@ -1,0 +1,1618 @@
+{
+  "schemaVersion": 1,
+  "id": "subject-demo",
+  "name": "四色主体示例",
+  "width": 32,
+  "height": 32,
+  "palette": {
+    "A": "#463D40",
+    "B": "#73A9D1",
+    "C": "#E57C92",
+    "D": "#F0CE97"
+  },
+  "target": {
+    "rows": [
+      "................................",
+      "................................",
+      "...........CCCCCBBBBB...........",
+      ".........CCCCCCCBBBBBBB.........",
+      ".......CCCCCCCCCBBBBBBBBB.......",
+      ".......CCCCCCCCCBBBBBBBBB.......",
+      "......CCCCCCCCCCBBBBBBBBBB......",
+      "....CCCCCCCCCCCCBBBBBBBBBBB.....",
+      "....CCCCCCCCCCCCBBBBBBBBBBBB....",
+      "...CCCCCCCCCCCCCBBBBBBBBBBBBB...",
+      "...CCCCCCCCCCCCCBBBBBBBBBBBBB...",
+      "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+      "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+      "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+      "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+      "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+      "..DDDDDDDDDDDDDDAAAAAAAAAAAAAA..",
+      "..DDDDDDDDDDDDDDAAAAAAAAAAAAAA..",
+      "..DDDDDDDDDDDDDDAAAAAAAAAAAAAA..",
+      "..DDDDDDDDDDDDDDAAAAAAAAAAAAAA..",
+      "..DDDDDDDDDDDDDDAAAAAAAAAAAAAA..",
+      "...DDDDDDDDDDDDDAAAAAAAAAAAAA...",
+      "...DDDDDDDDDDDDDAAAAAAAAAAAAA...",
+      "....DDDDDDDDDDDDAAAAAAAAAAAA....",
+      "....DDDDDDDDDDDDAAAAAAAAAAA.....",
+      "......DDDDDDDDDDAAAAAAAAAA......",
+      ".......DDDDDDDDDAAAAAAAAA.......",
+      "........DDDDDDDDAAAAAAAA........",
+      ".........DDDDDDDAAAAAAA.........",
+      "...........DDDDDAAAAA...........",
+      "................................",
+      "................................"
+    ]
+  },
+  "variants": {
+    "easy": {
+      "initialRows": [
+        "................................",
+        "................................",
+        "...........DDDDDAAAAA...........",
+        ".........DDDDDDDAAAAAAA.........",
+        ".......DDDDDDDDDAAAAAAAAA.......",
+        ".......DDDDDDDDDAAAAAAAAA.......",
+        "......DDDDDDDDDDAAAAAAAAAA......",
+        "....DDDDDDDDDDDDAAAAAAAAAAA.....",
+        "....DDDDDDDDDDDDAAAAAAAAAAAA....",
+        "...DDDDDDDDDDDDDAAAAAAAAAAAAA...",
+        "...DDCCCCCCCCCCCAAAAAAAAAAAAA...",
+        "..CCCCCCCCCCCCCCAAAAAAAAAAAAAA..",
+        "..CCCCCCCCCCCCCCAAAAAAAAAAAAAA..",
+        "..CCCCCCCCCCCCCCAAAAAAAAAAAAAA..",
+        "..CCCCCCCCCCCCCCAAAAAAAAAAAAAA..",
+        "..CCCCCCCCCCCCCCAAAAAAAAAAAAAB..",
+        "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+        "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+        "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+        "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+        "..CCCCCCCCCCCCCCBBBBBBBBBBBBBB..",
+        "...CCCCCCCCCDDDDBBBBBBBBBBBBB...",
+        "...DDDDDDDDDDDDDBBBBBBBBBBBBB...",
+        "....DDDDDDDDDDDDBBBBBBBBBBBB....",
+        "....DDDDDDDDDDDDBBBBBBBBBBB.....",
+        "......DDDDDDDDDDBBBBBBBBBB......",
+        ".......DDDDDDDDDBBBBBBBBB.......",
+        "........DDDDDDDDBBBBBBBB........",
+        ".........DDDDDDDBBBBBBB.........",
+        "...........DDDDDBBBBB...........",
+        "................................",
+        "................................"
+      ],
+      "solution": [
+        [
+          2,
+          11
+        ],
+        [
+          16,
+          2
+        ],
+        [
+          2,
+          15
+        ],
+        [
+          16,
+          6
+        ],
+        [
+          2,
+          16
+        ],
+        [
+          16,
+          16
+        ],
+        [
+          2,
+          20
+        ],
+        [
+          16,
+          20
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          4,
+          18
+        ],
+        [
+          16,
+          24
+        ],
+        [
+          4,
+          23
+        ],
+        [
+          16,
+          28
+        ],
+        [
+          5,
+          7
+        ],
+        [
+          16,
+          14
+        ],
+        [
+          5,
+          12
+        ],
+        [
+          18,
+          4
+        ],
+        [
+          6,
+          10
+        ],
+        [
+          18,
+          8
+        ],
+        [
+          6,
+          16
+        ],
+        [
+          18,
+          18
+        ],
+        [
+          6,
+          21
+        ],
+        [
+          18,
+          22
+        ],
+        [
+          6,
+          25
+        ],
+        [
+          18,
+          26
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          18,
+          12
+        ],
+        [
+          7,
+          14
+        ],
+        [
+          9,
+          7
+        ],
+        [
+          9,
+          18
+        ],
+        [
+          20,
+          2
+        ],
+        [
+          20,
+          6
+        ],
+        [
+          20,
+          15
+        ],
+        [
+          20,
+          16
+        ],
+        [
+          21,
+          3
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          9,
+          23
+        ],
+        [
+          20,
+          20
+        ],
+        [
+          9,
+          27
+        ],
+        [
+          20,
+          24
+        ],
+        [
+          10,
+          3
+        ],
+        [
+          10,
+          21
+        ],
+        [
+          20,
+          29
+        ],
+        [
+          21,
+          10
+        ],
+        [
+          21,
+          28
+        ],
+        [
+          11,
+          16
+        ],
+        [
+          23,
+          18
+        ],
+        [
+          11,
+          25
+        ],
+        [
+          23,
+          22
+        ],
+        [
+          12,
+          19
+        ],
+        [
+          25,
+          16
+        ],
+        [
+          12,
+          28
+        ],
+        [
+          26,
+          19
+        ],
+        [
+          13,
+          23
+        ],
+        [
+          26,
+          23
+        ],
+        [
+          28,
+          18
+        ],
+        [
+          28,
+          22
+        ]
+      ],
+      "verified": true,
+      "statistics": {
+        "activeBeans": 636,
+        "changedBeans": 474,
+        "recolorRate": 0.7452830188679245,
+        "colorCount": 4,
+        "componentCount": 4,
+        "meanComponentSize": 118.5,
+        "largestComponent": 158,
+        "minimumWrongComponentSize": 79,
+        "singletonComponentCount": 0,
+        "doubletonComponentCount": 0,
+        "singleDoubleComponentRatio": 0,
+        "singleDoubleBeanRatio": 0,
+        "smallComponentBeanRatio": 0,
+        "wrongComponentSizeHistogram": {
+          "1": 0,
+          "2": 0,
+          "3-5": 0,
+          "6-11": 0,
+          "12-23": 0,
+          "24-47": 0,
+          "48+": 4
+        },
+        "pairComponentDistribution": [
+          {
+            "baseColor": "#463D40",
+            "beanColor": "#73A9D1",
+            "wrong": true,
+            "sizes": [
+              158
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#463D40",
+            "wrong": true,
+            "sizes": [
+              158
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#73A9D1",
+            "wrong": false,
+            "sizes": [
+              1
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#E57C92",
+            "wrong": false,
+            "sizes": [
+              81
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#F0CE97",
+            "wrong": true,
+            "sizes": [
+              79
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#E57C92",
+            "wrong": true,
+            "sizes": [
+              79
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#F0CE97",
+            "wrong": false,
+            "sizes": [
+              80
+            ]
+          }
+        ],
+        "clicks": 58,
+        "operations": 90,
+        "automaticOperations": 32,
+        "maxTransfer": 10,
+        "peakTrayTotal": 18,
+        "peakPerTray": [
+          18,
+          0,
+          0
+        ]
+      }
+    },
+    "medium": {
+      "initialRows": [
+        "................................",
+        "................................",
+        "...........AAAAACCCCC...........",
+        ".........AAAAAAACCCCCCC.........",
+        ".......AAAAAAAAACCCCCCCCC.......",
+        ".......AAAAAAAAACCCCCCCCC.......",
+        "......AAAAAAAAADCCCCCCCCCA......",
+        "....DDDDDDDDDDDDAAAAAAAAAAA.....",
+        "....DDDDDDDDDDDDAAAAAAAAAAAA....",
+        "...DDDDDDDDDDDDDAAAAAAAAAAAAA...",
+        "...DBBBBBBBBBBBBAADDDDDDDDDDD...",
+        "..BBBBBBBBBBBBBBDDDDDDDDDDDDDD..",
+        "..BBBBBBBBBBBBBCDDDDDDDDDDDDDD..",
+        "..CCCCCCCCCCCCCCAAAAAAAAAAAAAA..",
+        "..CCCCCCCCCCCCCCAAAAAAAAAAAAAA..",
+        "..CCCCCCCCCCCCCCAAAAAAAAAAABBB..",
+        "..BBBBBBBBBBBBBBBBBBBBBBBBBBBB..",
+        "..BBBBBBBBBBBBBBBBBBBBBBBBBBBB..",
+        "..BBBBBBBBBBBAAABBBBBBBBBBBDDD..",
+        "..AAAAAAAAAAAAAADDDDDDDDDDDDDD..",
+        "..AAAAAAAAAAAAAADDDDDDDDDDDDDD..",
+        "...AAAAAAAACCCCCDDDDDDDDCCCCC...",
+        "...CCCCCCCCCCCCCCCCCCCCCCCCCC...",
+        "....CCCCCCCCCCCCCCCCCCCCCCCC....",
+        "....CCCCCCCCCDDDCCCCCCCCCBB.....",
+        "......DDDDDDDDDDBBBBBBBBBB......",
+        ".......DDDDDDDDDBBBBBBBBB.......",
+        "........DDDDDDDDBBBBBBBB........",
+        ".........DDDDDDDBBBBBBB.........",
+        "...........DDDDDBBBAA...........",
+        "................................",
+        "................................"
+      ],
+      "solution": [
+        [
+          2,
+          11
+        ],
+        [
+          2,
+          15
+        ],
+        [
+          16,
+          16
+        ],
+        [
+          2,
+          16
+        ],
+        [
+          16,
+          21
+        ],
+        [
+          2,
+          20
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          18
+        ],
+        [
+          4,
+          23
+        ],
+        [
+          6,
+          25
+        ],
+        [
+          5,
+          7
+        ],
+        [
+          5,
+          12
+        ],
+        [
+          16,
+          25
+        ],
+        [
+          16,
+          29
+        ],
+        [
+          17,
+          19
+        ],
+        [
+          18,
+          23
+        ],
+        [
+          18,
+          27
+        ],
+        [
+          16,
+          2
+        ],
+        [
+          6,
+          15
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          16,
+          7
+        ],
+        [
+          7,
+          16
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          7,
+          20
+        ],
+        [
+          19,
+          16
+        ],
+        [
+          16,
+          15
+        ],
+        [
+          8,
+          23
+        ],
+        [
+          17,
+          5
+        ],
+        [
+          9,
+          18
+        ],
+        [
+          9,
+          22
+        ],
+        [
+          9,
+          26
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          9,
+          28
+        ],
+        [
+          10,
+          17
+        ],
+        [
+          18,
+          13
+        ],
+        [
+          19,
+          21
+        ],
+        [
+          18,
+          14
+        ],
+        [
+          19,
+          25
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          20,
+          19
+        ],
+        [
+          19,
+          4
+        ],
+        [
+          20,
+          29
+        ],
+        [
+          19,
+          7
+        ],
+        [
+          21,
+          23
+        ],
+        [
+          19,
+          8
+        ],
+        [
+          21,
+          24
+        ],
+        [
+          21,
+          28
+        ],
+        [
+          22,
+          16
+        ],
+        [
+          7,
+          8
+        ],
+        [
+          8,
+          11
+        ],
+        [
+          9,
+          6
+        ],
+        [
+          10,
+          3
+        ],
+        [
+          10,
+          4
+        ],
+        [
+          10,
+          18
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          3
+        ],
+        [
+          21,
+          11
+        ],
+        [
+          22,
+          19
+        ],
+        [
+          23,
+          22
+        ],
+        [
+          24,
+          16
+        ],
+        [
+          10,
+          8
+        ],
+        [
+          10,
+          12
+        ],
+        [
+          10,
+          22
+        ],
+        [
+          10,
+          26
+        ],
+        [
+          21,
+          15
+        ],
+        [
+          22,
+          3
+        ],
+        [
+          22,
+          8
+        ],
+        [
+          11,
+          2
+        ],
+        [
+          11,
+          15
+        ],
+        [
+          12,
+          6
+        ],
+        [
+          12,
+          10
+        ],
+        [
+          12,
+          14
+        ],
+        [
+          23,
+          7
+        ],
+        [
+          24,
+          25
+        ],
+        [
+          25,
+          16
+        ],
+        [
+          11,
+          16
+        ],
+        [
+          11,
+          29
+        ],
+        [
+          12,
+          20
+        ],
+        [
+          12,
+          24
+        ],
+        [
+          13,
+          16
+        ],
+        [
+          13,
+          21
+        ],
+        [
+          13,
+          25
+        ],
+        [
+          13,
+          29
+        ],
+        [
+          14,
+          19
+        ],
+        [
+          15,
+          23
+        ],
+        [
+          25,
+          20
+        ],
+        [
+          27,
+          18
+        ],
+        [
+          28,
+          21
+        ]
+      ],
+      "verified": true,
+      "statistics": {
+        "activeBeans": 636,
+        "changedBeans": 546,
+        "recolorRate": 0.8584905660377359,
+        "colorCount": 4,
+        "componentCount": 14,
+        "meanComponentSize": 39,
+        "largestComponent": 39,
+        "minimumWrongComponentSize": 39,
+        "singletonComponentCount": 0,
+        "doubletonComponentCount": 0,
+        "singleDoubleComponentRatio": 0,
+        "singleDoubleBeanRatio": 0,
+        "smallComponentBeanRatio": 0,
+        "wrongComponentSizeHistogram": {
+          "1": 0,
+          "2": 0,
+          "3-5": 0,
+          "6-11": 0,
+          "12-23": 0,
+          "24-47": 14,
+          "48+": 0
+        },
+        "pairComponentDistribution": [
+          {
+            "baseColor": "#463D40",
+            "beanColor": "#463D40",
+            "wrong": false,
+            "sizes": [
+              2
+            ]
+          },
+          {
+            "baseColor": "#463D40",
+            "beanColor": "#73A9D1",
+            "wrong": true,
+            "sizes": [
+              39,
+              39
+            ]
+          },
+          {
+            "baseColor": "#463D40",
+            "beanColor": "#E57C92",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#463D40",
+            "beanColor": "#F0CE97",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#463D40",
+            "wrong": true,
+            "sizes": [
+              39,
+              39
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#73A9D1",
+            "wrong": false,
+            "sizes": [
+              3
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#E57C92",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#F0CE97",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#463D40",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#73A9D1",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#E57C92",
+            "wrong": false,
+            "sizes": [
+              43
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#F0CE97",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#463D40",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#73A9D1",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#E57C92",
+            "wrong": true,
+            "sizes": [
+              39
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#F0CE97",
+            "wrong": false,
+            "sizes": [
+              42
+            ]
+          }
+        ],
+        "clicks": 88,
+        "operations": 129,
+        "automaticOperations": 41,
+        "maxTransfer": 10,
+        "peakTrayTotal": 29,
+        "peakPerTray": [
+          20,
+          9,
+          0
+        ]
+      }
+    },
+    "hard": {
+      "initialRows": [
+        "................................",
+        "................................",
+        "...........DDDDDCCCCC...........",
+        ".........DDDDDDDCCCCCCC.........",
+        ".......DDDDDDDBBCCCCCCCAA.......",
+        ".......BBBBBBBBBAAAAAAAAA.......",
+        "......BBBBBBBBDDAAAAAAAACC......",
+        "....DDDDDDDDDDDDCCCCCCCCCCC.....",
+        "....DDDDDBBBBBBBCCCCCCAAAAAA....",
+        "...BBBBBBBBBBBBDAAAAAAAAAAAAA...",
+        "...DDDDDDDDDDDDDCCCCCCCCCCCCC...",
+        "..DDDDDBBBBBBBBBCCCCCCAAAAAAAA..",
+        "..BBBBBBBBBBDDDDAAAAAAAAAAACCC..",
+        "..DDDDDDDDDDDDDDCCCCCCCCCCCCCC..",
+        "..DBBBBBBBBBBBBBCCAAAAAAAAAAAA..",
+        "..BBBBBBCCCCCCCCAAAAAAABBBBBBB..",
+        "..AAAAAAAAAAAAAABBBBBBBBBBBBBB..",
+        "..AAAAACCCCCCCCCBBBBBDDDDDDDDD..",
+        "..CCCCCCCCCCAAAADDDDDDDDDDBBBB..",
+        "..AAAAAAAAAAAAAABBBBBBBBBBBBBB..",
+        "..ACCCCCCCCCCCCCBDDDDDDDDDDDDD..",
+        "...CCCCCCAAAAAAADDDDDDBBBBBBB...",
+        "...AAAAAAAAAAAACBBBBBBBBBBBBA...",
+        "....CCCCCCCCCCCCDDDDDDDDDDDD....",
+        "....CCCCCCAAAAAADDDDDDDBBBB.....",
+        "......AAAAAAAAAABBBBBBBBBB......",
+        ".......AAACCCCCCBBBBBDDDD.......",
+        "........CCCCCCCCDDDDDDDD........",
+        ".........CCCCCDDDDDDDDD.........",
+        "...........DDDDDAAAAA...........",
+        "................................",
+        "................................"
+      ],
+      "solution": [
+        [
+          2,
+          11
+        ],
+        [
+          2,
+          15
+        ],
+        [
+          2,
+          16
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          3,
+          19
+        ],
+        [
+          4,
+          23
+        ],
+        [
+          5,
+          16
+        ],
+        [
+          6,
+          24
+        ],
+        [
+          4,
+          13
+        ],
+        [
+          4,
+          14
+        ],
+        [
+          16,
+          2
+        ],
+        [
+          16,
+          8
+        ],
+        [
+          16,
+          16
+        ],
+        [
+          16,
+          22
+        ],
+        [
+          17,
+          6
+        ],
+        [
+          17,
+          20
+        ],
+        [
+          17,
+          21
+        ],
+        [
+          17,
+          7
+        ],
+        [
+          5,
+          7
+        ],
+        [
+          6,
+          14
+        ],
+        [
+          17,
+          12
+        ],
+        [
+          6,
+          15
+        ],
+        [
+          17,
+          13
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          17,
+          14
+        ],
+        [
+          7,
+          5
+        ],
+        [
+          17,
+          15
+        ],
+        [
+          7,
+          6
+        ],
+        [
+          17,
+          26
+        ],
+        [
+          18,
+          2
+        ],
+        [
+          7,
+          7
+        ],
+        [
+          18,
+          10
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          18,
+          12
+        ],
+        [
+          18,
+          16
+        ],
+        [
+          18,
+          15
+        ],
+        [
+          18,
+          24
+        ],
+        [
+          18,
+          26
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          19,
+          16
+        ],
+        [
+          7,
+          11
+        ],
+        [
+          7,
+          16
+        ],
+        [
+          8,
+          22
+        ],
+        [
+          8,
+          27
+        ],
+        [
+          9,
+          16
+        ],
+        [
+          10,
+          16
+        ],
+        [
+          10,
+          22
+        ],
+        [
+          8,
+          4
+        ],
+        [
+          8,
+          8
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          8,
+          14
+        ],
+        [
+          9,
+          3
+        ],
+        [
+          19,
+          4
+        ],
+        [
+          19,
+          18
+        ],
+        [
+          19,
+          29
+        ],
+        [
+          20,
+          2
+        ],
+        [
+          20,
+          16
+        ],
+        [
+          20,
+          17
+        ],
+        [
+          20,
+          3
+        ],
+        [
+          9,
+          5
+        ],
+        [
+          9,
+          15
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          10,
+          3
+        ],
+        [
+          20,
+          22
+        ],
+        [
+          21,
+          7
+        ],
+        [
+          10,
+          7
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          21,
+          14
+        ],
+        [
+          21,
+          21
+        ],
+        [
+          21,
+          22
+        ],
+        [
+          21,
+          27
+        ],
+        [
+          22,
+          3
+        ],
+        [
+          22,
+          16
+        ],
+        [
+          11,
+          5
+        ],
+        [
+          11,
+          7
+        ],
+        [
+          11,
+          12
+        ],
+        [
+          12,
+          2
+        ],
+        [
+          12,
+          10
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          2
+        ],
+        [
+          11,
+          20
+        ],
+        [
+          11,
+          22
+        ],
+        [
+          11,
+          27
+        ],
+        [
+          12,
+          16
+        ],
+        [
+          22,
+          5
+        ],
+        [
+          22,
+          15
+        ],
+        [
+          22,
+          18
+        ],
+        [
+          12,
+          25
+        ],
+        [
+          23,
+          4
+        ],
+        [
+          23,
+          16
+        ],
+        [
+          23,
+          22
+        ],
+        [
+          24,
+          10
+        ],
+        [
+          24,
+          14
+        ],
+        [
+          24,
+          23
+        ],
+        [
+          12,
+          27
+        ],
+        [
+          25,
+          6
+        ],
+        [
+          25,
+          16
+        ],
+        [
+          13,
+          16
+        ],
+        [
+          14,
+          3
+        ],
+        [
+          14,
+          8
+        ],
+        [
+          15,
+          7
+        ],
+        [
+          26,
+          10
+        ],
+        [
+          26,
+          14
+        ],
+        [
+          26,
+          21
+        ],
+        [
+          27,
+          8
+        ],
+        [
+          27,
+          16
+        ],
+        [
+          14,
+          18
+        ],
+        [
+          14,
+          23
+        ],
+        [
+          15,
+          21
+        ],
+        [
+          28,
+          9
+        ]
+      ],
+      "verified": true,
+      "statistics": {
+        "activeBeans": 636,
+        "changedBeans": 608,
+        "recolorRate": 0.9559748427672956,
+        "colorCount": 4,
+        "componentCount": 32,
+        "meanComponentSize": 19,
+        "largestComponent": 19,
+        "minimumWrongComponentSize": 19,
+        "singletonComponentCount": 0,
+        "doubletonComponentCount": 0,
+        "singleDoubleComponentRatio": 0,
+        "singleDoubleBeanRatio": 0,
+        "smallComponentBeanRatio": 0,
+        "wrongComponentSizeHistogram": {
+          "1": 0,
+          "2": 0,
+          "3-5": 0,
+          "6-11": 0,
+          "12-23": 32,
+          "24-47": 0,
+          "48+": 0
+        },
+        "pairComponentDistribution": [
+          {
+            "baseColor": "#463D40",
+            "beanColor": "#463D40",
+            "wrong": false,
+            "sizes": [
+              5,
+              1
+            ]
+          },
+          {
+            "baseColor": "#463D40",
+            "beanColor": "#73A9D1",
+            "wrong": true,
+            "sizes": [
+              19,
+              19,
+              19,
+              19
+            ]
+          },
+          {
+            "baseColor": "#463D40",
+            "beanColor": "#F0CE97",
+            "wrong": true,
+            "sizes": [
+              19,
+              19,
+              19,
+              19
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#463D40",
+            "wrong": true,
+            "sizes": [
+              19,
+              19,
+              19,
+              19
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#73A9D1",
+            "wrong": false,
+            "sizes": [
+              7
+            ]
+          },
+          {
+            "baseColor": "#73A9D1",
+            "beanColor": "#E57C92",
+            "wrong": true,
+            "sizes": [
+              19,
+              19,
+              19,
+              19
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#73A9D1",
+            "wrong": true,
+            "sizes": [
+              19,
+              19,
+              19,
+              19
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#E57C92",
+            "wrong": false,
+            "sizes": [
+              8
+            ]
+          },
+          {
+            "baseColor": "#E57C92",
+            "beanColor": "#F0CE97",
+            "wrong": true,
+            "sizes": [
+              19,
+              19,
+              19,
+              19
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#463D40",
+            "wrong": true,
+            "sizes": [
+              19,
+              19,
+              19,
+              19
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#E57C92",
+            "wrong": true,
+            "sizes": [
+              19,
+              19,
+              19,
+              19
+            ]
+          },
+          {
+            "baseColor": "#F0CE97",
+            "beanColor": "#F0CE97",
+            "wrong": false,
+            "sizes": [
+              7
+            ]
+          }
+        ],
+        "clicks": 110,
+        "operations": 152,
+        "automaticOperations": 42,
+        "maxTransfer": 10,
+        "peakTrayTotal": 48,
+        "peakPerTray": [
+          20,
+          20,
+          8
+        ]
+      }
+    }
+  },
+  "version": 1,
+  "metadata": {
+    "source": {
+      "type": "generated-demo",
+      "name": "four-color-subject"
+    },
+    "createdAt": "2026-11-06T00:00:00.000Z",
+    "updatedAt": "2026-11-09T00:00:00.000Z",
+    "generatorVersion": "phase26.3",
+    "replayMode": "click+autoFillMatchingEmpty"
+  }
+}

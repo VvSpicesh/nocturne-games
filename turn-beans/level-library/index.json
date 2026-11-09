@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "updatedAt": "2026-11-09T00:00:00.000Z",
+  "levels": [
+    {
+      "id": "subject-demo",
+      "name": "四色主体示例",
+      "width": 32,
+      "height": 32,
+      "version": 1,
+      "path": "levels/subject-demo.json",
+      "sha256": "1d805084e404db31ed3dcb4c34a107089502b53a64f52f8627f0a133d8dde143"
+    }
+  ]
+}

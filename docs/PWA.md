@@ -1,6 +1,6 @@
 # Nocturne Games PWA
 
-版本缓存名：`nocturne-games-v2`（见根目录 `service-worker.js`）。
+版本缓存名：`nocturne-games-v117`（见根目录 `service-worker.js`）。
 
 ## 能做什么
 
@@ -36,7 +36,7 @@ python -m http.server 8080
 ### Chrome DevTools → Application
 
 1. **Service Workers**：应看到 `service-worker.js`，状态 activated  
-2. **Cache Storage**：应有 `nocturne-games-v1`  
+2. **Cache Storage**：应有 `nocturne-games-v117`
 3. 勾选 **Offline**  
 4. 刷新大厅；进入 `chess/index.html`、`mahjong/index.html`  
 5. 取消 Offline → Toast「网络已恢复」；再 Offline →「当前为离线模式」  

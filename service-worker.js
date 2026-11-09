@@ -1,5 +1,5 @@
 /* Nocturne Games Service Worker — bump CACHE when precache list or SW logic changes */
-const CACHE = "nocturne-games-v116";
+const CACHE = "nocturne-games-v117";
 
 /** Absolute URLs relative to this SW script (repo root under GitHub Pages). */
 const PRECACHE = [
@@ -24,6 +24,26 @@ const PRECACHE = [
   "./turn-beans/engine.js",
   "./turn-beans/levels.js",
   "./turn-beans/game.js",
+  "./turn-beans/save-codec.js",
+  "./turn-beans/subject-extraction.js",
+  "./turn-beans/color-processing.js",
+  "./turn-beans/bead-grid.js",
+  "./turn-beans/image-processing.js",
+  "./turn-beans/region-processing.js",
+  "./turn-beans/level-generator.js",
+  "./turn-beans/level-document.js",
+  "./turn-beans/level-library.js",
+  "./turn-beans/level-library-ui.js",
+  "./turn-beans/level-library.css",
+  "./turn-beans/generator.html",
+  "./turn-beans/generator.css",
+  "./turn-beans/generator-client.js",
+  "./turn-beans/generator-worker.js",
+  "./turn-beans/preview-renderer.js",
+  "./turn-beans/publish-config.js",
+  "./turn-beans/publisher-client.js",
+  "./turn-beans/publisher-ui.js",
+  "./turn-beans/generator-ui.js",
   "./chess/index.html",
   "./chess/css/board.css?v=stable11",
   "./chess/css/themes.css?v=stable11",

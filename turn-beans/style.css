@@ -210,3 +210,16 @@ button:disabled {opacity:.4;cursor:default}
   opacity: 1 !important;
   filter: none !important;
 }
+
+/* Compact level header with navigation aligned to the far right. */
+.home-intro {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;padding:12px 2px 6px}
+.home-intro-copy {flex:1 1 180px;min-width:0}
+.home-intro h2 {font-size:21px;margin-bottom:4px;color:#765e6e}
+.home-actions {display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px;margin-left:auto}
+.home-actions .hall-home-link {margin-top:0;color:#956078}
+.home-intro p,.level-home .level-card small {color:#88717e}
+.level-home .level-card {color:#755f6c}
+.level-home .home-hearts {color:#b26783;background:#f8eaf0}
+.topbar h1 {color:#705b68}
+.topbar .back {color:#866a7c}
+.topbar .text-button {color:#956078}

@@ -2,7 +2,7 @@
 
 > **Cursor 聊天记录不是项目记忆。** 换电脑 / 新会话时以本文件与 `docs/`、`.cursor/rules/` 为准。
 
-更新日期：2026-08-03
+更新日期：2026-11-09
 
 ## 0. 换机基线（Snapshot）
 
@@ -12,7 +12,7 @@
 | 分支 | `main` |
 | 基线提交 | `db8d3bb`（handoff + verify 已入库）及其后本文件更新提交 |
 | 麻将版本 | **v0.15.24** |
-| SW CACHE | `nocturne-games-v115` |
+| SW CACHE | `nocturne-games-v117` |
 | 正式站点 | https://vvspicesh.github.io/nocturne-games/ |
 | 麻将页 | https://vvspicesh.github.io/nocturne-games/mahjong/ |
 | 统一校验 | `python scripts/verify.py` → 应 `VERIFY OK` |
@@ -28,7 +28,7 @@ Nocturne Games：长期维护的**纯前端**游戏平台（大厅 + 国际象�
 
 ## 2. 当前开发阶段
 
-- 平台：PWA 可用（`nocturne-games-v115`）
+- 平台：PWA 可用（`nocturne-games-v117`）
 - 象棋：Stable 可玩
 - 麻将：血战到底家庭大字版，版本 **v0.15.24**（横屏布局 / 事件提示 / 暗杠显示持续打磨）
 - 工程：跨会话交接文档 + `scripts/verify.py` 已就绪
@@ -141,3 +141,18 @@ python -m http.server 8080
 - 无 ESLint / TypeScript；靠规范与人工 review
 - 部分环境 PATH 无 `node`，需依赖 Cursor helper 或自行安装
 - 麻将 `game.js` 体量大，后续宜拆 AI（见 next_tasks）
+
+
+## 2026-11-09：Turn Beans Phase 26 发布交接
+
+- 发布基线 main / 698d8df；本版包含图片关卡工坊、主体/豆阵识别、原色锁定、多色软限制、
+  区域级三档换色、真实引擎验证、JSON 导出、匿名静态关卡库和授权检查反馈。
+- 工坊入口：turn-beans/generator.html；游戏入口：turn-beans/index.html。
+- 原有六关、engine.js、levels.js 和 Phase 25 棋盘禁用状态颜色修复保留。
+- SW 缓存：nocturne-games-v117；新增工坊运行资源，124 条预缓存，缓存处理逻辑不改。
+- 本地 207 项转豆豆单体通过，统一 VERIFY OK；记录见 docs/test-results/latest-test-result.md。
+- imageInput 原始图片仅本地保留，不作为发布资源。
+- GitHub OAuth/App 发布服务尚未接入：endpoint 为空、发布按钮禁用；检查授权会明确反馈未配置。
+  本次发布静态网站，未部署授权 Worker 或网关。
+- 发布由已有 GitHub Pages 分支工作流完成；状态以本版提交对应的 Actions 结果为准。
+- 后续需真实授权服务配置与浏览器/移动设备视觉、离线和多设备验收；继续遵守纯静态、无 npm 的工程约束。
